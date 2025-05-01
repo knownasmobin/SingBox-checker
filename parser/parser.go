@@ -1,13 +1,13 @@
 package parser
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
 	"xray-checker/models"
+	"xray-checker/pkg/base64"
 )
 
 func ParseProxyURL(proxyURL string) (*models.ProxyConfig, error) {
@@ -123,12 +123,9 @@ func ParseVLESSConfig(u *url.URL) (*models.ProxyConfig, error) {
 
 func ParseVMessConfig(u *url.URL) (*models.ProxyConfig, error) {
 	vmessStr := strings.TrimPrefix(u.String(), "vmess://")
-	decoded, err := base64.StdEncoding.DecodeString(vmessStr)
+	decoded, err := base64.AutoDecode(vmessStr)
 	if err != nil {
-		decoded, err = base64.RawURLEncoding.DecodeString(vmessStr)
-		if err != nil {
-			return nil, fmt.Errorf("error decoding VMess link: %v", err)
-		}
+		return nil, fmt.Errorf("error decoding VMess link: %v", err)
 	}
 
 	var vmessConfig map[string]interface{}
@@ -291,12 +288,9 @@ func ParseShadowsocksConfig(u *url.URL) (*models.ProxyConfig, error) {
 		Settings: make(map[string]string),
 	}
 
-	methodPass, err := base64.URLEncoding.DecodeString(u.User.String())
+	methodPass, err := base64.AutoDecode(u.User.String())
 	if err != nil {
-		methodPass, err = base64.StdEncoding.DecodeString(u.User.String())
-		if err != nil {
-			return nil, fmt.Errorf("error decoding method and password: %v", err)
-		}
+		return nil, fmt.Errorf("error decoding method and password: %v", err)
 	}
 
 	parts := strings.SplitN(string(methodPass), ":", 2)
