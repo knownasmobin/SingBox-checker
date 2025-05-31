@@ -79,7 +79,7 @@ func ParseVLESSConfig(u *url.URL) (*models.ProxyConfig, error) {
 
 	if config.Type == "xhttp" {
 		config.Mode = query.Get("mode")
-		config.ExtraXhttp = query.Get("extra")
+		config.ExtraXhttp, _= strconv.Unquote(query.Get("extra"))
 	}
 
 	if config.Type == "grpc" {
