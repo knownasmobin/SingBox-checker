@@ -5,14 +5,9 @@ import (
 	"strings"
 )
 
-// AutoDecode automatically detects whether the input uses standard or URL-safe Base64,
-// and whether it includes padding or not. It then selects the appropriate decoder
-// from the encoding/base64 package and returns the decoded bytes.
 func AutoDecode(s string) ([]byte, error) {
-	// Detect if the input is URL-safe (contains '-' or '_')
 	isURLSafe := strings.ContainsAny(s, "-_")
 
-	// Detect if the input is padded (ends with '=')
 	isPadded := strings.HasSuffix(s, "=")
 
 	var enc *base64.Encoding
