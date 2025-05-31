@@ -14,7 +14,7 @@ import (
 	"xray-checker/config"
 	"xray-checker/models"
 	"xray-checker/parser"
-	"xray-checker/pkg/base64"
+	"xray-checker/utils"
 	"xray-checker/xray"
 )
 
@@ -33,7 +33,6 @@ func InitializeConfiguration(configFile string) (*[]*models.ProxyConfig, error) 
 	return proxyConfigs, nil
 }
 
-// DetectSourceType определяет тип источника на основе входной строки
 func DetectSourceType(input string) models.SourceType {
 	if strings.HasPrefix(input, "file://") {
 		return models.SourceTypeFile
@@ -47,7 +46,6 @@ func DetectSourceType(input string) models.SourceType {
 	return models.SourceTypeBase64
 }
 
-// ReadFromSource читает конфигурации из указанного источника
 func ReadFromSource(source string) ([]*models.ProxyConfig, error) {
 	sourceType := DetectSourceType(source)
 
@@ -65,15 +63,12 @@ func ReadFromSource(source string) ([]*models.ProxyConfig, error) {
 	}
 }
 
-// readFromURL использует существующую функциональность
 func readFromURL(url string) ([]*models.ProxyConfig, error) {
-	// Используем существующую функцию ParseSubscription
 	return ParseSubscription(url)
 }
 
-// readFromBase64 декодирует base64 строку и парсит содержимое
 func readFromBase64(encodedData string) ([]*models.ProxyConfig, error) {
-	decoded, err := base64.AutoDecode(encodedData)
+	decoded, err := utils.AutoDecode(encodedData)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode base64: %v", err)
 	}
@@ -82,7 +77,6 @@ func readFromBase64(encodedData string) ([]*models.ProxyConfig, error) {
 	return parseProxyLinks(links)
 }
 
-// readFromFile читает конфигурации из JSON файла
 func readFromFile(filepath string) ([]*models.ProxyConfig, error) {
 	file, err := os.Open(filepath)
 	if err != nil {
@@ -93,7 +87,6 @@ func readFromFile(filepath string) ([]*models.ProxyConfig, error) {
 	return parseXrayConfig(file)
 }
 
-// readFromFolder читает конфигурации из всех JSON файлов в папке
 func readFromFolder(folderPath string) ([]*models.ProxyConfig, error) {
 	var allConfigs []*models.ProxyConfig
 
@@ -105,7 +98,7 @@ func readFromFolder(folderPath string) ([]*models.ProxyConfig, error) {
 			configs, err := readFromFile(path)
 			if err != nil {
 				log.Printf("Warning: error parsing file %s: %v", path, err)
-				return nil // Продолжаем обработку других файлов
+				return nil
 			}
 
 			allConfigs = append(allConfigs, configs...)
@@ -124,7 +117,6 @@ func readFromFolder(folderPath string) ([]*models.ProxyConfig, error) {
 	return allConfigs, nil
 }
 
-// parseProxyLinks парсит список ссылок в конфигурации
 func parseProxyLinks(links []string) ([]*models.ProxyConfig, error) {
 	var configs []*models.ProxyConfig
 
@@ -136,9 +128,7 @@ func parseProxyLinks(links []string) ([]*models.ProxyConfig, error) {
 
 		config, err := parser.ParseProxyURL(link)
 		if err != nil {
-			// Проверяем, является ли ошибка связанной с портами 0 или 1
 			if strings.Contains(err.Error(), "skipping port:") {
-				// Извлекаем только необходимую информацию из URL для лога
 				if u, parseErr := url.Parse(link); parseErr == nil {
 					protocol := u.Scheme
 					name := u.Fragment
@@ -150,7 +140,6 @@ func parseProxyLinks(links []string) ([]*models.ProxyConfig, error) {
 				continue
 			}
 
-			// Для остальных ошибок сохраняем прежнее поведение
 			if !isCommonInvalidString(link) {
 				log.Printf("Warning: error parsing proxy URL: %v", err)
 			}
@@ -167,9 +156,7 @@ func parseProxyLinks(links []string) ([]*models.ProxyConfig, error) {
 	return configs, nil
 }
 
-// isCommonInvalidString проверяет строки, которые заведомо не являются валидными конфигурациями
 func isCommonInvalidString(s string) bool {
-	// Список строк, которые мы знаем, что не являются валидными конфигурациями
 	invalidStrings := []string{
 		"False",
 		"True",
@@ -188,7 +175,6 @@ func isCommonInvalidString(s string) bool {
 		}
 	}
 
-	// Проверяем, состоит ли строка только из спецсимволов
 	specials := `"',.;:!@#$%^&*()_+-={}[]<>?/\|`
 	onlySpecials := true
 	for _, char := range s {
@@ -201,18 +187,13 @@ func isCommonInvalidString(s string) bool {
 	return onlySpecials
 }
 
-// parseXrayConfig парсит JSON конфигурацию Xray
 func parseXrayConfig(reader io.Reader) ([]*models.ProxyConfig, error) {
-	// Сначала пробуем прочитать как массив конфигураций
 	var xrayConfigs []models.XrayConfig
 	decoder := json.NewDecoder(reader)
 	if err := decoder.Decode(&xrayConfigs); err != nil {
-		// Если не получилось прочитать как массив, пробуем прочитать как одиночный объект
-		// Сначала перематываем reader в начало
 		if seeker, ok := reader.(io.Seeker); ok {
 			seeker.Seek(0, io.SeekStart)
 		} else {
-			// Если reader не поддерживает Seek, возвращаем оригинальную ошибку
 			return nil, fmt.Errorf("failed to decode JSON array: %v", err)
 		}
 
@@ -225,10 +206,8 @@ func parseXrayConfig(reader io.Reader) ([]*models.ProxyConfig, error) {
 
 	var allConfigs []*models.ProxyConfig
 
-	// Обрабатываем каждую конфигурацию
 	for _, xrayConfig := range xrayConfigs {
 		for _, outbound := range xrayConfig.Outbounds {
-			// Пропускаем служебные outbound'ы
 			if outbound.Tag == "direct" || outbound.Tag == "block" || outbound.Tag == "dns-out" {
 				continue
 			}
@@ -238,12 +217,10 @@ func parseXrayConfig(reader io.Reader) ([]*models.ProxyConfig, error) {
 				Name:     outbound.Tag,
 			}
 
-			// Парсим настройки в зависимости от протокола
 			if err := parseOutboundSettings(config, outbound); err != nil {
 				return nil, fmt.Errorf("failed to parse outbound %s: %v", outbound.Tag, err)
 			}
 
-			// Парсим stream settings
 			if outbound.StreamSettings != nil {
 				parseStreamSettings(config, outbound.StreamSettings)
 			}
@@ -264,7 +241,6 @@ func parseXrayConfig(reader io.Reader) ([]*models.ProxyConfig, error) {
 	return allConfigs, nil
 }
 
-// parseOutboundSettings парсит настройки исходящего соединения
 func parseOutboundSettings(config *models.ProxyConfig, outbound models.XrayOutbound) error {
 	var settings map[string]interface{}
 	if err := json.Unmarshal(outbound.Settings, &settings); err != nil {
@@ -316,7 +292,6 @@ func parseOutboundSettings(config *models.ProxyConfig, outbound models.XrayOutbo
 	return nil
 }
 
-// parseStreamSettings парсит настройки потока
 func parseStreamSettings(config *models.ProxyConfig, settings *models.StreamSettings) {
 	config.Type = settings.Network
 	config.Security = settings.Security
@@ -336,6 +311,15 @@ func parseStreamSettings(config *models.ProxyConfig, settings *models.StreamSett
 		config.Path = settings.WSSettings.Path
 		if host, ok := settings.WSSettings.Headers["Host"]; ok {
 			config.Host = host
+		}
+	}
+
+	if settings.HTTPUpgradeSettings != nil {
+		config.Path = settings.HTTPUpgradeSettings.Path
+		if settings.HTTPUpgradeSettings.Headers != nil {
+			if host, ok := settings.HTTPUpgradeSettings.Headers["Host"]; ok {
+				config.Host = host
+			}
 		}
 	}
 }
@@ -371,7 +355,6 @@ func ParseSubscriptionURL(subscriptionURL string) ([]string, error) {
 		return nil, fmt.Errorf("error parsing URL: %v", err)
 	}
 
-	// Проверяем, что это HTTP/HTTPS URL
 	if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
 		return nil, fmt.Errorf("unsupported protocol scheme for subscription URL: %s", parsedURL.Scheme)
 	}
@@ -403,10 +386,8 @@ func ParseSubscriptionURL(subscriptionURL string) ([]string, error) {
 		return nil, fmt.Errorf("error reading response: %v", err)
 	}
 
-	// Пробуем декодировать как base64
-	decoded, err := base64.AutoDecode(string(body))
+	decoded, err := utils.AutoDecode(string(body))
 	if err != nil {
-		// Если не base64, пробуем как обычный текст
 		return filterEmptyLinks(strings.Split(string(body), "\n")), nil
 	}
 

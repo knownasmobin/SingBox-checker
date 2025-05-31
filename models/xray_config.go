@@ -31,12 +31,13 @@ type XrayOutbound struct {
 }
 
 type StreamSettings struct {
-	Network         string             `json:"network,omitempty"`
-	Security        string             `json:"security,omitempty"`
-	TLSSettings     *TLSSettings       `json:"tlsSettings,omitempty"`
-	RealitySettings *RealitySettings   `json:"realitySettings,omitempty"`
-	WSSettings      *WebSocketSettings `json:"wsSettings,omitempty"`
-	SockOpt         json.RawMessage    `json:"sockopt"`
+	Network             string               `json:"network,omitempty"`
+	Security            string               `json:"security,omitempty"`
+	TLSSettings         *TLSSettings         `json:"tlsSettings,omitempty"`
+	RealitySettings     *RealitySettings     `json:"realitySettings,omitempty"`
+	WSSettings          *WebSocketSettings   `json:"wsSettings,omitempty"`
+	HTTPUpgradeSettings *HTTPUpgradeSettings `json:"httpupgradeSettings,omitempty"`
+	SockOpt             json.RawMessage      `json:"sockopt"`
 }
 
 type TLSSettings struct {
@@ -53,6 +54,11 @@ type RealitySettings struct {
 type WebSocketSettings struct {
 	Path    string            `json:"path"`
 	Headers map[string]string `json:"headers"`
+}
+
+type HTTPUpgradeSettings struct {
+	Path    string            `json:"path"`
+	Headers map[string]string `json:"headers,omitempty"`
 }
 
 type XrayRouting struct {

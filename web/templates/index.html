@@ -406,7 +406,6 @@
         const textArea = document.createElement("textarea");
         textArea.value = text;
 
-        // Prevent scrolling to bottom of page in MS Edge.
         textArea.style.top = "0";
         textArea.style.left = "0";
         textArea.style.position = "fixed";
@@ -453,7 +452,6 @@
           })
           .catch((err) => {
             console.error("Failed to copy text: ", err);
-            // Если Clipboard API не сработал, используем fallback
             fallbackCopyTextToClipboard(fullUrl, button);
           });
       }

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"xray-checker/models"
-	"xray-checker/pkg/base64"
+	"xray-checker/utils"
 )
 
 func ParseProxyURL(proxyURL string) (*models.ProxyConfig, error) {
@@ -79,7 +79,10 @@ func ParseVLESSConfig(u *url.URL) (*models.ProxyConfig, error) {
 
 	if config.Type == "xhttp" {
 		config.Mode = query.Get("mode")
-		config.ExtraXhttp, _= strconv.Unquote(query.Get("extra"))
+		config.ExtraXhttp, _ = strconv.Unquote(query.Get("extra"))
+	}
+
+	if config.Type == "httpupgrade" {
 	}
 
 	if config.Type == "grpc" {
@@ -123,7 +126,7 @@ func ParseVLESSConfig(u *url.URL) (*models.ProxyConfig, error) {
 
 func ParseVMessConfig(u *url.URL) (*models.ProxyConfig, error) {
 	vmessStr := strings.TrimPrefix(u.String(), "vmess://")
-	decoded, err := base64.AutoDecode(vmessStr)
+	decoded, err := utils.AutoDecode(vmessStr)
 	if err != nil {
 		return nil, fmt.Errorf("error decoding VMess link: %v", err)
 	}
@@ -288,7 +291,7 @@ func ParseShadowsocksConfig(u *url.URL) (*models.ProxyConfig, error) {
 		Settings: make(map[string]string),
 	}
 
-	methodPass, err := base64.AutoDecode(u.User.String())
+	methodPass, err := utils.AutoDecode(u.User.String())
 	if err != nil {
 		return nil, fmt.Errorf("error decoding method and password: %v", err)
 	}

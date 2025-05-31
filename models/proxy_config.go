@@ -160,6 +160,10 @@ func (pc *ProxyConfig) HasGRPCSettings() bool {
 	return pc.Type == "grpc" && pc.ServiceName != ""
 }
 
+func (pc *ProxyConfig) HasHTTPUpgradeSettings() bool {
+	return pc.Type == "httpupgrade"
+}
+
 func (pc *ProxyConfig) GetServiceName() string {
 	if pc.ServiceName == "" {
 		return "GunService"

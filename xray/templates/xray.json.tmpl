@@ -165,7 +165,18 @@
     "wsSettings": {
       "path": "{{.Path}}",
       "host": "{{.Host}}",
-      "headers": {}
+      "headers": {
+        "Host": "{{.Host}}"
+      }
+    }
+    {{- end }}
+
+    {{- if and .Type (eq .Type "httpupgrade") }},
+    "httpupgradeSettings": {
+      "path": "{{.Path}}"
+      {{- if .Host }},
+      "host": "{{.Host}}"
+      {{- end }}
     }
     {{- end }}
 
