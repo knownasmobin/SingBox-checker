@@ -1,4 +1,4 @@
-package xray
+package singbox
 
 import (
 	"bytes"
@@ -15,20 +15,20 @@ import (
 )
 
 type TemplateData struct {
-	Proxies      []*models.ProxyConfig
-	StartPort    int
-	XrayLogLevel string
+	Proxies   []*models.ProxyConfig
+	StartPort int
+	LogLevel  string
 }
 
-func generateConfig(proxies []*models.ProxyConfig, startPort int, xrayLogLevel string) ([]byte, error) {
+func generateConfig(proxies []*models.ProxyConfig, startPort int, logLevel string) ([]byte, error) {
 	if len(proxies) == 0 {
 		return nil, fmt.Errorf("no valid proxy configurations found")
 	}
 
 	data := TemplateData{
-		Proxies:      proxies,
-		StartPort:    startPort,
-		XrayLogLevel: xrayLogLevel,
+		Proxies:   proxies,
+		StartPort: startPort,
+		LogLevel:  logLevel,
 	}
 
 	funcMap := template.FuncMap{
@@ -42,9 +42,9 @@ func generateConfig(proxies []*models.ProxyConfig, startPort int, xrayLogLevel s
 		},
 	}
 
-	tmpl, err := template.New("xray.json.tmpl").
+	tmpl, err := template.New("singbox.json.tmpl").
 		Funcs(funcMap).
-		ParseFS(templates, "templates/xray.json.tmpl")
+		ParseFS(templates, "templates/singbox.json.tmpl")
 	if err != nil {
 		return nil, fmt.Errorf("error parsing template: %v", err)
 	}
@@ -80,8 +80,8 @@ func PrepareProxyConfigs(proxies []*models.ProxyConfig) {
 	}
 }
 
-func GenerateAndSaveConfig(proxies []*models.ProxyConfig, startPort int, filename string, xrayLogLevel string) error {
-	configBytes, err := generateConfig(proxies, startPort, xrayLogLevel)
+func GenerateAndSaveConfig(proxies []*models.ProxyConfig, startPort int, filename string, logLevel string) error {
+	configBytes, err := generateConfig(proxies, startPort, logLevel)
 	if err != nil {
 		return fmt.Errorf("error generating config: %v", err)
 	}
@@ -94,30 +94,30 @@ func GenerateAndSaveConfig(proxies []*models.ProxyConfig, startPort int, filenam
 }
 
 func UpdateConfiguration(newConfigs []*models.ProxyConfig, currentConfigs *[]*models.ProxyConfig,
-	xrayRunner *runner.XrayRunner, proxyChecker *checker.ProxyChecker) error {
+	singboxRunner *runner.SingboxRunner, proxyChecker *checker.ProxyChecker) error {
 
 	log.Println("Found changes in subscription, updating configuration...")
 
 	PrepareProxyConfigs(newConfigs)
 
-	configFile := "xray_config.json"
-	if err := GenerateAndSaveConfig(newConfigs, config.CLIConfig.Xray.StartPort, configFile, config.CLIConfig.Xray.LogLevel); err != nil {
-		return fmt.Errorf("error generating new Xray config: %v", err)
+	configFile := "singbox_config.json"
+	if err := GenerateAndSaveConfig(newConfigs, config.CLIConfig.Singbox.StartPort, configFile, config.CLIConfig.Singbox.LogLevel); err != nil {
+		return fmt.Errorf("error generating new Singbox config: %v", err)
 	}
 
-	if err := xrayRunner.Stop(); err != nil {
-		return fmt.Errorf("error stopping Xray: %v", err)
+	if err := singboxRunner.Stop(); err != nil {
+		return fmt.Errorf("error stopping Singbox: %v", err)
 	}
 
-	if err := xrayRunner.Start(); err != nil {
-		return fmt.Errorf("error starting Xray with new config: %v", err)
+	if err := singboxRunner.Start(); err != nil {
+		return fmt.Errorf("error starting Singbox with new config: %v", err)
 	}
 
 	proxyChecker.UpdateProxies(newConfigs)
 
 	*currentConfigs = newConfigs
 
-	web.RegisterConfigEndpoints(newConfigs, proxyChecker, config.CLIConfig.Xray.StartPort)
+	web.RegisterConfigEndpoints(newConfigs, proxyChecker, config.CLIConfig.Singbox.StartPort)
 
 	log.Println("Configuration updated successfully")
 	return nil

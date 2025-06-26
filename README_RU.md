@@ -1,4 +1,4 @@
-# Xray Checker
+# Singbox Checker
 
 [![GitHub Release](https://img.shields.io/github/v/release/kutovoys/xray-checker?style=flat&color=blue)](https://github.com/kutovoys/xray-checker/releases/latest)
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/kutovoys/xray-checker/build-publish.yml)](https://github.com/kutovoys/xray-checker/actions/workflows/build-publish.yml)
@@ -8,7 +8,7 @@
 [![ru](https://img.shields.io/badge/lang-ru-blue)](https://github.com/kutovoys/xray-checker/blob/main/README_RU.md)
 [![en](https://img.shields.io/badge/lang-en-red)](https://github.com/kutovoys/xray-checker/blob/main/README.md)
 
-Xray Checker - это инструмент для мониторинга доступности прокси-серверов с поддержкой протоколов VLESS, VMess, Trojan и Shadowsocks. Он автоматически тестирует соединения через Xray Core и предоставляет метрики для Prometheus, а также API-эндпоинты для интеграции с системами мониторинга.
+Singbox Checker - это инструмент для мониторинга доступности прокси-серверов с поддержкой протоколов VLESS, VMess, Trojan и Shadowsocks. Он автоматически тестирует соединения через Singbox и предоставляет метрики для Prometheus, а также API-эндпоинты для интеграции с системами мониторинга.
 
 <div align="center">
   <img src=".github/screen/xray-checker.png" alt="Dashboard Screenshot">
@@ -68,7 +68,7 @@ services:
 
 ## 🤝 Участие в разработке
 
-Мы рады любому вкладу в развитие Xray Checker! Если вы хотите помочь:
+Мы рады любому вкладу в развитие Singbox Checker! Если вы хотите помочь:
 
 1. Сделайте форк репозитория
 2. Создайте ветку для ваших изменений
@@ -78,7 +78,7 @@ services:
 Подробнее о том, как внести свой вклад, читайте в [руководстве для контрибьюторов](https://xray-checker.kutovoy.dev/ru/contributing/development-guide).
 
 <p align="center">
-Спасибо всем контрибьюторам, которые помогли улучшить Xray Checker:
+Спасибо всем контрибьюторам, которые помогли улучшить Singbox Checker:
 </p>
 <p align="center">
 <a href="https://github.com/kutovoys/xray-checker/graphs/contributors">

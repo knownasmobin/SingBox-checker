@@ -10,8 +10,8 @@ var CLIConfig CLI
 
 func Parse(version string) {
 	ctx := kong.Parse(&CLIConfig,
-		kong.Name("xray-checker"),
-		kong.Description("Xray Checker: A Prometheus exporter for monitoring Xray proxies"),
+		kong.Name("singbox-checker"),
+		kong.Description("Singbox Checker: A Prometheus exporter for monitoring Singbox proxies"),
 		kong.Vars{
 			"version": version,
 		},
@@ -35,9 +35,9 @@ type CLI struct {
 		SimulateLatency bool   `name:"simulate-latency" help:"Whether to add latency to the response" default:"true" env:"SIMULATE_LATENCY"`
 	} `embed:"" prefix:""`
 
-	Xray struct {
-		StartPort int    `name:"xray-start-port" help:"Start port for proxy configuration" default:"10000" env:"XRAY_START_PORT"`
-		LogLevel  string `name:"xray-log-level" help:"Xray log level (debug|info|warning|error|none)" default:"none" env:"XRAY_LOG_LEVEL"`
+	Singbox struct {
+		StartPort int    `name:"singbox-start-port" help:"Start port for proxy configuration" default:"10000" env:"SINGBOX_START_PORT"`
+		LogLevel  string `name:"singbox-log-level" help:"Singbox log level (debug|info|warning|error|none)" default:"none" env:"SINGBOX_LOG_LEVEL"`
 	} `embed:"" prefix:""`
 
 	Metrics struct {
@@ -48,7 +48,7 @@ type CLI struct {
 		Password  string `name:"metrics-password" help:"Password for metrics if protected by basic auth" default:"MetricsVeryHardPassword" env:"METRICS_PASSWORD"`
 		Instance  string `name:"metrics-instance" help:"Instance label for metrics" default:"" env:"METRICS_INSTANCE"`
 		PushURL   string `name:"metrics-push-url" help:"Prometheus pushgateway URL (e.g. https://user:pass@host:port)" default:"" env:"METRICS_PUSH_URL"`
-		BasePath  string `name:"metrics-base-path" help:"URL path to metrics (e.g. /xray/metrics)" default:"" env:"METRICS_BASE_PATH"`
+		BasePath  string `name:"metrics-base-path" help:"URL path to metrics (e.g. /singbox/metrics)" default:"" env:"METRICS_BASE_PATH"`
 	} `embed:"" prefix:""`
 
 	Version VersionFlag `name:"version" help:"Print version information and quit"`
@@ -60,9 +60,9 @@ type VersionFlag string
 func (v VersionFlag) Decode(ctx *kong.DecodeContext) error { return nil }
 func (v VersionFlag) IsBool() bool                         { return true }
 func (v VersionFlag) BeforeApply(app *kong.Kong, vars kong.Vars) error {
-	fmt.Println("Xray Checker: A Prometheus exporter for monitoring Xray proxies")
+	fmt.Println("Singbox Checker: A Prometheus exporter for monitoring Singbox proxies")
 	fmt.Printf("Version:\t %s\n", vars["version"])
-	fmt.Printf("GitHub: https://github.com/kutovoys/xray-checker\n")
+	fmt.Printf("GitHub: https://github.com/kutovoys/singbox-checker\n")
 	app.Exit(0)
 	return nil
 }
