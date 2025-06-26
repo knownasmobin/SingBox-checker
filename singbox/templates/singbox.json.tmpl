@@ -1,7 +1,7 @@
 {{/* Base template structure */}}
 {
   "log": {
-    "loglevel": "{{.XrayLogLevel}}"
+    "loglevel": "{{.LogLevel}}"
   },
   "inbounds": [
     {{- range $index, $proxy := .Proxies }}
