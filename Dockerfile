@@ -33,10 +33,11 @@ RUN case "${TARGETARCH}" in \
       "arm64") ARCH="arm64" ;; \
       *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;; \
     esac && \
-    curl -L -o /sing-box.tgz https://github.com/SagerNet/sing-box/releases/latest/download/sing-box-1.8.0-linux-${ARCH}.tar.gz && \
-    tar -xzf /sing-box.tgz -C / && \
-    mv /sing-box-*/sing-box /usr/local/bin/sing-box && \
-    chmod +x /usr/local/bin/sing-box
+    curl -sL -o /sing-box.tgz "https://github.com/SagerNet/sing-box/releases/download/v1.11.14/sing-box-1.11.14-linux-${ARCH}.tar.gz" && \
+    tar -xzf /sing-box.tgz -C / --strip-components=1 && \
+    mv /sing-box /usr/local/bin/sing-box && \
+    chmod +x /usr/local/bin/sing-box && \
+    rm -rf /sing-box.tgz /sing-box-*
 
 # Final stage
 FROM --platform=${BUILDPLATFORM:-linux/amd64} gcr.io/distroless/static:nonroot
