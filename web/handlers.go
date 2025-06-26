@@ -28,7 +28,7 @@ func IndexHandler(version string, proxyChecker *checker.ProxyChecker) http.Handl
 			return
 		}
 
-		RegisterConfigEndpoints(proxyChecker.GetProxies(), proxyChecker, config.CLIConfig.Xray.StartPort)
+		RegisterConfigEndpoints(proxyChecker.GetProxies(), proxyChecker, config.CLIConfig.Singbox.StartPort)
 
 		data := PageData{
 			Version:                    version,
@@ -42,7 +42,7 @@ func IndexHandler(version string, proxyChecker *checker.ProxyChecker) http.Handl
 			Timeout:                    config.CLIConfig.Proxy.Timeout,
 			SubscriptionUpdate:         config.CLIConfig.Subscription.Update,
 			SubscriptionUpdateInterval: config.CLIConfig.Subscription.UpdateInterval,
-			StartPort:                  config.CLIConfig.Xray.StartPort,
+			StartPort:                  config.CLIConfig.Singbox.StartPort,
 			Instance:                   config.CLIConfig.Metrics.Instance,
 			PushUrl:                    metrics.GetPushURL(config.CLIConfig.Metrics.PushURL),
 			Endpoints:                  registeredEndpoints,
