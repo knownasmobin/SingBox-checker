@@ -10,18 +10,20 @@ import (
 	"sync"
 	"time"
 
-	"xray-checker/metrics"
-	"xray-checker/models"
+	"github.com/knownasmobin/singbox-checker/metrics"
+	"github.com/knownasmobin/singbox-checker/models"
 )
 
+// ProxyChecker checks the status and latency of proxies, manages metrics, and fetches current IP.
+// currentMetrics and latencyMetrics use sync.Map for concurrent access from checker goroutines and web handlers.
 type ProxyChecker struct {
 	proxies        []*models.ProxyConfig
 	startPort      int
 	ipCheck        string
 	currentIP      string
 	httpClient     *http.Client
-	currentMetrics sync.Map
-	latencyMetrics sync.Map
+	currentMetrics sync.Map // map[string]bool
+	latencyMetrics sync.Map // map[string]time.Duration
 	ipInitialized  bool
 	ipCheckTimeout int
 	genMethodURL   string
@@ -29,6 +31,7 @@ type ProxyChecker struct {
 	instance       string
 }
 
+// NewProxyChecker creates a new ProxyChecker instance.
 func NewProxyChecker(proxies []*models.ProxyConfig, startPort int, ipCheckURL string, ipCheckTimeout int, genMethodURL string, checkMethod string, instance string) *ProxyChecker {
 	return &ProxyChecker{
 		proxies:   proxies,
@@ -44,6 +47,7 @@ func NewProxyChecker(proxies []*models.ProxyConfig, startPort int, ipCheckURL st
 	}
 }
 
+// GetCurrentIP fetches and caches the current public IP address.
 func (pc *ProxyChecker) GetCurrentIP() (string, error) {
 	if pc.ipInitialized && pc.currentIP != "" {
 		return pc.currentIP, nil
@@ -51,13 +55,13 @@ func (pc *ProxyChecker) GetCurrentIP() (string, error) {
 
 	resp, err := pc.httpClient.Get(pc.ipCheck)
 	if err != nil {
-		return "", fmt.Errorf("error getting current IP: %v", err)
+		return "", fmt.Errorf("get current IP from %s: %w", pc.ipCheck, err)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("error reading response: %v", err)
+		return "", fmt.Errorf("read IP response: %w", err)
 	}
 
 	pc.currentIP = string(body)

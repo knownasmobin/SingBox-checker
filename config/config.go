@@ -10,8 +10,8 @@ var CLIConfig CLI
 
 func Parse(version string) {
 	ctx := kong.Parse(&CLIConfig,
-		kong.Name("xray-checker"),
-		kong.Description("Xray Checker: A Prometheus exporter for monitoring Xray proxies"),
+		kong.Name("singbox-checker"),
+		kong.Description("SingBox Checker: A Prometheus exporter for monitoring SingBox proxies"),
 		kong.Vars{
 			"version": version,
 		},
@@ -35,9 +35,10 @@ type CLI struct {
 		SimulateLatency bool   `name:"simulate-latency" help:"Whether to add latency to the response" default:"true" env:"SIMULATE_LATENCY"`
 	} `embed:"" prefix:""`
 
-	Xray struct {
-		StartPort int    `name:"xray-start-port" help:"Start port for proxy configuration" default:"10000" env:"XRAY_START_PORT"`
-		LogLevel  string `name:"xray-log-level" help:"Xray log level (debug|info|warning|error|none)" default:"none" env:"XRAY_LOG_LEVEL"`
+	SingBox struct {
+		StartPort int    `name:"singbox-start-port" help:"Start port for proxy configuration" default:"10000" env:"SINGBOX_START_PORT"`
+		LogLevel  string `name:"singbox-log-level" help:"SingBox log level (trace|debug|info|warn|error|fatal|panic|none)" default:"info" env:"SINGBOX_LOG_LEVEL"`
+		ConfigDir string `name:"singbox-config-dir" help:"Directory to store SingBox configuration files" default:"./config" env:"SINGBOX_CONFIG_DIR"`
 	} `embed:"" prefix:""`
 
 	Metrics struct {
@@ -48,7 +49,7 @@ type CLI struct {
 		Password  string `name:"metrics-password" help:"Password for metrics if protected by basic auth" default:"MetricsVeryHardPassword" env:"METRICS_PASSWORD"`
 		Instance  string `name:"metrics-instance" help:"Instance label for metrics" default:"" env:"METRICS_INSTANCE"`
 		PushURL   string `name:"metrics-push-url" help:"Prometheus pushgateway URL (e.g. https://user:pass@host:port)" default:"" env:"METRICS_PUSH_URL"`
-		BasePath  string `name:"metrics-base-path" help:"URL path to metrics (e.g. /xray/metrics)" default:"" env:"METRICS_BASE_PATH"`
+		BasePath  string `name:"metrics-base-path" help:"URL path to metrics (e.g. /singbox/metrics)" default:"" env:"METRICS_BASE_PATH"`
 	} `embed:"" prefix:""`
 
 	Version VersionFlag `name:"version" help:"Print version information and quit"`

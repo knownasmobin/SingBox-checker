@@ -6,10 +6,11 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"xray-checker/models"
-	"xray-checker/utils"
+	"github.com/knownasmobin/singbox-checker/models"
+	"github.com/knownasmobin/singbox-checker/utils"
 )
 
+// ParseProxyURL parses a proxy URL string and returns a ProxyConfig.
 func ParseProxyURL(proxyURL string) (*models.ProxyConfig, error) {
 	proxyURL = strings.TrimSpace(proxyURL)
 	if proxyURL == "" {
@@ -18,7 +19,7 @@ func ParseProxyURL(proxyURL string) (*models.ProxyConfig, error) {
 
 	u, err := url.Parse(proxyURL)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing proxy URL: %v", err)
+		return nil, fmt.Errorf("error parsing proxy URL: %w", err)
 	}
 
 	if u.Scheme == "" {

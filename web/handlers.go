@@ -5,14 +5,16 @@ import (
 	"net/http"
 	"strings"
 	"time"
-	"xray-checker/checker"
-	"xray-checker/config"
-	"xray-checker/metrics"
-	"xray-checker/models"
+
+	"github.com/knownasmobin/singbox-checker/checker"
+	"github.com/knownasmobin/singbox-checker/config"
+	"github.com/knownasmobin/singbox-checker/metrics"
+	"github.com/knownasmobin/singbox-checker/models"
 )
 
 var registeredEndpoints []EndpointInfo
 
+// EndpointInfo contains metadata for a proxy endpoint exposed in the web UI.
 type EndpointInfo struct {
 	Name      string
 	URL       string
@@ -21,6 +23,7 @@ type EndpointInfo struct {
 	Latency   time.Duration
 }
 
+// IndexHandler returns an HTTP handler for the root dashboard page.
 func IndexHandler(version string, proxyChecker *checker.ProxyChecker) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
@@ -28,7 +31,7 @@ func IndexHandler(version string, proxyChecker *checker.ProxyChecker) http.Handl
 			return
 		}
 
-		RegisterConfigEndpoints(proxyChecker.GetProxies(), proxyChecker, config.CLIConfig.Xray.StartPort)
+		RegisterConfigEndpoints(proxyChecker.GetProxies(), proxyChecker, config.CLIConfig.SingBox.StartPort)
 
 		data := PageData{
 			Version:                    version,
@@ -42,7 +45,8 @@ func IndexHandler(version string, proxyChecker *checker.ProxyChecker) http.Handl
 			Timeout:                    config.CLIConfig.Proxy.Timeout,
 			SubscriptionUpdate:         config.CLIConfig.Subscription.Update,
 			SubscriptionUpdateInterval: config.CLIConfig.Subscription.UpdateInterval,
-			StartPort:                  config.CLIConfig.Xray.StartPort,
+			StartPort:                  config.CLIConfig.SingBox.StartPort,
+			ConfigDir:                  config.CLIConfig.SingBox.ConfigDir,
 			Instance:                   config.CLIConfig.Metrics.Instance,
 			PushUrl:                    metrics.GetPushURL(config.CLIConfig.Metrics.PushURL),
 			Endpoints:                  registeredEndpoints,
@@ -114,10 +118,13 @@ func ConfigStatusHandler(proxyChecker *checker.ProxyChecker) http.HandlerFunc {
 func RegisterConfigEndpoints(proxies []*models.ProxyConfig, proxyChecker *checker.ProxyChecker, startPort int) {
 	registeredEndpoints = make([]EndpointInfo, 0, len(proxies))
 
-	for _, proxy := range proxies {
+	for i, proxy := range proxies {
 		if proxy.StableID == "" {
 			proxy.StableID = proxy.GenerateStableID()
 		}
+
+		// Ensure the proxy has an index
+		proxy.Index = i
 
 		endpoint := fmt.Sprintf("./config/%s", proxy.StableID)
 
@@ -126,7 +133,7 @@ func RegisterConfigEndpoints(proxies []*models.ProxyConfig, proxyChecker *checke
 		registeredEndpoints = append(registeredEndpoints, EndpointInfo{
 			Name:      fmt.Sprintf("%s (%s:%d)", proxy.Name, proxy.Server, proxy.Port),
 			URL:       endpoint,
-			ProxyPort: startPort + proxy.Index,
+			ProxyPort: startPort + i,
 			Status:    status,
 			Latency:   latency,
 		})

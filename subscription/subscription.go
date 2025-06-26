@@ -1,22 +1,22 @@
 package subscription
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
-	"xray-checker/config"
-	"xray-checker/models"
-	"xray-checker/parser"
-	"xray-checker/utils"
-	"xray-checker/xray"
+	"github.com/knownasmobin/singbox-checker/config"
+	"github.com/knownasmobin/singbox-checker/models"
+	"github.com/knownasmobin/singbox-checker/parser"
+	"github.com/knownasmobin/singbox-checker/utils"
 )
+
 
 func InitializeConfiguration(configFile string) (*[]*models.ProxyConfig, error) {
 	configs, err := ReadFromSource(config.CLIConfig.Subscription.URL)
@@ -25,9 +25,9 @@ func InitializeConfiguration(configFile string) (*[]*models.ProxyConfig, error) 
 	}
 	proxyConfigs := &configs
 
-	xray.PrepareProxyConfigs(*proxyConfigs)
-	if err := xray.GenerateAndSaveConfig(*proxyConfigs, config.CLIConfig.Xray.StartPort, configFile, config.CLIConfig.Xray.LogLevel); err != nil {
-		return nil, fmt.Errorf("error generating Xray config: %v", err)
+	// Initialize SingBox configuration
+	if err := InitializeSingBoxConfig(*proxyConfigs, configFile); err != nil {
+		return nil, fmt.Errorf("error generating SingBox config: %v", err)
 	}
 
 	return proxyConfigs, nil
@@ -78,13 +78,24 @@ func readFromBase64(encodedData string) ([]*models.ProxyConfig, error) {
 }
 
 func readFromFile(filepath string) ([]*models.ProxyConfig, error) {
-	file, err := os.Open(filepath)
+	// First, read the entire file content
+	content, err := os.ReadFile(filepath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open file: %v", err)
+		return nil, fmt.Errorf("failed to read file: %v", err)
 	}
-	defer file.Close()
 
-	return parseXrayConfig(file)
+	// First, try to parse as a SingBox config file
+	var config map[string]interface{}
+	if err := json.Unmarshal(content, &config); err == nil {
+		// If it's a valid JSON, try to parse as a SingBox config
+		if _, ok := config["outbounds"]; ok {
+			return parseSingBoxConfig(bytes.NewReader(content))
+		}
+	}
+
+	// If not a SingBox config, try to parse as a list of proxy URLs
+	links := strings.Split(strings.TrimSpace(string(content)), "\n")
+	return parseProxyLinks(links)
 }
 
 func readFromFolder(folderPath string) ([]*models.ProxyConfig, error) {
@@ -97,7 +108,7 @@ func readFromFolder(folderPath string) ([]*models.ProxyConfig, error) {
 		if !info.IsDir() && strings.HasSuffix(strings.ToLower(info.Name()), ".json") {
 			configs, err := readFromFile(path)
 			if err != nil {
-				log.Printf("Warning: error parsing file %s: %v", path, err)
+				fmt.Printf("Warning: error parsing file %s: %v\n", path, err)
 				return nil
 			}
 
@@ -107,7 +118,7 @@ func readFromFolder(folderPath string) ([]*models.ProxyConfig, error) {
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to walk folder: %v", err)
+		return nil, fmt.Errorf("failed to walk folder: %w", err)
 	}
 
 	if len(allConfigs) == 0 {
@@ -135,13 +146,13 @@ func parseProxyLinks(links []string) ([]*models.ProxyConfig, error) {
 					if name != "" {
 						name = ", name: " + name
 					}
-					log.Printf("Skipped %s config with info ports(0,1)%s", protocol, name)
+					fmt.Printf("Skipped %s config with info ports(0,1)%s\n", protocol, name)
 				}
 				continue
 			}
 
 			if !isCommonInvalidString(link) {
-				log.Printf("Warning: error parsing proxy URL: %v", err)
+				fmt.Printf("Warning: error parsing proxy URL: %v\n", err)
 			}
 			continue
 		}
@@ -187,141 +198,155 @@ func isCommonInvalidString(s string) bool {
 	return onlySpecials
 }
 
-func parseXrayConfig(reader io.Reader) ([]*models.ProxyConfig, error) {
-	var xrayConfigs []models.XrayConfig
-	decoder := json.NewDecoder(reader)
-	if err := decoder.Decode(&xrayConfigs); err != nil {
-		if seeker, ok := reader.(io.Seeker); ok {
-			seeker.Seek(0, io.SeekStart)
-		} else {
-			return nil, fmt.Errorf("failed to decode JSON array: %v", err)
+// parseSingBoxConfig parses a SingBox configuration from the given reader.
+func parseSingBoxConfig(reader io.Reader) ([]*models.ProxyConfig, error) {
+	var config map[string]interface{}
+	if err := json.NewDecoder(reader).Decode(&config); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal SingBox config: %w", err)
+	}
+
+	outbounds, ok := config["outbounds"].([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid SingBox config: missing outbounds")
+	}
+
+	var proxyConfigs []*models.ProxyConfig
+
+	for _, outbound := range outbounds {
+		out, ok := outbound.(map[string]interface{})
+		if !ok {
+			continue
 		}
 
-		var singleConfig models.XrayConfig
-		if err := json.NewDecoder(reader).Decode(&singleConfig); err != nil {
-			return nil, fmt.Errorf("failed to decode JSON: %v", err)
+		// Skip non-proxy outbounds
+		tag, _ := out["tag"].(string)
+		if tag == "" || tag == "direct" || tag == "block" || tag == "dns-out" {
+			continue
 		}
-		xrayConfigs = []models.XrayConfig{singleConfig}
-	}
 
-	var allConfigs []*models.ProxyConfig
-
-	for _, xrayConfig := range xrayConfigs {
-		for _, outbound := range xrayConfig.Outbounds {
-			if outbound.Tag == "direct" || outbound.Tag == "block" || outbound.Tag == "dns-out" {
-				continue
-			}
-
-			config := &models.ProxyConfig{
-				Protocol: outbound.Protocol,
-				Name:     outbound.Tag,
-			}
-
-			if err := parseOutboundSettings(config, outbound); err != nil {
-				return nil, fmt.Errorf("failed to parse outbound %s: %v", outbound.Tag, err)
-			}
-
-			if outbound.StreamSettings != nil {
-				parseStreamSettings(config, outbound.StreamSettings)
-			}
-
-			if err := config.Validate(); err != nil {
-				log.Printf("Warning: skipping invalid config %s: %v", config.Name, err)
-				continue
-			}
-
-			allConfigs = append(allConfigs, config)
+		// Create a new proxy config
+		proxy := &models.ProxyConfig{
+			Name:     tag,
+			Protocol: out["type"].(string),
 		}
-	}
 
-	if len(allConfigs) == 0 {
-		return nil, fmt.Errorf("no valid proxy configurations found")
-	}
+		// Parse server and port
+		if server, ok := out["server"].(string); ok {
+			proxy.Server = server
+		}
 
-	return allConfigs, nil
-}
+		if port, ok := out["server_port"].(float64); ok {
+			proxy.Port = int(port)
+		}
 
-func parseOutboundSettings(config *models.ProxyConfig, outbound models.XrayOutbound) error {
-	var settings map[string]interface{}
-	if err := json.Unmarshal(outbound.Settings, &settings); err != nil {
-		return fmt.Errorf("failed to parse outbound settings: %v", err)
-	}
+		// Parse protocol-specific settings
+		switch proxy.Protocol {
+		case "vmess", "vless":
+			if settings, ok := out["settings"].(map[string]interface{}); ok {
+				if v, ok := settings["uuid"].(string); ok {
+					proxy.UUID = v
+				}
+			}
 
-	switch config.Protocol {
-	case "vmess", "vless":
-		if vnext, ok := settings["vnext"].([]interface{}); ok && len(vnext) > 0 {
-			if server, ok := vnext[0].(map[string]interface{}); ok {
-				config.Server = server["address"].(string)
-				config.Port = int(server["port"].(float64))
+		case "trojan":
+			if settings, ok := out["settings"].(map[string]interface{}); ok {
+				if v, ok := settings["password"].(string); ok {
+					proxy.Password = v
+				}
+			}
 
-				if users, ok := server["users"].([]interface{}); ok && len(users) > 0 {
-					if user, ok := users[0].(map[string]interface{}); ok {
-						config.UUID = user["id"].(string)
-						if aid, ok := user["alterId"].(float64); ok {
-							config.AlterId = int(aid)
-						}
-						if flow, ok := user["flow"].(string); ok {
-							config.Flow = flow
-						}
+		case "shadowsocks":
+			if settings, ok := out["settings"].(map[string]interface{}); ok {
+				if v, ok := settings["password"].(string); ok {
+					proxy.Password = v
+				}
+				if v, ok := settings["method"].(string); ok {
+					proxy.Method = v
+				}
+			}
+		}
+
+		// Parse transport settings
+		if transport, ok := out["transport"].(map[string]interface{}); ok {
+			if v, ok := transport["type"].(string); ok {
+				proxy.Type = v
+			}
+
+			if v, ok := transport["path"].(string); ok {
+				proxy.Path = v
+			}
+
+			if headers, ok := transport["headers"].(map[string]interface{}); ok {
+				if host, ok := headers["Host"].(string); ok {
+					proxy.Host = host
+				}
+			}
+
+			if v, ok := transport["service_name"].(string); ok {
+				proxy.ServiceName = v
+			}
+		}
+
+		// Parse TLS settings
+		if tls, ok := out["tls"].(map[string]interface{}); ok {
+			if v, ok := tls["enabled"].(bool); ok && v {
+				proxy.Security = "tls"
+			}
+
+			if v, ok := tls["server_name"].(string); ok {
+				proxy.SNI = v
+			}
+
+			if v, ok := tls["insecure"].(bool); ok {
+				proxy.AllowInsecure = v
+			}
+
+			if v, ok := tls["alpn"].([]interface{}); ok && len(v) > 0 {
+				alpn := make([]string, len(v))
+				for i, a := range v {
+					if s, ok := a.(string); ok {
+						alpn[i] = s
 					}
 				}
+				proxy.ALPN = alpn
 			}
 		}
-	case "trojan":
-		if servers, ok := settings["servers"].([]interface{}); ok && len(servers) > 0 {
-			if server, ok := servers[0].(map[string]interface{}); ok {
-				config.Server = server["address"].(string)
-				config.Port = int(server["port"].(float64))
-				config.Password = server["password"].(string)
-				if flow, ok := server["flow"].(string); ok {
-					config.Flow = flow
-				}
+
+		// Parse reality settings
+		if reality, ok := out["reality"].(map[string]interface{}); ok {
+			proxy.Security = "reality"
+
+			if v, ok := reality["server_name"].(string); ok {
+				proxy.SNI = v
+			}
+
+			if v, ok := reality["public_key"].(string); ok {
+				proxy.PublicKey = v
+			}
+
+			if v, ok := reality["short_id"].(string); ok {
+				proxy.ShortID = v
+			}
+
+			if v, ok := reality["fingerprint"].(string); ok {
+				proxy.Fingerprint = v
 			}
 		}
-	case "shadowsocks":
-		if servers, ok := settings["servers"].([]interface{}); ok && len(servers) > 0 {
-			if server, ok := servers[0].(map[string]interface{}); ok {
-				config.Server = server["address"].(string)
-				config.Port = int(server["port"].(float64))
-				config.Password = server["password"].(string)
-				config.Method = server["method"].(string)
-			}
+
+		// Skip invalid configs
+		if err := proxy.Validate(); err != nil {
+			fmt.Printf("Warning: skipping invalid config %s: %v\n", proxy.Name, err)
+			continue
 		}
+
+		proxyConfigs = append(proxyConfigs, proxy)
 	}
 
-	return nil
-}
-
-func parseStreamSettings(config *models.ProxyConfig, settings *models.StreamSettings) {
-	config.Type = settings.Network
-	config.Security = settings.Security
-
-	if settings.TLSSettings != nil {
-		config.AllowInsecure = settings.TLSSettings.AllowInsecure
+	if len(proxyConfigs) == 0 {
+		return nil, fmt.Errorf("no valid proxy configurations found in SingBox config")
 	}
 
-	if settings.RealitySettings != nil {
-		config.SNI = settings.RealitySettings.ServerName
-		config.Fingerprint = settings.RealitySettings.Fingerprint
-		config.PublicKey = settings.RealitySettings.PublicKey
-		config.ShortID = settings.RealitySettings.ShortID
-	}
-
-	if settings.WSSettings != nil {
-		config.Path = settings.WSSettings.Path
-		if host, ok := settings.WSSettings.Headers["Host"]; ok {
-			config.Host = host
-		}
-	}
-
-	if settings.HTTPUpgradeSettings != nil {
-		config.Path = settings.HTTPUpgradeSettings.Path
-		if settings.HTTPUpgradeSettings.Headers != nil {
-			if host, ok := settings.HTTPUpgradeSettings.Headers["Host"]; ok {
-				config.Host = host
-			}
-		}
-	}
+	return proxyConfigs, nil
 }
 
 func ParseSubscription(source string) ([]*models.ProxyConfig, error) {
@@ -364,11 +389,11 @@ func ParseSubscriptionURL(subscriptionURL string) ([]string, error) {
 		return nil, fmt.Errorf("error creating request: %v", err)
 	}
 
-	req.Header.Set("User-Agent", "Xray-Checker")
+	req.Header.Set("User-Agent", "SingBox-Checker")
 	req.Header.Set("Accept", "*/*")
 
 	client := &http.Client{
-		Timeout: time.Second * 30, // Добавляем таймаут
+		Timeout: time.Second * 30, // Add timeout
 	}
 
 	resp, err := client.Do(req)

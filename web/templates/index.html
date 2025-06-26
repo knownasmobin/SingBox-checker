@@ -1,7 +1,7 @@
 {{ define "index.html" }}
 <html>
   <head>
-    <title>Xray Checker</title>
+    <title>SingBox Checker</title>
     <style>
       :root {
         --bg-color: #ffffff;
@@ -260,7 +260,7 @@
     </button>
 
     <div class="header-container">
-      <h1 class="header-title">Xray Checker</h1>
+      <h1 class="header-title">SingBox Checker</h1>
       <span class="version-tag">{{.Version}}</span>
     </div>
 
@@ -274,6 +274,10 @@
         <div class="info-item">
           <span class="info-label">Proxy Start Port:</span>
           <span class="info-value">{{.StartPort}}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Config Directory:</span>
+          <span class="info-value">{{.ConfigDir}}</span>
         </div>
         {{if .Instance}}
         <div class="info-item">

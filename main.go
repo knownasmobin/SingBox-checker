@@ -3,15 +3,17 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"sync/atomic"
 	"time"
-	"xray-checker/checker"
-	"xray-checker/config"
-	"xray-checker/metrics"
-	"xray-checker/runner"
-	"xray-checker/subscription"
-	"xray-checker/web"
-	"xray-checker/xray"
+	"github.com/knownasmobin/singbox-checker/checker"
+	"github.com/knownasmobin/singbox-checker/config"
+	"github.com/knownasmobin/singbox-checker/metrics"
+	"github.com/knownasmobin/singbox-checker/models"
+	"github.com/knownasmobin/singbox-checker/runner"
+	"github.com/knownasmobin/singbox-checker/subscription"
+	"github.com/knownasmobin/singbox-checker/web"
 
 	"github.com/go-co-op/gocron"
 	"github.com/prometheus/client_golang/prometheus"
@@ -24,22 +26,34 @@ var (
 
 func main() {
 	config.Parse(version)
-	log.Printf("Xray Checker %s starting...\n", version)
+	log.Printf("SingBox Checker %s starting...\n", version)
 
-	configFile := "xray_config.json"
-	proxyConfigs, err := subscription.InitializeConfiguration(configFile)
-	if err != nil {
-		log.Fatalf("Error initializing configuration: %v", err)
+	// Ensure config directory exists
+	if err := os.MkdirAll(config.CLIConfig.SingBox.ConfigDir, 0755); err != nil {
+		log.Fatalf("Failed to create config directory: %v", err)
 	}
 
-	xrayRunner := runner.NewXrayRunner(configFile)
-	if err := xrayRunner.Start(); err != nil {
-		log.Fatalf("Error starting Xray: %v", err)
+	configFile := filepath.Join(config.CLIConfig.SingBox.ConfigDir, "singbox.json")
+	
+	// Read proxy configs from subscription
+	proxyConfigs, err := subscription.ReadFromSource(config.CLIConfig.Subscription.URL)
+	if err != nil {
+		log.Fatalf("Error reading subscription: %v", err)
+	}
+
+	// Initialize SingBox configuration
+	if err := subscription.InitializeSingBoxConfig(proxyConfigs, configFile); err != nil {
+		log.Fatalf("Error initializing SingBox config: %v", err)
+	}
+
+	singboxRunner := runner.NewSingBoxRunner(configFile)
+	if err := singboxRunner.Start(); err != nil {
+		log.Fatalf("Error starting SingBox: %v", err)
 	}
 
 	defer func() {
-		if err := xrayRunner.Stop(); err != nil {
-			log.Printf("Error stopping Xray: %v", err)
+		if err := singboxRunner.Stop(); err != nil {
+			log.Printf("Error stopping SingBox: %v", err)
 		}
 	}()
 
@@ -50,8 +64,8 @@ func main() {
 	registry.MustRegister(metrics.GetProxyLatencyMetric())
 
 	proxyChecker := checker.NewProxyChecker(
-		*proxyConfigs,
-		config.CLIConfig.Xray.StartPort,
+		proxyConfigs,
+		config.CLIConfig.SingBox.StartPort,
 		config.CLIConfig.Proxy.IpCheckUrl,
 		config.CLIConfig.Proxy.Timeout,
 		config.CLIConfig.Proxy.StatusCheckUrl,
@@ -59,30 +73,9 @@ func main() {
 		config.CLIConfig.Metrics.Instance,
 	)
 
-	runCheckIteration := func() {
-		log.Printf("Starting proxy check iteration...")
-		proxyChecker.CheckAllProxies()
-
-		if config.CLIConfig.Metrics.PushURL != "" {
-			pushConfig, err := metrics.ParseURL(config.CLIConfig.Metrics.PushURL)
-			if err != nil {
-				log.Printf("Error parsing push URL: %v", err)
-				return
-			}
-
-			if pushConfig != nil {
-				if err := metrics.PushMetrics(pushConfig, registry); err != nil {
-					log.Printf("Error pushing metrics: %v", err)
-				}
-			}
-		}
-	}
-
-	if config.CLIConfig.RunOnce {
-		runCheckIteration()
-		log.Println("Single check iteration completed, exiting...")
-		return
-	}
+	// Create a slice to hold the current proxy configs
+	currentConfigs := make([]*models.ProxyConfig, len(proxyConfigs))
+	copy(currentConfigs, proxyConfigs)
 
 	var needsUpdate atomic.Bool
 	s := gocron.NewScheduler(time.UTC)
@@ -92,9 +85,33 @@ func main() {
 			newConfigs, err := subscription.ReadFromSource(config.CLIConfig.Subscription.URL)
 			if err != nil {
 				log.Printf("Error checking subscription updates: %v", err)
-			} else if !xray.IsConfigsEqual(*proxyConfigs, newConfigs) {
-				if err := xray.UpdateConfiguration(newConfigs, proxyConfigs, xrayRunner, proxyChecker); err != nil {
-					log.Printf("Error updating configuration: %v", err)
+			} else if !isConfigsEqual(currentConfigs, newConfigs) {
+				// Update SingBox configuration with new proxy configs
+				if err := subscription.UpdateSingBoxConfig(singboxRunner, newConfigs); err != nil {
+					log.Printf("Error updating SingBox configuration: %v", err)
+				}
+				// Update proxy checker with new configs
+				proxyChecker.UpdateProxies(newConfigs)
+				// Update current configs
+				currentConfigs = make([]*models.ProxyConfig, len(newConfigs))
+				copy(currentConfigs, newConfigs)
+			}
+		}
+		runCheckIteration := func() {
+			log.Printf("Starting proxy check iteration...")
+			proxyChecker.CheckAllProxies()
+
+			if config.CLIConfig.Metrics.PushURL != "" {
+				pushConfig, err := metrics.ParseURL(config.CLIConfig.Metrics.PushURL)
+				if err != nil {
+					log.Printf("Error parsing push URL: %v", err)
+					return
+				}
+
+				if pushConfig != nil {
+					if err := metrics.PushMetrics(pushConfig, registry); err != nil {
+						log.Printf("Error pushing metrics: %v", err)
+					}
 				}
 			}
 		}
@@ -120,7 +137,7 @@ func main() {
 	protectedHandler.Handle("/", web.IndexHandler(version, proxyChecker))
 	protectedHandler.Handle("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{}))
 
-	web.RegisterConfigEndpoints(*proxyConfigs, proxyChecker, config.CLIConfig.Xray.StartPort)
+	web.RegisterConfigEndpoints(proxyConfigs, proxyChecker, config.CLIConfig.SingBox.StartPort)
 	protectedHandler.Handle("/config/", web.ConfigStatusHandler(proxyChecker))
 
 	if config.CLIConfig.Metrics.Protected {
@@ -142,4 +159,26 @@ func main() {
 			log.Fatalf("Error starting server: %v", err)
 		}
 	}
+}
+
+// isConfigsEqual compares two slices of proxy configurations for equality
+func isConfigsEqual(a, b []*models.ProxyConfig) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	// Create maps to store the stable IDs of the configurations
+	aMap := make(map[string]bool)
+	for _, config := range a {
+		aMap[config.GenerateStableID()] = true
+	}
+
+	// Check if all configs in b exist in a
+	for _, config := range b {
+		if !aMap[config.GenerateStableID()] {
+			return false
+		}
+	}
+
+	return true
 }

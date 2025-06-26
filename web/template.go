@@ -43,6 +43,7 @@ type PageData struct {
 	SubscriptionUpdate         bool
 	SubscriptionUpdateInterval int
 	StartPort                  int
+	ConfigDir                  string
 	Instance                   string
 	PushUrl                    string
 	Endpoints                  []EndpointInfo

@@ -7,23 +7,29 @@
 *.dll
 *.so
 *.dylib
-
-# Test binary, built with `go test -c`
+*.out
 *.test
 
-# Output of the go coverage tool, specifically when used with LiteIDE
-*.out
+# Output folders
+/dist/
+/build/
+/bin/
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
+# OS generated files
+.DS_Store
+Thumbs.db
 
-# Go workspace file
+# Go workspace and module files
 go.work
 go.work.sum
 
-# env file
+# Dependency directories
+# vendor/
+
+# Env/config
 .env
-xray-checker
-xray_config.json
+
+# Docker
+singbox-checker
+singbox-checker.exe
 docker-compose.yml
-.DS_Store

@@ -1,35 +1,37 @@
-# Xray Checker
+# SingBox Checker
 
-[![GitHub Release](https://img.shields.io/github/v/release/kutovoys/xray-checker?style=flat&color=blue)](https://github.com/kutovoys/xray-checker/releases/latest)
-[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/kutovoys/xray-checker/build-publish.yml)](https://github.com/kutovoys/xray-checker/actions/workflows/build-publish.yml)
-[![DockerHub](https://img.shields.io/badge/DockerHub-kutovoys%2Fxray--checker-blue)](https://hub.docker.com/r/kutovoys/xray-checker/)
-[![Documentation](https://img.shields.io/badge/docs-xray--checker.kutovoy.dev-blue)](https://xray-checker.kutovoy.dev/)
-[![GitHub License](https://img.shields.io/github/license/kutovoys/xray-checker?color=greeen)](https://github.com/kutovoys/xray-checker/blob/main/LICENSE)
-[![ru](https://img.shields.io/badge/lang-ru-blue)](https://github.com/kutovoys/xray-checker/blob/main/README_RU.md)
-[![en](https://img.shields.io/badge/lang-en-red)](https://github.com/kutovoys/xray-checker/blob/main/README.md)
+[![GitHub Release](https://img.shields.io/github/v/release/knownasmobin/singbox-checker?style=flat&color=blue)](https://github.com/knownasmobin/singbox-checker/releases/latest)
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/knownasmobin/singbox-checker/build-publish.yml)](https://github.com/knownasmobin/singbox-checker/actions/workflows/build-publish.yml)
+[![DockerHub](https://img.shields.io/badge/DockerHub-knownasmobin%2Fsingbox--checker-blue)](https://hub.docker.com/r/knownasmobin/singbox-checker/)
+[![GitHub License](https://img.shields.io/github/license/knownasmobin/singbox-checker?color=greeen)](https://github.com/knownasmobin/singbox-checker/blob/main/LICENSE)
 
-Xray Checker is a tool for monitoring proxy server availability with support for VLESS, VMess, Trojan, and Shadowsocks protocols. It automatically tests connections through Xray Core and provides metrics for Prometheus, as well as API endpoints for integration with monitoring systems.
+SingBox Checker is a tool for monitoring proxy server availability with support for VLESS, VMess, Trojan, and Shadowsocks protocols. It automatically tests connections through SingBox and provides metrics for Prometheus, as well as API endpoints for integration with monitoring systems.
 
 <div align="center">
-  <img src=".github/screen/xray-checker.png" alt="Dashboard Screenshot">
+  <img src=".github/screen/singbox-checker.png" alt="SingBox Checker Dashboard">
 </div>
 
 ## 🚀 Key Features
 
-- 🔍 Monitoring of Xray proxy servers (VLESS, VMess, Trojan, Shadowsocks)
+- 🔍 Monitoring of SingBox proxy servers (VLESS, VMess, Trojan, Shadowsocks)
 - 🔄 Automatic configuration updates from subscription
 - 📊 Prometheus metrics export
 - 🌓 Web interface with dark/light theme
 - 📥 Endpoints for monitoring system integration
 - 🔒 Basic Auth protection for metrics and web interface
-- 🐳 Docker and Docker Compose support
+- 🐳 Docker and Docker Compose support with multi-architecture support (amd64, arm64)
 - 📝 Flexible configuration loading:
   - URL-subscription
   - Base64-strings
   - JSON-files
   - Folders with configurations
 
-Full list of features available in the [documentation](https://xray-checker.kutovoy.dev/intro/features).
+## 📦 Installation
+
+### Prerequisites
+
+- Docker (for containerized deployment)
+- Go 1.24+ (for building from source)
 
 ## 🚀 Quick Start
 
@@ -39,22 +41,46 @@ Full list of features available in the [documentation](https://xray-checker.kuto
 docker run -d \
   -e SUBSCRIPTION_URL=https://your-subscription-url/sub \
   -p 2112:2112 \
-  kutovoys/xray-checker
+  -v /path/to/config:/etc/singbox \
+  knownasmobin/singbox-checker:latest
 ```
 
 ### Docker Compose
 
 ```yaml
+version: '3.8'
+
 services:
-  xray-checker:
-    image: kutovoys/xray-checker
-    environment:
-      - SUBSCRIPTION_URL=https://your-subscription-url/sub
+  singbox-checker:
+    image: knownasmobin/singbox-checker:latest
+    container_name: singbox-checker
+    restart: unless-stopped
     ports:
       - "2112:2112"
+    volumes:
+      - ./config:/etc/singbox
+    environment:
+      - SUBSCRIPTION_URL=https://your-subscription-url/sub
+      - SINGBOX_CONFIG_DIR=/etc/singbox
+      - SINGBOX_START_PORT=10000
+      - PROXY_CHECK_INTERVAL=300
+      - PROXY_TIMEOUT=10
+      - PROXY_IP_CHECK_URL=https://api.ipify.org
+      - PROXY_CHECK_METHOD=ip
+      - METRICS_HOST=0.0.0.0
+      - METRICS_PORT=2112
+      # Optional: Basic Auth for web interface
+      - WEB_USERNAME=admin
+      - WEB_PASSWORD=changeme
+      # Optional: Push metrics to Prometheus Pushgateway
+      - METRICS_PUSH_URL=http://prometheus:9091
+      - METRICS_INSTANCE=singbox-checker-1"""
+
 ```
 
-Detailed installation and configuration documentation is available at [xray-checker.kutovoy.dev](https://xray-checker.kutovoy.dev/intro/quick-start)
+## 📚 Documentation
+
+For detailed documentation, please refer to the [GitHub repository](https://github.com/knownasmobin/singbox-checker).
 
 ## 📈 Project Statistics
 
@@ -75,20 +101,10 @@ We welcome any contributions to Xray Checker! If you want to help:
 3. Make and test your changes
 4. Create a Pull Request
 
-For more details on how to contribute, read the [contributor's guide](https://xray-checker.kutovoy.dev/contributing/development-guide).
+## 🤝 Contributing
 
-<p align="center">
-Thanks to the all contributors who have helped improve Xray Checker:
-</p>
-<p align="center">
-<a href="https://github.com/kutovoys/xray-checker/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=kutovoys/xray-checker" />
-</a>
-</p>
-<p align="center">
-  Made with <a rel="noopener noreferrer" target="_blank" href="https://contrib.rocks">contrib.rocks</a>
-</p>
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-## VPN Recommendation
+## 📄 License
 
-For secure and reliable internet access, we recommend [BlancVPN](https://getblancvpn.com/?ref=xc-readme). Use promo code `TRYBLANCVPN` for 15% off your subscription.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
