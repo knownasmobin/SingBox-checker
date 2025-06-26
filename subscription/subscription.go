@@ -14,8 +14,8 @@ import (
 	"xray-checker/config"
 	"xray-checker/models"
 	"xray-checker/parser"
+	singbox "xray-checker/singbox"
 	"xray-checker/utils"
-	"xray-checker/xray"
 )
 
 func InitializeConfiguration(configFile string) (*[]*models.ProxyConfig, error) {
@@ -25,9 +25,9 @@ func InitializeConfiguration(configFile string) (*[]*models.ProxyConfig, error) 
 	}
 	proxyConfigs := &configs
 
-	xray.PrepareProxyConfigs(*proxyConfigs)
-	if err := xray.GenerateAndSaveConfig(*proxyConfigs, config.CLIConfig.Xray.StartPort, configFile, config.CLIConfig.Xray.LogLevel); err != nil {
-		return nil, fmt.Errorf("error generating Xray config: %v", err)
+	singbox.PrepareProxyConfigs(*proxyConfigs)
+	if err := singbox.GenerateAndSaveConfig(*proxyConfigs, config.CLIConfig.Singbox.StartPort, configFile, config.CLIConfig.Singbox.LogLevel); err != nil {
+		return nil, fmt.Errorf("error generating Singbox config: %v", err)
 	}
 
 	return proxyConfigs, nil

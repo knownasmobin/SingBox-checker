@@ -23,7 +23,7 @@ go.work.sum
 
 # env file
 .env
-xray-checker
-xray_config.json
+singbox-checker
+singbox_config.json
 docker-compose.yml
 .DS_Store

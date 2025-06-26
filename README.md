@@ -1,4 +1,4 @@
-# Xray Checker
+# Singbox Checker
 
 [![GitHub Release](https://img.shields.io/github/v/release/kutovoys/xray-checker?style=flat&color=blue)](https://github.com/kutovoys/xray-checker/releases/latest)
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/kutovoys/xray-checker/build-publish.yml)](https://github.com/kutovoys/xray-checker/actions/workflows/build-publish.yml)
@@ -8,7 +8,7 @@
 [![ru](https://img.shields.io/badge/lang-ru-blue)](https://github.com/kutovoys/xray-checker/blob/main/README_RU.md)
 [![en](https://img.shields.io/badge/lang-en-red)](https://github.com/kutovoys/xray-checker/blob/main/README.md)
 
-Xray Checker is a tool for monitoring proxy server availability with support for VLESS, VMess, Trojan, and Shadowsocks protocols. It automatically tests connections through Xray Core and provides metrics for Prometheus, as well as API endpoints for integration with monitoring systems.
+Singbox Checker is a tool for monitoring proxy server availability with support for VLESS, VMess, Trojan, and Shadowsocks protocols. It automatically tests connections through Singbox and provides metrics for Prometheus, as well as API endpoints for integration with monitoring systems.
 
 <div align="center">
   <img src=".github/screen/xray-checker.png" alt="Dashboard Screenshot">
@@ -16,7 +16,7 @@ Xray Checker is a tool for monitoring proxy server availability with support for
 
 ## 🚀 Key Features
 
-- 🔍 Monitoring of Xray proxy servers (VLESS, VMess, Trojan, Shadowsocks)
+- 🔍 Monitoring of Singbox proxy servers (VLESS, VMess, Trojan, Shadowsocks)
 - 🔄 Automatic configuration updates from subscription
 - 📊 Prometheus metrics export
 - 🌓 Web interface with dark/light theme
@@ -68,7 +68,7 @@ Detailed installation and configuration documentation is available at [xray-chec
 
 ## 🤝 Contributing
 
-We welcome any contributions to Xray Checker! If you want to help:
+We welcome any contributions to Singbox Checker! If you want to help:
 
 1. Fork the repository
 2. Create a branch for your changes
@@ -78,7 +78,7 @@ We welcome any contributions to Xray Checker! If you want to help:
 For more details on how to contribute, read the [contributor's guide](https://xray-checker.kutovoy.dev/contributing/development-guide).
 
 <p align="center">
-Thanks to the all contributors who have helped improve Xray Checker:
+Thanks to the all contributors who have helped improve Singbox Checker:
 </p>
 <p align="center">
 <a href="https://github.com/kutovoys/xray-checker/graphs/contributors">

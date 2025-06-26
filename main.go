@@ -9,9 +9,9 @@ import (
 	"xray-checker/config"
 	"xray-checker/metrics"
 	"xray-checker/runner"
+	singbox "xray-checker/singbox"
 	"xray-checker/subscription"
 	"xray-checker/web"
-	"xray-checker/xray"
 
 	"github.com/go-co-op/gocron"
 	"github.com/prometheus/client_golang/prometheus"
@@ -24,22 +24,22 @@ var (
 
 func main() {
 	config.Parse(version)
-	log.Printf("Xray Checker %s starting...\n", version)
+	log.Printf("Singbox Checker %s starting...\n", version)
 
-	configFile := "xray_config.json"
+	configFile := "singbox_config.json"
 	proxyConfigs, err := subscription.InitializeConfiguration(configFile)
 	if err != nil {
 		log.Fatalf("Error initializing configuration: %v", err)
 	}
 
-	xrayRunner := runner.NewXrayRunner(configFile)
-	if err := xrayRunner.Start(); err != nil {
-		log.Fatalf("Error starting Xray: %v", err)
+	singboxRunner := runner.NewSingboxRunner(configFile)
+	if err := singboxRunner.Start(); err != nil {
+		log.Fatalf("Error starting Singbox: %v", err)
 	}
 
 	defer func() {
-		if err := xrayRunner.Stop(); err != nil {
-			log.Printf("Error stopping Xray: %v", err)
+		if err := singboxRunner.Stop(); err != nil {
+			log.Printf("Error stopping Singbox: %v", err)
 		}
 	}()
 
@@ -51,7 +51,7 @@ func main() {
 
 	proxyChecker := checker.NewProxyChecker(
 		*proxyConfigs,
-		config.CLIConfig.Xray.StartPort,
+		config.CLIConfig.Singbox.StartPort,
 		config.CLIConfig.Proxy.IpCheckUrl,
 		config.CLIConfig.Proxy.Timeout,
 		config.CLIConfig.Proxy.StatusCheckUrl,
@@ -92,8 +92,8 @@ func main() {
 			newConfigs, err := subscription.ReadFromSource(config.CLIConfig.Subscription.URL)
 			if err != nil {
 				log.Printf("Error checking subscription updates: %v", err)
-			} else if !xray.IsConfigsEqual(*proxyConfigs, newConfigs) {
-				if err := xray.UpdateConfiguration(newConfigs, proxyConfigs, xrayRunner, proxyChecker); err != nil {
+			} else if !singbox.IsConfigsEqual(*proxyConfigs, newConfigs) {
+				if err := singbox.UpdateConfiguration(newConfigs, proxyConfigs, singboxRunner, proxyChecker); err != nil {
 					log.Printf("Error updating configuration: %v", err)
 				}
 			}
@@ -120,7 +120,7 @@ func main() {
 	protectedHandler.Handle("/", web.IndexHandler(version, proxyChecker))
 	protectedHandler.Handle("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{}))
 
-	web.RegisterConfigEndpoints(*proxyConfigs, proxyChecker, config.CLIConfig.Xray.StartPort)
+	web.RegisterConfigEndpoints(*proxyConfigs, proxyChecker, config.CLIConfig.Singbox.StartPort)
 	protectedHandler.Handle("/config/", web.ConfigStatusHandler(proxyChecker))
 
 	if config.CLIConfig.Metrics.Protected {
