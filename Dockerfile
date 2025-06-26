@@ -3,11 +3,11 @@ FROM --platform=${BUILDPLATFORM:-linux/amd64} golang:1.24 AS builder
 
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
-ARG TARGETOS
-ARG TARGETARCH
+ARG TARGETOS=linux
+ARG TARGETARCH=amd64
 ARG GIT_TAG
 ARG GIT_COMMIT
-ARG USERNAME=kutovoys
+ARG USERNAME=knownasmobin
 ARG REPOSITORY_NAME=singbox-checker
 
 ENV CGO_ENABLED=0
@@ -27,7 +27,7 @@ RUN CGO_ENABLED=${CGO_ENABLED} GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
 # Download sing-box
 FROM --platform=${BUILDPLATFORM:-linux/amd64} alpine:latest AS singbox
 RUN apk add --no-cache curl
-ARG TARGETARCH
+ARG TARGETARCH=amd64
 RUN case "${TARGETARCH}" in \
       "amd64") ARCH="amd64" ;; \
       "arm64") ARCH="arm64" ;; \
@@ -41,6 +41,8 @@ RUN case "${TARGETARCH}" in \
 # Final stage
 FROM --platform=${BUILDPLATFORM:-linux/amd64} gcr.io/distroless/static:nonroot
 
+ARG USERNAME=knownasmobin
+ARG REPOSITORY_NAME=singbox-checker
 LABEL org.opencontainers.image.source=https://github.com/${USERNAME}/${REPOSITORY_NAME}
 
 WORKDIR /app
