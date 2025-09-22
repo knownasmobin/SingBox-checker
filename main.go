@@ -55,6 +55,9 @@ func main() {
 		config.CLIConfig.Proxy.IpCheckUrl,
 		config.CLIConfig.Proxy.Timeout,
 		config.CLIConfig.Proxy.StatusCheckUrl,
+		config.CLIConfig.Proxy.DownloadUrl,
+		config.CLIConfig.Proxy.DownloadTimeout,
+		config.CLIConfig.Proxy.DownloadMinSize,
 		config.CLIConfig.Proxy.CheckMethod,
 		config.CLIConfig.Metrics.Instance,
 	)

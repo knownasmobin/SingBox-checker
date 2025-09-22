@@ -49,12 +49,13 @@ Time in seconds between proxy availability checks. Each check verifies all confi
 - CLI: `--proxy-check-method`
 - Required: No
 - Default: `ip`
-- Values: `ip`, `status`
+- Values: `ip`, `status`, `download`
 
 Method used to verify proxy functionality:
 
 - `ip`: Compares IP addresses with and without proxy
 - `status`: Checks HTTP status code from a test request
+- `download`: Downloads a file through proxy to verify functionality
 
 ### PROXY_IP_CHECK_URL
 
@@ -71,6 +72,30 @@ URL used for IP verification when `PROXY_CHECK_METHOD=ip`. Should return current
 - Default: `http://cp.cloudflare.com/generate_204`
 
 URL used for status verification when `PROXY_CHECK_METHOD=status`. Should return HTTP 204/200 status code.
+
+### PROXY_DOWNLOAD_URL
+
+- CLI: `--proxy-download-url`
+- Required: No
+- Default: https://proof.ovh.net/files/1Mb.dat
+
+URL of the file to download when `PROXY_CHECK_METHOD=download`. The file will be downloaded through the proxy to verify functionality.
+
+### PROXY_DOWNLOAD_TIMEOUT
+
+- CLI: `--proxy-download-timeout`
+- Required: No
+- Default: `60`
+
+Maximum time in seconds to wait for file download completion when using `PROXY_CHECK_METHOD=download`.
+
+### PROXY_DOWNLOAD_MIN_SIZE
+
+- CLI: `--proxy-download-min-size`
+- Required: No
+- Default: `51200`
+
+Minimum number of bytes to download for a successful check when using `PROXY_CHECK_METHOD=download`. Default is 50KB.
 
 ### PROXY_TIMEOUT
 

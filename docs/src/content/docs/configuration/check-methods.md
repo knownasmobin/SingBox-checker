@@ -5,7 +5,7 @@ description: Check methods options and examples
 
 ## Check Methods
 
-Xray Checker supports two methods for verifying proxy functionality:
+Xray Checker supports three methods for verifying proxy functionality:
 
 ### IP Check Method (Default)
 
@@ -59,3 +59,38 @@ PROXY_CHECK_METHOD=status
 PROXY_STATUS_CHECK_URL=http://cp.cloudflare.com/generate_204
 PROXY_TIMEOUT=30
 ```
+
+### Download Check Method
+
+```bash
+--proxy-check-method=download
+```
+
+This method:
+
+1. Connects through proxy
+2. Downloads a specified file
+3. Verifies download completion or minimum size threshold
+
+Benefits:
+
+- Tests actual data transfer through proxy
+- Verifies proxy performance with real file downloads
+- Configurable success criteria (minimum download size)
+- Single-threaded download in one TCP connection
+
+Configuration:
+
+```bash
+PROXY_CHECK_METHOD=download
+PROXY_DOWNLOAD_URL=https://proof.ovh.net/files/1Mb.dat
+PROXY_DOWNLOAD_TIMEOUT=60
+PROXY_DOWNLOAD_MIN_SIZE=51200
+```
+
+The check is considered successful if:
+
+- The file is completely downloaded, OR
+- At least the minimum specified bytes are downloaded
+
+This method is ideal for testing proxy performance with actual file transfers and ensuring the proxy can handle sustained data connections.
