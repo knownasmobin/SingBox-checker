@@ -49,12 +49,13 @@ URL, строка Base64 или путь к файлу для конфигура
 - CLI: `--proxy-check-method`
 - Обязательно: Нет
 - По умолчанию: `ip`
-- Значения: `ip`, `status`
+- Значения: `ip`, `status`, `download`
 
 Метод, используемый для проверки функциональности прокси:
 
 - `ip`: Сравнивает IP-адреса с прокси и без него
 - `status`: Проверяет HTTP-код состояния тестового запроса
+- `download`: Скачивает файл через прокси для проверки функциональности
 
 ### PROXY_IP_CHECK_URL
 
@@ -71,6 +72,30 @@ URL, используемый для проверки IP при `PROXY_CHECK_MET
 - По умолчанию: `http://cp.cloudflare.com/generate_204`
 
 URL, используемый для проверки статуса при `PROXY_CHECK_METHOD=status`. Должен возвращать HTTP-код 204/200.
+
+### PROXY_DOWNLOAD_URL
+
+- CLI: `--proxy-download-url`
+- Обязательно: Нет
+- По умолчанию: `https://proof.ovh.net/files/1Mb.dat`
+
+URL файла для скачивания при `PROXY_CHECK_METHOD=download`. Файл будет скачан через прокси для проверки функциональности.
+
+### PROXY_DOWNLOAD_TIMEOUT
+
+- CLI: `--proxy-download-timeout`
+- Обязательно: Нет
+- По умолчанию: `60`
+
+Максимальное время в секундах ожидания завершения скачивания файла при использовании `PROXY_CHECK_METHOD=download`.
+
+### PROXY_DOWNLOAD_MIN_SIZE
+
+- CLI: `--proxy-download-min-size`
+- Обязательно: Нет
+- По умолчанию: `51200`
+
+Минимальное количество байт для успешной проверки при использовании `PROXY_CHECK_METHOD=download`. По умолчанию 50KB.
 
 ### PROXY_TIMEOUT
 

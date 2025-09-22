@@ -32,6 +32,9 @@ docker run -d \
   -e PROXY_TIMEOUT=30 \
   -e PROXY_IP_CHECK_URL=https://api.ipify.org?format=text \
   -e PROXY_STATUS_CHECK_URL=http://cp.cloudflare.com/generate_204 \
+  -e PROXY_DOWNLOAD_URL=https://proof.ovh.net/files/1Mb.dat \
+  -e PROXY_DOWNLOAD_TIMEOUT=60 \
+  -e PROXY_DOWNLOAD_MIN_SIZE=51200 \
   -e SIMULATE_LATENCY=true \
   -e XRAY_START_PORT=10000 \
   -e XRAY_LOG_LEVEL=none \
@@ -77,6 +80,9 @@ services:
       - PROXY_TIMEOUT=30
       - PROXY_IP_CHECK_URL=https://api.ipify.org?format=text
       - PROXY_STATUS_CHECK_URL=http://cp.cloudflare.com/generate_204
+      - PROXY_DOWNLOAD_URL=https://proof.ovh.net/files/1Mb.dat
+      - PROXY_DOWNLOAD_TIMEOUT=60
+      - PROXY_DOWNLOAD_MIN_SIZE=51200
       - SIMULATE_LATENCY=true
       - XRAY_START_PORT=10000
       - XRAY_LOG_LEVEL=none
@@ -125,3 +131,25 @@ services:
       retries: 3
       start_period: 40s
 ```
+
+### Пример использования метода проверки скачивания
+
+Пример использования метода проверки скачивания:
+
+```bash
+docker run -d \
+  -e SUBSCRIPTION_URL=https://your-subscription-url/sub \
+  -e PROXY_CHECK_METHOD=download \
+  -e PROXY_DOWNLOAD_URL=https://proof.ovh.net/files/1Mb.dat \
+  -e PROXY_DOWNLOAD_TIMEOUT=60 \
+  -e PROXY_DOWNLOAD_MIN_SIZE=51200 \
+  -p 2112:2112 \
+  kutovoys/xray-checker
+```
+
+Эта конфигурация будет:
+
+- Скачивать тестовый файл через каждый прокси
+- Считать проверку успешной если скачано минимум 50KB
+- Прерывать скачивание через 1 минуту
+- Тестировать реальную производительность передачи данных через прокси

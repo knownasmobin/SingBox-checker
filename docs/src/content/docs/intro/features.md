@@ -32,9 +32,10 @@ tableOfContents: false
 
 ### ⚡ Check Methods
 
-- 🔧 [Support for two proxy verification methods](/configuration/check-methods):
+- 🔧 [Support for three proxy verification methods](/configuration/check-methods):
   - 🌐 Via IP address comparison
   - ✅ Via HTTP status checks
+  - 📥 Via file download testing
 
 ### 🔒 Security
 
