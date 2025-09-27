@@ -27,7 +27,7 @@ func main() {
 	log.Printf("Xray Checker %s starting...\n", version)
 
 	configFile := "xray_config.json"
-	proxyConfigs, err := subscription.InitializeConfiguration(configFile)
+	proxyConfigs, err := subscription.InitializeConfiguration(configFile, version)
 	if err != nil {
 		log.Fatalf("Error initializing configuration: %v", err)
 	}
@@ -92,7 +92,7 @@ func main() {
 	s.Every(config.CLIConfig.Proxy.CheckInterval).Seconds().Do(func() {
 		if config.CLIConfig.Subscription.Update && needsUpdate.Swap(false) {
 			log.Printf("Updating subscription...")
-			newConfigs, err := subscription.ReadFromSource(config.CLIConfig.Subscription.URL)
+			newConfigs, err := subscription.ReadFromSource(config.CLIConfig.Subscription.URL, version)
 			if err != nil {
 				log.Printf("Error checking subscription updates: %v", err)
 			} else if !xray.IsConfigsEqual(*proxyConfigs, newConfigs) {

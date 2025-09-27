@@ -18,8 +18,8 @@ import (
 	"xray-checker/xray"
 )
 
-func InitializeConfiguration(configFile string) (*[]*models.ProxyConfig, error) {
-	configs, err := ReadFromSource(config.CLIConfig.Subscription.URL)
+func InitializeConfiguration(configFile string, version string) (*[]*models.ProxyConfig, error) {
+	configs, err := ReadFromSource(config.CLIConfig.Subscription.URL, version)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing subscription: %v", err)
 	}
@@ -46,12 +46,12 @@ func DetectSourceType(input string) models.SourceType {
 	return models.SourceTypeBase64
 }
 
-func ReadFromSource(source string) ([]*models.ProxyConfig, error) {
+func ReadFromSource(source string, version string) ([]*models.ProxyConfig, error) {
 	sourceType := DetectSourceType(source)
 
 	switch sourceType {
 	case models.SourceTypeURL:
-		return readFromURL(source)
+		return readFromURL(source, version)
 	case models.SourceTypeBase64:
 		return readFromBase64(source)
 	case models.SourceTypeFile:
@@ -63,8 +63,8 @@ func ReadFromSource(source string) ([]*models.ProxyConfig, error) {
 	}
 }
 
-func readFromURL(url string) ([]*models.ProxyConfig, error) {
-	return ParseSubscription(url)
+func readFromURL(url string, version string) ([]*models.ProxyConfig, error) {
+	return ParseSubscription(url, version)
 }
 
 func readFromBase64(encodedData string) ([]*models.ProxyConfig, error) {
@@ -324,12 +324,12 @@ func parseStreamSettings(config *models.ProxyConfig, settings *models.StreamSett
 	}
 }
 
-func ParseSubscription(source string) ([]*models.ProxyConfig, error) {
+func ParseSubscription(source string, version string) ([]*models.ProxyConfig, error) {
 	sourceType := DetectSourceType(source)
 
 	switch sourceType {
 	case models.SourceTypeURL:
-		links, err := ParseSubscriptionURL(source)
+		links, err := ParseSubscriptionURL(source, version)
 		if err != nil {
 			return nil, fmt.Errorf("error parsing subscription URL: %v", err)
 		}
@@ -349,7 +349,7 @@ func ParseSubscription(source string) ([]*models.ProxyConfig, error) {
 	}
 }
 
-func ParseSubscriptionURL(subscriptionURL string) ([]string, error) {
+func ParseSubscriptionURL(subscriptionURL string, version string) ([]string, error) {
 	parsedURL, err := url.Parse(subscriptionURL)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing URL: %v", err)
@@ -365,6 +365,10 @@ func ParseSubscriptionURL(subscriptionURL string) ([]string, error) {
 	}
 
 	req.Header.Set("User-Agent", "Xray-Checker")
+	req.Header.Set("X-Device-OS", "CheckerOS")
+	req.Header.Set("X-Ver-OS", version)
+	req.Header.Set("X-Device-Model", "Xray-Checker Pro Max")
+	req.Header.Set("X-Hwid", "0JLQq9Ca0JvQrtCn0Jgg0JHQm9Cv0KLQrCBIV0lE")
 	req.Header.Set("Accept", "*/*")
 
 	client := &http.Client{
