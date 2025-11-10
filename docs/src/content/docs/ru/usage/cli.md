@@ -53,6 +53,7 @@ chmod +x xray-checker
   --proxy-check-method=ip \
   --proxy-ip-check-url="https://api.ipify.org?format=text" \
   --proxy-status-check-url="http://cp.cloudflare.com/generate_204" \
+  --proxy-resolve-domains=false \
   --simulate-latency=true \
   --xray-start-port=10000 \
   --xray-log-level=none \
@@ -65,6 +66,7 @@ chmod +x xray-checker
   --metrics-push-url="https://push.example.com" \
   --metrics-base-path="/xray/monitor" \
   --run-once=false
+
 ```
 
 ### Основные операции CLI

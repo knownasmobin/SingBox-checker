@@ -105,6 +105,19 @@ Minimum number of bytes to download for a successful check when using `PROXY_CHE
 
 Maximum time in seconds to wait for proxy response during checks.
 
+### PROXY_RESOLVE_DOMAINS
+
+CLI: `--proxy-resolve-domains`
+
+Required: No
+
+Default: `false`
+
+When enabled, domain-based proxy configurations are expanded into multiple entries — one for each resolved IP address.
+For example, a proxy with server: mydomain.com will be duplicated for every IP returned by DNS lookup.
+
+This allows Xray Checker to monitor each resolved endpoint individually.
+
 ### SIMULATE_LATENCY
 
 - CLI: `--simulate-latency`
