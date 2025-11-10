@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -23,14 +24,49 @@ func InitializeConfiguration(configFile string, version string) (*[]*models.Prox
 	if err != nil {
 		return nil, fmt.Errorf("error parsing subscription: %v", err)
 	}
+
 	proxyConfigs := &configs
 
+	if config.CLIConfig.Proxy.ResolveDomains {
+		resolved, err := ResolveDomainsForConfigs(configs)
+		if err != nil {
+			return nil, fmt.Errorf("error resolving domains: %v", err)
+		}
+		proxyConfigs = &resolved
+	}
+
 	xray.PrepareProxyConfigs(*proxyConfigs)
-	if err := xray.GenerateAndSaveConfig(*proxyConfigs, config.CLIConfig.Xray.StartPort, configFile, config.CLIConfig.Xray.LogLevel); err != nil {
+	if err := xray.GenerateAndSaveConfig(
+		*proxyConfigs,
+		config.CLIConfig.Xray.StartPort,
+		configFile,
+		config.CLIConfig.Xray.LogLevel,
+	); err != nil {
 		return nil, fmt.Errorf("error generating Xray config: %v", err)
 	}
 
 	return proxyConfigs, nil
+}
+
+func ResolveDomainsForConfigs(configs []*models.ProxyConfig) ([]*models.ProxyConfig, error) {
+	var out []*models.ProxyConfig
+	for _, cfg := range configs {
+		if ip := net.ParseIP(cfg.Server); ip != nil {
+			out = append(out, cfg)
+			continue
+		}
+
+		ips, err := net.LookupIP(cfg.Server)
+		if err != nil || len(ips) == 0 {
+			continue
+		}
+		for _, ip := range ips {
+			clone := *cfg
+			clone.Server = ip.String()
+			out = append(out, &clone)
+		}
+	}
+	return out, nil
 }
 
 func DetectSourceType(input string) models.SourceType {
