@@ -118,6 +118,11 @@ For example, a proxy with server: mydomain.com will be duplicated for every IP r
 
 This allows Xray Checker to monitor each resolved endpoint individually.
 
+**Important notes:**
+
+- This feature only works when the domain returns multiple IP addresses. If DNS returns only a single IP, no expansion will occur. Note that not all DNS providers return multiple IPs - for example, Amazon DNS typically returns only a single IP address.
+- This feature works only with protocols that don't verify certificates against the domain name. It will work with Reality protocol, but will **not work** with standard vless and Trojan protocols, where the connection is established directly to the domain name and certificate validation is performed.
+
 ### SIMULATE_LATENCY
 
 - CLI: `--simulate-latency`
