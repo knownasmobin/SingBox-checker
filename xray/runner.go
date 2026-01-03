@@ -1,28 +1,48 @@
-package runner
+package xray
 
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"os"
+	"strings"
 
+	"xray-checker/logger"
+
+	"github.com/xtls/xray-core/common/log"
 	"github.com/xtls/xray-core/core"
 	"github.com/xtls/xray-core/infra/conf/serial"
 	_ "github.com/xtls/xray-core/main/distro/all"
 )
 
-type XrayRunner struct {
+type filteredLogHandler struct{}
+
+func (h *filteredLogHandler) Handle(msg log.Message) {
+	msgStr := msg.String()
+	if strings.Contains(msgStr, "deprecated") {
+		return
+	}
+	if strings.HasPrefix(msgStr, "[Warning]") {
+		return
+	}
+	logger.Debug("xray: %s", msgStr)
+}
+
+func init() {
+	log.RegisterHandler(&filteredLogHandler{})
+}
+
+type Runner struct {
 	instance   *core.Instance
 	configFile string
 }
 
-func NewXrayRunner(configFile string) *XrayRunner {
-	return &XrayRunner{
+func NewRunner(configFile string) *Runner {
+	return &Runner{
 		configFile: configFile,
 	}
 }
 
-func (r *XrayRunner) Start() error {
+func (r *Runner) Start() error {
 	configBytes, err := os.ReadFile(r.configFile)
 	if err != nil {
 		return fmt.Errorf("error reading config file: %v", err)
@@ -48,23 +68,19 @@ func (r *XrayRunner) Start() error {
 	}
 
 	r.instance = instance
-	log.Println("Xray instance started successfully")
+	logger.Debug("Xray instance started")
 
 	return nil
 }
 
-func (r *XrayRunner) Stop() error {
+func (r *Runner) Stop() error {
 	if r.instance != nil {
 		err := r.instance.Close()
 		r.instance = nil
 		if err != nil {
 			return fmt.Errorf("error stopping Xray: %v", err)
 		}
-		log.Println("Xray instance stopped successfully")
+		logger.Debug("Xray instance stopped")
 	}
 	return nil
-}
-
-func (r *XrayRunner) IsRunning() bool {
-	return r.instance != nil
 }

@@ -46,6 +46,7 @@ type PageData struct {
 	Instance                   string
 	PushUrl                    string
 	Endpoints                  []EndpointInfo
+	ShowServerDetails          bool
 }
 
 func RenderIndex(w io.Writer, data PageData) error {

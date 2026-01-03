@@ -14,11 +14,13 @@ import (
 var registeredEndpoints []EndpointInfo
 
 type EndpointInfo struct {
-	Name      string
-	URL       string
-	ProxyPort int
-	Status    bool
-	Latency   time.Duration
+	Name       string
+	ServerInfo string
+	URL        string
+	ProxyPort  int
+	Index      int
+	Status     bool
+	Latency    time.Duration
 }
 
 func IndexHandler(version string, proxyChecker *checker.ProxyChecker) http.HandlerFunc {
@@ -46,9 +48,11 @@ func IndexHandler(version string, proxyChecker *checker.ProxyChecker) http.Handl
 			Instance:                   config.CLIConfig.Metrics.Instance,
 			PushUrl:                    metrics.GetPushURL(config.CLIConfig.Metrics.PushURL),
 			Endpoints:                  registeredEndpoints,
+			ShowServerDetails:          config.CLIConfig.Web.ShowServerDetails,
 		}
 
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Header().Set("X-Robots-Tag", "noindex, nofollow")
 		if err := RenderIndex(w, data); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -124,11 +128,13 @@ func RegisterConfigEndpoints(proxies []*models.ProxyConfig, proxyChecker *checke
 		status, latency, _ := proxyChecker.GetProxyStatus(proxy.Name)
 
 		registeredEndpoints = append(registeredEndpoints, EndpointInfo{
-			Name:      fmt.Sprintf("%s (%s:%d)", proxy.Name, proxy.Server, proxy.Port),
-			URL:       endpoint,
-			ProxyPort: startPort + proxy.Index,
-			Status:    status,
-			Latency:   latency,
+			Name:       proxy.Name,
+			ServerInfo: fmt.Sprintf("%s:%d", proxy.Server, proxy.Port),
+			URL:        endpoint,
+			ProxyPort:  startPort + proxy.Index,
+			Index:      proxy.Index,
+			Status:     status,
+			Latency:    latency,
 		})
 	}
 }

@@ -3,33 +3,36 @@ package checker
 import (
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
 	"sync"
 	"time"
 
+	"xray-checker/logger"
 	"xray-checker/metrics"
 	"xray-checker/models"
 )
 
 type ProxyChecker struct {
-	proxies        []*models.ProxyConfig
-	startPort      int
-	ipCheck        string
-	currentIP      string
-	httpClient     *http.Client
-	currentMetrics sync.Map
-	latencyMetrics sync.Map
-	ipInitialized  bool
-	ipCheckTimeout int
-	genMethodURL   string
-	checkMethod    string
-	instance       string
+	proxies         []*models.ProxyConfig
+	startPort       int
+	ipCheck         string
+	currentIP       string
+	httpClient      *http.Client
+	currentMetrics  sync.Map
+	latencyMetrics  sync.Map
+	ipInitialized   bool
+	ipCheckTimeout  int
+	genMethodURL    string
+	downloadURL     string
+	downloadTimeout int
+	downloadMinSize int64
+	checkMethod     string
+	instance        string
 }
 
-func NewProxyChecker(proxies []*models.ProxyConfig, startPort int, ipCheckURL string, ipCheckTimeout int, genMethodURL string, checkMethod string, instance string) *ProxyChecker {
+func NewProxyChecker(proxies []*models.ProxyConfig, startPort int, ipCheckURL string, ipCheckTimeout int, genMethodURL string, downloadURL string, downloadTimeout int, downloadMinSize int64, checkMethod string, instance string) *ProxyChecker {
 	return &ProxyChecker{
 		proxies:   proxies,
 		startPort: startPort,
@@ -37,10 +40,13 @@ func NewProxyChecker(proxies []*models.ProxyConfig, startPort int, ipCheckURL st
 		httpClient: &http.Client{
 			Timeout: time.Second * time.Duration(ipCheckTimeout),
 		},
-		ipCheckTimeout: ipCheckTimeout,
-		genMethodURL:   genMethodURL,
-		checkMethod:    checkMethod,
-		instance:       instance,
+		ipCheckTimeout:  ipCheckTimeout,
+		genMethodURL:    genMethodURL,
+		downloadURL:     downloadURL,
+		downloadTimeout: downloadTimeout,
+		downloadMinSize: downloadMinSize,
+		checkMethod:     checkMethod,
+		instance:        instance,
 	}
 }
 
@@ -103,7 +109,7 @@ func (pc *ProxyChecker) CheckProxy(proxy *models.ProxyConfig) {
 	proxyURL := fmt.Sprintf("socks5://127.0.0.1:%d", pc.startPort+proxy.Index)
 	proxyURLParsed, err := url.Parse(proxyURL)
 	if err != nil {
-		log.Printf("Error parsing proxy URL %s: %v", proxyURL, err)
+		logger.Error("Error parsing proxy URL %s: %v", proxyURL, err)
 		setFailedStatus()
 		setFailedLatency()
 
@@ -128,15 +134,17 @@ func (pc *ProxyChecker) CheckProxy(proxy *models.ProxyConfig) {
 		checkSuccess, logMessage, checkErr = pc.checkByIP(client)
 	} else if pc.checkMethod == "status" {
 		checkSuccess, logMessage, checkErr = pc.checkByGen(client)
+	} else if pc.checkMethod == "download" {
+		checkSuccess, logMessage, checkErr = pc.checkByDownload(client)
 	} else {
-		log.Printf("Invalid check method: %s", pc.checkMethod)
+		logger.Error("Invalid check method: %s", pc.checkMethod)
 		return
 	}
 
 	latency := time.Since(start)
 
 	if checkErr != nil {
-		log.Printf("%s | Error | %v", proxy.Name, checkErr)
+		logger.Error("%s | %v", proxy.Name, checkErr)
 		setFailedStatus()
 		setFailedLatency()
 
@@ -144,11 +152,11 @@ func (pc *ProxyChecker) CheckProxy(proxy *models.ProxyConfig) {
 	}
 
 	if !checkSuccess {
-		log.Printf("%s | Failed | %s | Latency: %s", proxy.Name, logMessage, latency)
+		logger.Error("%s | Failed | %s | Latency: %s", proxy.Name, logMessage, latency)
 		setFailedStatus()
 		setFailedLatency()
 	} else {
-		log.Printf("%s | Success | %s | Latency: %s", proxy.Name, logMessage, latency)
+		logger.Result("%s | Success | %s | Latency: %s", proxy.Name, logMessage, latency)
 		metrics.RecordProxyStatus(
 			proxy.Protocol,
 			fmt.Sprintf("%s:%d", proxy.Server, proxy.Port),
@@ -197,6 +205,59 @@ func (pc *ProxyChecker) checkByGen(client *http.Client) (bool, string, error) {
 	return resp.StatusCode >= 200 && resp.StatusCode < 300, logMessage, nil
 }
 
+func (pc *ProxyChecker) checkByDownload(client *http.Client) (bool, string, error) {
+	if pc.downloadURL == "" {
+		return false, "Download URL not configured", fmt.Errorf("download URL not configured")
+	}
+
+	downloadClient := &http.Client{
+		Transport: client.Transport,
+		Timeout:   time.Second * time.Duration(pc.downloadTimeout),
+	}
+
+	resp, err := downloadClient.Get(pc.downloadURL)
+	if err != nil {
+		return false, "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return false, fmt.Sprintf("HTTP status: %d", resp.StatusCode), nil
+	}
+
+	totalBytes := int64(0)
+	buffer := make([]byte, 8192)
+
+	for {
+		n, err := resp.Body.Read(buffer)
+		if n > 0 {
+			totalBytes += int64(n)
+			if totalBytes >= pc.downloadMinSize {
+				if err == io.EOF {
+					break
+				}
+				if err != nil {
+					break
+				}
+			}
+		}
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			if totalBytes < pc.downloadMinSize {
+				return false, fmt.Sprintf("Download error after %d bytes: %v", totalBytes, err), nil
+			}
+			break
+		}
+	}
+
+	success := totalBytes >= pc.downloadMinSize
+	logMessage := fmt.Sprintf("Downloaded: %d bytes (min: %d)", totalBytes, pc.downloadMinSize)
+
+	return success, logMessage, nil
+}
+
 func (pc *ProxyChecker) ClearMetrics() {
 	pc.currentMetrics.Range(func(key, _ interface{}) bool {
 		metricKey := key.(string)
@@ -222,7 +283,7 @@ func (pc *ProxyChecker) UpdateProxies(newProxies []*models.ProxyConfig) {
 
 func (pc *ProxyChecker) CheckAllProxies() {
 	if _, err := pc.GetCurrentIP(); err != nil {
-		log.Printf("Error getting current IP: %v", err)
+		logger.Warn("Error getting current IP: %v", err)
 		return
 	}
 

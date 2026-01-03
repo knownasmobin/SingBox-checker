@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"time"
+
+	"xray-checker/logger"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -160,7 +161,7 @@ func PushMetrics(config *RemoteWriteConfig, registry *prometheus.Registry) error
 		body, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("unexpected status code %d: %s", resp.StatusCode, string(body))
 	}
-	log.Printf("Metrics successfully pushed to %s", config.URL)
+	logger.Debug("Metrics pushed to %s", config.URL)
 
 	return nil
 }

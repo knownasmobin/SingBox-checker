@@ -16,6 +16,7 @@ type ProxyConfig struct {
 	Type          string
 	UUID          string
 	Flow          string
+	Encryption    string
 	HeaderType    string
 	Path          string
 	Host          string
@@ -117,10 +118,6 @@ func (pc *ProxyConfig) GenerateStableID() string {
 	return hex.EncodeToString(hash[:])[:16]
 }
 
-func (pc *ProxyConfig) GetEndpointPath() string {
-	return fmt.Sprintf("%s-%s-%d", pc.Protocol, pc.Server, pc.Port)
-}
-
 func (pc *ProxyConfig) GetTransportType() string {
 	if pc.Type == "" {
 		return "tcp"
@@ -156,14 +153,6 @@ func (pc *ProxyConfig) GetUserLevel() int {
 	return pc.Level
 }
 
-func (pc *ProxyConfig) HasGRPCSettings() bool {
-	return pc.Type == "grpc" && pc.ServiceName != ""
-}
-
-func (pc *ProxyConfig) HasHTTPUpgradeSettings() bool {
-	return pc.Type == "httpupgrade"
-}
-
 func (pc *ProxyConfig) GetServiceName() string {
 	if pc.ServiceName == "" {
 		return "GunService"
@@ -171,9 +160,107 @@ func (pc *ProxyConfig) GetServiceName() string {
 	return pc.ServiceName
 }
 
-func (pc *ProxyConfig) GetALPNSettings() []string {
-	if len(pc.ALPN) == 0 {
-		return []string{"h2", "http/1.1"}
+func (pc *ProxyConfig) DebugString() string {
+	var sb strings.Builder
+
+	sb.WriteString(fmt.Sprintf("  [%d] %s\n", pc.Index, pc.Name))
+	sb.WriteString(fmt.Sprintf("      Protocol: %s\n", pc.Protocol))
+	sb.WriteString(fmt.Sprintf("      Server:   %s:%d\n", pc.Server, pc.Port))
+
+	switch pc.Protocol {
+	case "vless", "vmess":
+		sb.WriteString(fmt.Sprintf("      UUID:     %s\n", pc.UUID))
+		if pc.Protocol == "vmess" {
+			sb.WriteString(fmt.Sprintf("      AlterId:  %d\n", pc.GetAlterId()))
+		}
+		if pc.Flow != "" {
+			sb.WriteString(fmt.Sprintf("      Flow:     %s\n", pc.Flow))
+		}
+		if pc.Encryption != "" {
+			sb.WriteString(fmt.Sprintf("      Encryption: %s\n", pc.Encryption))
+		}
+	case "trojan":
+		sb.WriteString(fmt.Sprintf("      Password: %s\n", maskSecret(pc.Password)))
+		if pc.Flow != "" {
+			sb.WriteString(fmt.Sprintf("      Flow:     %s\n", pc.Flow))
+		}
+	case "shadowsocks":
+		sb.WriteString(fmt.Sprintf("      Method:   %s\n", pc.Method))
+		sb.WriteString(fmt.Sprintf("      Password: %s\n", maskSecret(pc.Password)))
 	}
-	return pc.ALPN
+
+	transport := pc.GetTransportType()
+	sb.WriteString(fmt.Sprintf("      Transport: %s\n", transport))
+
+	if transport == "ws" || transport == "httpupgrade" || transport == "splithttp" || transport == "h2" || transport == "http" {
+		if pc.Path != "" {
+			sb.WriteString(fmt.Sprintf("      Path:     %s\n", pc.Path))
+		}
+		if pc.Host != "" {
+			sb.WriteString(fmt.Sprintf("      Host:     %s\n", pc.Host))
+		}
+	}
+
+	if transport == "grpc" {
+		sb.WriteString(fmt.Sprintf("      ServiceName: %s\n", pc.GetServiceName()))
+		if pc.MultiMode {
+			sb.WriteString("      MultiMode:   true\n")
+		}
+	}
+
+	if transport == "tcp" && pc.HeaderType != "" && pc.HeaderType != "none" {
+		sb.WriteString(fmt.Sprintf("      HeaderType: %s\n", pc.HeaderType))
+		if pc.HeaderType == "http" {
+			if pc.Host != "" {
+				sb.WriteString(fmt.Sprintf("      Host:     %s\n", pc.Host))
+			}
+			if pc.Path != "" {
+				sb.WriteString(fmt.Sprintf("      Path:     %s\n", pc.Path))
+			}
+		}
+	}
+
+	security := pc.GetSecurityType()
+	sb.WriteString(fmt.Sprintf("      Security: %s\n", security))
+
+	if security == "tls" {
+		if pc.SNI != "" {
+			sb.WriteString(fmt.Sprintf("      SNI:      %s\n", pc.SNI))
+		}
+		if pc.Fingerprint != "" {
+			sb.WriteString(fmt.Sprintf("      Fingerprint: %s\n", pc.Fingerprint))
+		}
+		if len(pc.ALPN) > 0 {
+			sb.WriteString(fmt.Sprintf("      ALPN:     %s\n", strings.Join(pc.ALPN, ",")))
+		}
+		if pc.AllowInsecure {
+			sb.WriteString("      AllowInsecure: true\n")
+		}
+	}
+
+	if security == "reality" {
+		if pc.SNI != "" {
+			sb.WriteString(fmt.Sprintf("      SNI:       %s\n", pc.SNI))
+		}
+		if pc.Fingerprint != "" {
+			sb.WriteString(fmt.Sprintf("      Fingerprint: %s\n", pc.Fingerprint))
+		}
+		if pc.PublicKey != "" {
+			sb.WriteString(fmt.Sprintf("      PublicKey: %s\n", pc.PublicKey))
+		}
+		if pc.ShortID != "" {
+			sb.WriteString(fmt.Sprintf("      ShortID:   %s\n", pc.ShortID))
+		}
+	}
+
+	sb.WriteString(fmt.Sprintf("      StableID: %s\n", pc.StableID))
+
+	return sb.String()
+}
+
+func maskSecret(s string) string {
+	if len(s) <= 4 {
+		return "****"
+	}
+	return s[:2] + "****" + s[len(s)-2:]
 }

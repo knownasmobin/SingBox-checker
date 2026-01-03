@@ -21,18 +21,22 @@ func Parse(version string) {
 
 type CLI struct {
 	Subscription struct {
-		URL            string `name:"subscription-url" help:"URL of the subscription" required:"true" env:"SUBSCRIPTION_URL"`
-		Update         bool   `name:"subscription-update" help:"Whether to recheck the subscription" default:"true" env:"SUBSCRIPTION_UPDATE"`
-		UpdateInterval int    `name:"subscription-update-interval" help:"Interval for subscription updates in seconds" default:"300" env:"SUBSCRIPTION_UPDATE_INTERVAL"`
+		URLs           []string `name:"subscription-url" help:"URL(s) of the subscription (can be specified multiple times)" required:"true" env:"SUBSCRIPTION_URL"`
+		Update         bool     `name:"subscription-update" help:"Whether to recheck the subscription" default:"true" env:"SUBSCRIPTION_UPDATE"`
+		UpdateInterval int      `name:"subscription-update-interval" help:"Interval for subscription updates in seconds" default:"300" env:"SUBSCRIPTION_UPDATE_INTERVAL"`
 	} `embed:"" prefix:""`
 
 	Proxy struct {
 		CheckInterval   int    `name:"proxy-check-interval" help:"Interval for proxy checks in seconds" default:"300" env:"PROXY_CHECK_INTERVAL"`
-		CheckMethod     string `name:"proxy-check-method" help:"Method for checking proxy, ip or status" default:"ip" env:"PROXY_CHECK_METHOD"`
+		CheckMethod     string `name:"proxy-check-method" help:"Method for checking proxy, ip, status or download" default:"ip" env:"PROXY_CHECK_METHOD"`
 		IpCheckUrl      string `name:"proxy-ip-check-url" help:"Service URL for IP checking" default:"https://api.ipify.org?format=text" env:"PROXY_IP_CHECK_URL"`
 		StatusCheckUrl  string `name:"proxy-status-check-url" help:"Response status generator, used by check-method=status" default:"http://cp.cloudflare.com/generate_204" env:"PROXY_STATUS_CHECK_URL"`
+		DownloadUrl     string `name:"proxy-download-url" help:"URL for file download checking, used by check-method=download" default:"https://proof.ovh.net/files/1Mb.dat" env:"PROXY_DOWNLOAD_URL"`
+		DownloadTimeout int    `name:"proxy-download-timeout" help:"Timeout for download checking in seconds" default:"60" env:"PROXY_DOWNLOAD_TIMEOUT"`
+		DownloadMinSize int64  `name:"proxy-download-min-size" help:"Minimum bytes to download for successful check" default:"51200" env:"PROXY_DOWNLOAD_MIN_SIZE"`
 		Timeout         int    `name:"proxy-timeout" help:"Timeout for IP checking in seconds" default:"30" env:"PROXY_TIMEOUT"`
 		SimulateLatency bool   `name:"simulate-latency" help:"Whether to add latency to the response" default:"true" env:"SIMULATE_LATENCY"`
+		ResolveDomains  bool   `name:"proxy-resolve-domains" help:"Resolve proxy server domains into IPs and expand configs" env:"PROXY_RESOLVE_DOMAINS"`
 	} `embed:"" prefix:""`
 
 	Xray struct {
@@ -51,8 +55,13 @@ type CLI struct {
 		BasePath  string `name:"metrics-base-path" help:"URL path to metrics (e.g. /xray/metrics)" default:"" env:"METRICS_BASE_PATH"`
 	} `embed:"" prefix:""`
 
-	Version VersionFlag `name:"version" help:"Print version information and quit"`
-	RunOnce bool        `name:"run-once" help:"Run one check cycle and exit" default:"false" env:"RUN_ONCE"`
+	Web struct {
+		ShowServerDetails bool `name:"show-server-details" help:"Show server IP addresses and ports in web UI" default:"false" env:"SHOW_SERVER_DETAILS"`
+	} `embed:"" prefix:""`
+
+	Version  VersionFlag `name:"version" help:"Print version information and quit"`
+	RunOnce  bool        `name:"run-once" help:"Run one check cycle and exit" default:"false" env:"RUN_ONCE"`
+	LogLevel string      `name:"log-level" help:"Log level (debug|info|warn|error|none)" default:"info" env:"LOG_LEVEL"`
 }
 
 type VersionFlag string

@@ -27,3 +27,7 @@ xray-checker
 xray_config.json
 docker-compose.yml
 .DS_Store
+test-files/
+configs/
+geo/
+.claude/
