@@ -37,7 +37,7 @@ curl -fsS --retry 3 https://hc-ping.com/your-uuid-here && \
 Пример формата URL:
 
 ```
-https://your-server:2112/config/0-vless-example.com-443
+https://your-server:2112/config/a1b2c3d4e5f67890
 ```
 
 ### Пользовательский мониторинг
@@ -53,7 +53,7 @@ curl -s localhost:2112/metrics | grep xray_proxy_status
 Проверка конкретного прокси:
 
 ```bash
-curl -s localhost:2112/config/0-vless-example.com-443
+curl -s localhost:2112/config/a1b2c3d4e5f67890
 ```
 
 Разбор метрик с помощью jq:

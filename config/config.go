@@ -56,7 +56,7 @@ type CLI struct {
 	} `embed:"" prefix:""`
 
 	Web struct {
-		ShowServerDetails bool `name:"show-server-details" help:"Show server IP addresses and ports in web UI" default:"false" env:"SHOW_SERVER_DETAILS"`
+		ShowServerDetails bool `name:"web-show-details" help:"Show server IP addresses and ports in web UI" default:"false" env:"WEB_SHOW_DETAILS"`
 	} `embed:"" prefix:""`
 
 	Version  VersionFlag `name:"version" help:"Print version information and quit"`

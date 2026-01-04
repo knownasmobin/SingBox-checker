@@ -39,6 +39,7 @@ type PageData struct {
 	SimulateLatency            bool
 	CheckMethod                string
 	StatusCheckUrl             string
+	DownloadUrl                string
 	Timeout                    int
 	SubscriptionUpdate         bool
 	SubscriptionUpdateInterval int

@@ -37,7 +37,7 @@ Expose status endpoints to status page providers:
 Example URL format:
 
 ```
-https://your-server:2112/config/0-vless-example.com-443
+https://your-server:2112/config/a1b2c3d4e5f67890
 ```
 
 ### Custom Monitoring
@@ -53,7 +53,7 @@ curl -s localhost:2112/metrics | grep xray_proxy_status
 Check specific proxy:
 
 ```bash
-curl -s localhost:2112/config/0-vless-example.com-443
+curl -s localhost:2112/config/a1b2c3d4e5f67890
 ```
 
 Parse metrics with jq:

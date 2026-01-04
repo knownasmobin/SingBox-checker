@@ -13,23 +13,19 @@ Download the latest binary from releases:
 
 ```bash
 # For Linux amd64
-curl -sLo xray-checker.tar.gz https://github.com/kutovoys/xray-checker/releases/latest/download/xray-checker-$(curl -sI https://github.com/kutovoys/xray-checker/releases/latest/ | grep location | grep -Eo 'v([0-9]{1}\.?)+')-linux-amd64.tar.gz
-tar -zxvf xray-checker.tar.gz
+curl -sL -o - $(curl -s https://api.github.com/repos/kutovoys/xray-checker/releases/latest | grep "browser_download_url.*linux-amd64.tar.gz" | cut -d'"' -f4) | tar -xz
 chmod +x xray-checker
 
 # For Linux arm64
-curl -sLo xray-checker.tar.gz https://github.com/kutovoys/xray-checker/releases/latest/download/xray-checker-$(curl -sI https://github.com/kutovoys/xray-checker/releases/latest/ | grep location | grep -Eo 'v([0-9]{1}\.?)+')-linux-arm64.tar.gz
-tar -zxvf xray-checker.tar.gz
+curl -sL -o - $(curl -s https://api.github.com/repos/kutovoys/xray-checker/releases/latest | grep "browser_download_url.*linux-arm64.tar.gz" | cut -d'"' -f4) | tar -xz
 chmod +x xray-checker
 
 # For macOS (Intel)
-curl -sLo xray-checker.tar.gz https://github.com/kutovoys/xray-checker/releases/latest/download/xray-checker-$(curl -sI https://github.com/kutovoys/xray-checker/releases/latest/ | grep location | grep -Eo 'v([0-9]{1}\.?)+')-darwin-amd64.tar.gz
-tar -zxvf xray-checker.tar.gz
+curl -sL -o - $(curl -s https://api.github.com/repos/kutovoys/xray-checker/releases/latest | grep "browser_download_url.*darwin-amd64.tar.gz" | cut -d'"' -f4) | tar -xz
 chmod +x xray-checker
 
-# For macOS (Silicon)
-curl -sLo xray-checker.tar.gz https://github.com/kutovoys/xray-checker/releases/latest/download/xray-checker-$(curl -sI https://github.com/kutovoys/xray-checker/releases/latest/ | grep location | grep -Eo 'v([0-9]{1}\.?)+')-darwin-arm64.tar.gz
-tar -zxvf xray-checker.tar.gz
+# For macOS (Apple Silicon)
+curl -sL -o - $(curl -s https://api.github.com/repos/kutovoys/xray-checker/releases/latest | grep "browser_download_url.*darwin-arm64.tar.gz" | cut -d'"' -f4) | tar -xz
 chmod +x xray-checker
 ```
 
@@ -41,6 +37,19 @@ Minimum required configuration:
 ./xray-checker --subscription-url="https://your-subscription-url/sub"
 ```
 
+### Multiple Subscriptions
+
+You can specify multiple subscription URLs by using the `--subscription-url` flag multiple times:
+
+```bash
+./xray-checker \
+  --subscription-url="https://provider1.com/sub" \
+  --subscription-url="https://provider2.com/sub" \
+  --subscription-url="file:///path/to/local/config.json"
+```
+
+All proxies from all subscriptions will be combined and monitored together.
+
 ### Full Configuration Example
 
 ```bash
@@ -49,10 +58,14 @@ Minimum required configuration:
   --subscription-update=true \
   --subscription-update-interval=300 \
   --proxy-check-interval=300 \
-  --proxy-timeout=5 \
+  --proxy-timeout=30 \
   --proxy-check-method=ip \
   --proxy-ip-check-url="https://api.ipify.org?format=text" \
   --proxy-status-check-url="http://cp.cloudflare.com/generate_204" \
+  --proxy-download-url="https://proof.ovh.net/files/1Mb.dat" \
+  --proxy-download-timeout=60 \
+  --proxy-download-min-size=51200 \
+  --proxy-resolve-domains=false \
   --simulate-latency=true \
   --xray-start-port=10000 \
   --xray-log-level=none \
@@ -64,6 +77,8 @@ Minimum required configuration:
   --metrics-instance=node-1 \
   --metrics-push-url="https://push.example.com" \
   --metrics-base-path="/xray/monitor" \
+  --web-show-details=false \
+  --log-level=info \
   --run-once=false
 ```
 

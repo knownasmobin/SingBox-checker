@@ -37,16 +37,15 @@ go build -o xray-checker
 ```
 .
 ├── checker/       # Proxy checking logic
-├── config/       # Configuration handling
-├── metrics/      # Prometheus metrics
-├── models/       # Data models
-├── parser/       # Subscription parser
-├── runner/       # Xray process runner
-├── subscription/ # Subscription management
-├── web/         # Web interface
-├── xray/        # Xray integration
-├── go.mod       # Go modules file
-└── main.go      # Application entry point
+├── config/        # Configuration handling
+├── logger/        # Structured logging
+├── metrics/       # Prometheus metrics
+├── models/        # Data models
+├── subscription/  # Subscription parsing and management
+├── web/           # Web interface and API
+├── xray/          # Xray integration and runner
+├── go.mod         # Go modules file
+└── main.go        # Application entry point
 ```
 
 ### Making Changes

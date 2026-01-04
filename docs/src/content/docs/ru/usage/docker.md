@@ -20,6 +20,28 @@ docker run -d \
   kutovoys/xray-checker
 ```
 
+### Несколько подписок
+
+Вы можете указать несколько URL подписок, разделяя их запятыми:
+
+```bash
+docker run -d \
+  -e SUBSCRIPTION_URL="https://provider1.com/sub,https://provider2.com/sub,file:///config/local.json" \
+  -v /path/to/configs:/config \
+  -p 2112:2112 \
+  kutovoys/xray-checker
+```
+
+Или используйте аргументы CLI для более чистой настройки нескольких подписок:
+
+```bash
+docker run -d \
+  -p 2112:2112 \
+  kutovoys/xray-checker \
+  --subscription-url="https://provider1.com/sub" \
+  --subscription-url="https://provider2.com/sub"
+```
+
 ### Полная конфигурация Docker
 
 ```bash
@@ -32,6 +54,10 @@ docker run -d \
   -e PROXY_TIMEOUT=30 \
   -e PROXY_IP_CHECK_URL=https://api.ipify.org?format=text \
   -e PROXY_STATUS_CHECK_URL=http://cp.cloudflare.com/generate_204 \
+  -e PROXY_DOWNLOAD_URL=https://proof.ovh.net/files/1Mb.dat \
+  -e PROXY_DOWNLOAD_TIMEOUT=60 \
+  -e PROXY_DOWNLOAD_MIN_SIZE=51200 \
+  -e PROXY_RESOLVE_DOMAINS=false \
   -e SIMULATE_LATENCY=true \
   -e XRAY_START_PORT=10000 \
   -e XRAY_LOG_LEVEL=none \
@@ -42,7 +68,9 @@ docker run -d \
   -e METRICS_PASSWORD=custom_pass \
   -e METRICS_INSTANCE=node-1 \
   -e METRICS_PUSH_URL=https://push.example.com \
-  -e METRICS_BASE_PATH=/xray/monitor
+  -e METRICS_BASE_PATH=/xray/monitor \
+  -e WEB_SHOW_DETAILS=false \
+  -e LOG_LEVEL=info \
   -e RUN_ONCE=false \
   -p 2112:2112 \
   kutovoys/xray-checker
@@ -77,6 +105,10 @@ services:
       - PROXY_TIMEOUT=30
       - PROXY_IP_CHECK_URL=https://api.ipify.org?format=text
       - PROXY_STATUS_CHECK_URL=http://cp.cloudflare.com/generate_204
+      - PROXY_DOWNLOAD_URL=https://proof.ovh.net/files/1Mb.dat
+      - PROXY_DOWNLOAD_TIMEOUT=60
+      - PROXY_DOWNLOAD_MIN_SIZE=51200
+      - PROXY_RESOLVE_DOMAINS=false
       - SIMULATE_LATENCY=true
       - XRAY_START_PORT=10000
       - XRAY_LOG_LEVEL=none
@@ -88,6 +120,8 @@ services:
       - METRICS_INSTANCE=node-1
       - METRICS_PUSH_URL=https://push.example.com
       - METRICS_BASE_PATH=/xray/monitor
+      - WEB_SHOW_DETAILS=false
+      - LOG_LEVEL=info
       - RUN_ONCE=false
     ports:
       - "2112:2112"

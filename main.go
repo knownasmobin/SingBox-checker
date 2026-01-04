@@ -19,7 +19,8 @@ import (
 )
 
 var (
-	version = "unknown"
+	version   = "unknown"
+	startTime = time.Now()
 )
 
 func main() {
@@ -150,6 +151,8 @@ func main() {
 		logger.Fatal("Error creating web server: %v", err)
 	}
 	mux.Handle("/health", web.HealthHandler())
+	mux.Handle("/static/", web.StaticHandler())
+	mux.Handle("/api/v1/public/proxies", web.APIPublicProxiesHandler(proxyChecker))
 
 	protectedHandler := http.NewServeMux()
 	protectedHandler.Handle("/", web.IndexHandler(version, proxyChecker))
@@ -157,6 +160,15 @@ func main() {
 
 	web.RegisterConfigEndpoints(*proxyConfigs, proxyChecker, config.CLIConfig.Xray.StartPort)
 	protectedHandler.Handle("/config/", web.ConfigStatusHandler(proxyChecker))
+
+	protectedHandler.Handle("/api/v1/proxies/", web.APIProxyHandler(proxyChecker, config.CLIConfig.Xray.StartPort))
+	protectedHandler.Handle("/api/v1/proxies", web.APIProxiesHandler(proxyChecker, config.CLIConfig.Xray.StartPort))
+	protectedHandler.Handle("/api/v1/config", web.APIConfigHandler())
+	protectedHandler.Handle("/api/v1/status", web.APIStatusHandler(proxyChecker))
+	protectedHandler.Handle("/api/v1/system/info", web.APISystemInfoHandler(version, startTime))
+	protectedHandler.Handle("/api/v1/system/ip", web.APISystemIPHandler(proxyChecker))
+	protectedHandler.Handle("/api/v1/docs", web.APIDocsHandler())
+	protectedHandler.Handle("/api/v1/openapi.yaml", web.APIOpenAPIHandler())
 
 	if config.CLIConfig.Metrics.Protected {
 		middlewareHandler := web.BasicAuthMiddleware(

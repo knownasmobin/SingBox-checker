@@ -14,15 +14,25 @@ tableOfContents: false
 
 - 🌓 Web interface with dark/light theme for monitoring all proxy endpoints status
 
+  - 🔍 Search and filter proxies by name or status
+  - 📊 Sort by name, latency, or status
+  - 🔄 Auto-refresh without page reload
+
+- 🌐 [REST API](/usage/api-reference) with OpenAPI/Swagger documentation
+
 ### 📝 Formats and Configuration
 
 - 📋 [Support for various configuration formats](/configuration/subscription):
 
-  - 🔗 URL subscriptions
+  - 🔗 URL subscriptions (with multiple URL support)
   - 🔐 Base64-encoded strings
-  - 📄 JSON files
+  - 📄 V2Ray/Xray JSON files
+  - 📦 Xray JSON array (multi-config)
+  - 📁 Configuration folders
 
 ### 🔌 Integrations
+
+- 🌐 [REST API](/usage/api-reference) with OpenAPI/Swagger documentation for custom integrations
 
 - 📥 [Automatic endpoint generation](/integrations/uptime-kuma) for integration with monitoring systems (e.g., Uptime-Kuma)
 
@@ -32,9 +42,13 @@ tableOfContents: false
 
 ### ⚡ Check Methods
 
-- 🔧 [Support for two proxy verification methods](/configuration/check-methods):
+- 🔧 [Support for three proxy verification methods](/configuration/check-methods):
+
   - 🌐 Via IP address comparison
   - ✅ Via HTTP status checks
+  - 📥 Via file download verification
+
+- ⏱️ Accurate latency measurement using TTFB (Time To First Byte)
 
 ### 🔒 Security
 

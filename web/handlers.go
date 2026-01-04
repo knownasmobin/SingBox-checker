@@ -40,6 +40,7 @@ func IndexHandler(version string, proxyChecker *checker.ProxyChecker) http.Handl
 			IPCheckUrl:                 config.CLIConfig.Proxy.IpCheckUrl,
 			CheckMethod:                config.CLIConfig.Proxy.CheckMethod,
 			StatusCheckUrl:             config.CLIConfig.Proxy.StatusCheckUrl,
+			DownloadUrl:                config.CLIConfig.Proxy.DownloadUrl,
 			SimulateLatency:            config.CLIConfig.Proxy.SimulateLatency,
 			Timeout:                    config.CLIConfig.Proxy.Timeout,
 			SubscriptionUpdate:         config.CLIConfig.Subscription.Update,

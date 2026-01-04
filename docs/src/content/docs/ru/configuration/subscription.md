@@ -3,7 +3,7 @@ title: Формат подписки
 description: Варианты и примеры формата подписки
 ---
 
-Xray Checker поддерживает четыре различных формата для конфигурации прокси. Для настройки используйте [переменную окружения](/ru/configuration/envs#subscription_url) `SUBSCRIPTION_URL`.
+Xray Checker поддерживает пять различных форматов для конфигурации прокси. Для настройки используйте [переменную окружения](/ru/configuration/envs#subscription_url) `SUBSCRIPTION_URL`.
 
 Подробнее о методах проверки прокси читайте в разделе [методы проверки](/ru/configuration/check-methods).
 
@@ -90,7 +90,62 @@ SUBSCRIPTION_URL="file:///path/to/config.json"
 }
 ```
 
-### 4. Папка с конфигурациями
+### 4. Xray JSON-массив (Мульти-конфиг)
+
+JSON-массив, содержащий несколько конфигураций Xray с именами. Этот формат удобен при экспорте конфигураций из GUI-клиентов или управлении несколькими именованными конфигурациями в одном файле.
+
+Пример:
+
+```bash
+SUBSCRIPTION_URL="file:///path/to/configs.json"
+```
+
+Формат файла:
+
+```json
+[
+  {
+    "remarks": "US Server 1",
+    "outbounds": [
+      {
+        "protocol": "vless",
+        "settings": {
+          "vnext": [
+            {
+              "address": "us1.example.com",
+              "port": 443,
+              "users": [{ "id": "uuid-1", "encryption": "none" }]
+            }
+          ]
+        },
+        "streamSettings": { "network": "tcp", "security": "tls" }
+      }
+    ]
+  },
+  {
+    "remarks": "EU Server 1",
+    "outbounds": [
+      {
+        "protocol": "trojan",
+        "settings": {
+          "servers": [
+            {
+              "address": "eu1.example.com",
+              "port": 443,
+              "password": "password123"
+            }
+          ]
+        },
+        "streamSettings": { "network": "tcp", "security": "tls" }
+      }
+    ]
+  }
+]
+```
+
+Поле `remarks` из каждой конфигурации будет использоваться как имя прокси в панели управления.
+
+### 5. Папка с конфигурациями
 
 Директория, содержащая несколько JSON-файлов конфигурации V2Ray/Xray.
 

@@ -224,16 +224,44 @@ error starting Xray: port already in use
 
 ### Enable Debug Logging
 
+There are two log level settings:
+
+**Application Log Level** - controls Xray Checker's own logging:
+
+```bash
+LOG_LEVEL=debug
+```
+
+Available levels: `debug`, `info`, `warn`, `error`
+
+Debug log will show:
+- Subscription parsing details
+- Proxy check results
+- Configuration loading
+- HTTP request/response info
+
+**Xray Core Log Level** - controls the embedded Xray proxy engine:
+
 ```bash
 XRAY_LOG_LEVEL=debug
 ```
 
-Debug log will show:
+Available levels: `debug`, `info`, `warning`, `error`, `none`
 
+Xray debug log will show:
 - Connection attempts
-- Configuration parsing
-- Error details
+- Protocol negotiation
+- Transport layer details
 - Timing information
+
+:::tip[Recommended Debug Setup]
+For troubleshooting, enable both:
+```bash
+LOG_LEVEL=debug
+XRAY_LOG_LEVEL=warning
+```
+This gives detailed app logs while keeping Xray output manageable.
+:::
 
 ### Check Process Status
 

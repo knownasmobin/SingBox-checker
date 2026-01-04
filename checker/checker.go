@@ -1,9 +1,11 @@
 package checker
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/httptrace"
 	"net/url"
 	"strings"
 	"sync"
@@ -127,21 +129,18 @@ func (pc *ProxyChecker) CheckProxy(proxy *models.ProxyConfig) {
 	var checkSuccess bool
 	var checkErr error
 	var logMessage string
-
-	start := time.Now()
+	var latency time.Duration
 
 	if pc.checkMethod == "ip" {
-		checkSuccess, logMessage, checkErr = pc.checkByIP(client)
+		checkSuccess, logMessage, latency, checkErr = pc.checkByIP(client)
 	} else if pc.checkMethod == "status" {
-		checkSuccess, logMessage, checkErr = pc.checkByGen(client)
+		checkSuccess, logMessage, latency, checkErr = pc.checkByGen(client)
 	} else if pc.checkMethod == "download" {
-		checkSuccess, logMessage, checkErr = pc.checkByDownload(client)
+		checkSuccess, logMessage, latency, checkErr = pc.checkByDownload(client)
 	} else {
 		logger.Error("Invalid check method: %s", pc.checkMethod)
 		return
 	}
-
-	latency := time.Since(start)
 
 	if checkErr != nil {
 		logger.Error("%s | %v", proxy.Name, checkErr)
@@ -177,52 +176,94 @@ func (pc *ProxyChecker) CheckProxy(proxy *models.ProxyConfig) {
 	}
 }
 
-func (pc *ProxyChecker) checkByIP(client *http.Client) (bool, string, error) {
-	resp, err := client.Get(pc.ipCheck)
+func (pc *ProxyChecker) checkByIP(client *http.Client) (bool, string, time.Duration, error) {
+	req, err := http.NewRequest("GET", pc.ipCheck, nil)
 	if err != nil {
-		return false, "", err
+		return false, "", 0, err
+	}
+
+	var ttfb time.Duration
+	start := time.Now()
+	trace := &httptrace.ClientTrace{
+		GotFirstResponseByte: func() {
+			ttfb = time.Since(start)
+		},
+	}
+	req = req.WithContext(httptrace.WithClientTrace(context.Background(), trace))
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return false, "", 0, err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return false, "", err
+		return false, "", ttfb, err
 	}
 
 	proxyIP := string(body)
 	logMessage := fmt.Sprintf("Source IP: %s | Proxy IP: %s", pc.currentIP, proxyIP)
-	return proxyIP != pc.currentIP, logMessage, nil
+	return proxyIP != pc.currentIP, logMessage, ttfb, nil
 }
 
-func (pc *ProxyChecker) checkByGen(client *http.Client) (bool, string, error) {
-	resp, err := client.Get(pc.genMethodURL)
+func (pc *ProxyChecker) checkByGen(client *http.Client) (bool, string, time.Duration, error) {
+	req, err := http.NewRequest("GET", pc.genMethodURL, nil)
 	if err != nil {
-		return false, "", err
+		return false, "", 0, err
+	}
+
+	var ttfb time.Duration
+	start := time.Now()
+	trace := &httptrace.ClientTrace{
+		GotFirstResponseByte: func() {
+			ttfb = time.Since(start)
+		},
+	}
+	req = req.WithContext(httptrace.WithClientTrace(context.Background(), trace))
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return false, "", 0, err
 	}
 	defer resp.Body.Close()
 
 	logMessage := fmt.Sprintf("Status: %d", resp.StatusCode)
-	return resp.StatusCode >= 200 && resp.StatusCode < 300, logMessage, nil
+	return resp.StatusCode >= 200 && resp.StatusCode < 300, logMessage, ttfb, nil
 }
 
-func (pc *ProxyChecker) checkByDownload(client *http.Client) (bool, string, error) {
+func (pc *ProxyChecker) checkByDownload(client *http.Client) (bool, string, time.Duration, error) {
 	if pc.downloadURL == "" {
-		return false, "Download URL not configured", fmt.Errorf("download URL not configured")
+		return false, "Download URL not configured", 0, fmt.Errorf("download URL not configured")
 	}
+
+	req, err := http.NewRequest("GET", pc.downloadURL, nil)
+	if err != nil {
+		return false, "", 0, err
+	}
+
+	var ttfb time.Duration
+	start := time.Now()
+	trace := &httptrace.ClientTrace{
+		GotFirstResponseByte: func() {
+			ttfb = time.Since(start)
+		},
+	}
+	req = req.WithContext(httptrace.WithClientTrace(context.Background(), trace))
 
 	downloadClient := &http.Client{
 		Transport: client.Transport,
 		Timeout:   time.Second * time.Duration(pc.downloadTimeout),
 	}
 
-	resp, err := downloadClient.Get(pc.downloadURL)
+	resp, err := downloadClient.Do(req)
 	if err != nil {
-		return false, "", err
+		return false, "", 0, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return false, fmt.Sprintf("HTTP status: %d", resp.StatusCode), nil
+		return false, fmt.Sprintf("HTTP status: %d", resp.StatusCode), ttfb, nil
 	}
 
 	totalBytes := int64(0)
@@ -246,7 +287,7 @@ func (pc *ProxyChecker) checkByDownload(client *http.Client) (bool, string, erro
 		}
 		if err != nil {
 			if totalBytes < pc.downloadMinSize {
-				return false, fmt.Sprintf("Download error after %d bytes: %v", totalBytes, err), nil
+				return false, fmt.Sprintf("Download error after %d bytes: %v", totalBytes, err), ttfb, nil
 			}
 			break
 		}
@@ -255,7 +296,7 @@ func (pc *ProxyChecker) checkByDownload(client *http.Client) (bool, string, erro
 	success := totalBytes >= pc.downloadMinSize
 	logMessage := fmt.Sprintf("Downloaded: %d bytes (min: %d)", totalBytes, pc.downloadMinSize)
 
-	return success, logMessage, nil
+	return success, logMessage, ttfb, nil
 }
 
 func (pc *ProxyChecker) ClearMetrics() {

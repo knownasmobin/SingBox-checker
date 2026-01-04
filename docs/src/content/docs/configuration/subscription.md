@@ -3,7 +3,7 @@ title: Subscription Format
 description: Subscription format options and examples
 ---
 
-Xray Checker supports four different formats for proxy configuration. Use the [environment variable](/configuration/envs#subscription_url) `SUBSCRIPTION_URL` for setup.
+Xray Checker supports five different formats for proxy configuration. Use the [environment variable](/configuration/envs#subscription_url) `SUBSCRIPTION_URL` for setup.
 
 For information about how proxies are verified, see [check methods](/configuration/check-methods).
 
@@ -90,7 +90,62 @@ File format:
 }
 ```
 
-### 4. Configuration Folder
+### 4. Xray JSON Array (Multi-config)
+
+JSON array containing multiple Xray configurations with remarks. This format is useful when exporting configurations from GUI clients or managing multiple named configurations in a single file.
+
+Example:
+
+```bash
+SUBSCRIPTION_URL="file:///path/to/configs.json"
+```
+
+File format:
+
+```json
+[
+  {
+    "remarks": "US Server 1",
+    "outbounds": [
+      {
+        "protocol": "vless",
+        "settings": {
+          "vnext": [
+            {
+              "address": "us1.example.com",
+              "port": 443,
+              "users": [{ "id": "uuid-1", "encryption": "none" }]
+            }
+          ]
+        },
+        "streamSettings": { "network": "tcp", "security": "tls" }
+      }
+    ]
+  },
+  {
+    "remarks": "EU Server 1",
+    "outbounds": [
+      {
+        "protocol": "trojan",
+        "settings": {
+          "servers": [
+            {
+              "address": "eu1.example.com",
+              "port": 443,
+              "password": "password123"
+            }
+          ]
+        },
+        "streamSettings": { "network": "tcp", "security": "tls" }
+      }
+    ]
+  }
+]
+```
+
+The `remarks` field from each configuration will be used as the proxy name in the dashboard.
+
+### 5. Configuration Folder
 
 Directory containing multiple V2Ray/Xray JSON configuration files.
 
