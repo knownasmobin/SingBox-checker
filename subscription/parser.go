@@ -200,6 +200,11 @@ func (p *Parser) Parse(subscriptionData string) ([]*models.ProxyConfig, error) {
 		return p.parseJSONConfigs(rawData)
 	}
 
+	if strings.HasPrefix(trimmedData, "{") {
+		logger.Debug("Detected single JSON object format")
+		return p.parseSingleJSONConfig(rawData)
+	}
+
 	originalData := p.parseOriginalLinks(rawData)
 
 	cleanedData := p.cleanEmptyLines(rawData)
@@ -285,6 +290,42 @@ func (p *Parser) parseJSONConfigs(data []byte) ([]*models.ProxyConfig, error) {
 
 	if len(proxyConfigs) == 0 {
 		return nil, fmt.Errorf("no valid proxy configurations found in JSON")
+	}
+
+	return proxyConfigs, nil
+}
+
+func (p *Parser) parseSingleJSONConfig(data []byte) ([]*models.ProxyConfig, error) {
+	var config struct {
+		Remarks   string            `json:"remarks"`
+		Outbounds []json.RawMessage `json:"outbounds"`
+	}
+
+	if err := json.Unmarshal(data, &config); err != nil {
+		return nil, fmt.Errorf("failed to parse single JSON config: %v", err)
+	}
+
+	logger.Debug("Parsed single JSON config with %d outbounds", len(config.Outbounds))
+
+	var proxyConfigs []*models.ProxyConfig
+	configIndex := 0
+
+	for _, outboundRaw := range config.Outbounds {
+		proxyConfig, err := p.convertOutbound(outboundRaw, configIndex, nil)
+		if err != nil {
+			continue
+		}
+		if proxyConfig != nil {
+			if config.Remarks != "" {
+				proxyConfig.Name = config.Remarks
+			}
+			proxyConfigs = append(proxyConfigs, proxyConfig)
+			configIndex++
+		}
+	}
+
+	if len(proxyConfigs) == 0 {
+		return nil, fmt.Errorf("no valid proxy configurations found in single JSON config")
 	}
 
 	return proxyConfigs, nil

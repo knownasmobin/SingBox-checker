@@ -2,7 +2,6 @@ package main
 
 import (
 	"net/http"
-	"sync/atomic"
 	"time"
 	"xray-checker/checker"
 	"xray-checker/config"
@@ -109,39 +108,38 @@ func main() {
 		return
 	}
 
-	var needsUpdate atomic.Bool
-	s := gocron.NewScheduler(time.UTC)
-	s.Every(config.CLIConfig.Proxy.CheckInterval).Seconds().Do(func() {
-		if config.CLIConfig.Subscription.Update && needsUpdate.Swap(false) {
-			logger.Debug("Updating subscriptions")
-			newConfigs, err := subscription.ReadFromMultipleSources(config.CLIConfig.Subscription.URLs)
-			if err != nil {
-				logger.Error("Error checking subscription updates: %v", err)
-			} else {
-				if config.CLIConfig.Proxy.ResolveDomains {
-					resolved, err := subscription.ResolveDomainsForConfigs(newConfigs)
-					if err != nil {
-						logger.Error("Error resolving domains: %v", err)
-					} else {
-						newConfigs = resolved
-					}
-				}
-
-				if !xray.IsConfigsEqual(*proxyConfigs, newConfigs) {
-					if err := updateConfiguration(newConfigs, proxyConfigs, xrayRunner, proxyChecker); err != nil {
-						logger.Error("Error updating configuration: %v", err)
-					}
-				}
-			}
-		}
+	checkScheduler := gocron.NewScheduler(time.UTC)
+	checkScheduler.Every(config.CLIConfig.Proxy.CheckInterval).Seconds().Do(func() {
 		runCheckIteration()
 	})
-	s.StartAsync()
+	checkScheduler.StartAsync()
 
 	if config.CLIConfig.Subscription.Update {
 		updateScheduler := gocron.NewScheduler(time.UTC)
 		updateScheduler.Every(config.CLIConfig.Subscription.UpdateInterval).Seconds().Do(func() {
-			needsUpdate.Store(true)
+			logger.Info("Checking subscriptions for updates...")
+			newConfigs, err := subscription.ReadFromMultipleSources(config.CLIConfig.Subscription.URLs)
+			if err != nil {
+				logger.Error("Error fetching subscriptions: %v", err)
+				return
+			}
+
+			if config.CLIConfig.Proxy.ResolveDomains {
+				resolved, err := subscription.ResolveDomainsForConfigs(newConfigs)
+				if err != nil {
+					logger.Error("Error resolving domains: %v", err)
+				} else {
+					newConfigs = resolved
+				}
+			}
+
+			if !xray.IsConfigsEqual(*proxyConfigs, newConfigs) {
+				if err := updateConfiguration(newConfigs, proxyConfigs, xrayRunner, proxyChecker); err != nil {
+					logger.Error("Error updating configuration: %v", err)
+				}
+			} else {
+				logger.Info("Subscriptions checked, no changes")
+			}
 		})
 		updateScheduler.StartAsync()
 	}

@@ -128,7 +128,7 @@ func ResolveDomainsForConfigs(configs []*models.ProxyConfig) ([]*models.ProxyCon
 		for i, ip := range ips {
 			clone := *cfg
 			clone.Server = ip.String()
-			clone.StableID = "" // Reset so it gets regenerated in PrepareProxyConfigs
+			clone.StableID = ""
 			if len(ips) > 1 {
 				clone.Name = fmt.Sprintf("%s #%d", cfg.Name, i+1)
 			}
