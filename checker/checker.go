@@ -273,23 +273,17 @@ func (pc *ProxyChecker) checkByDownload(client *http.Client) (bool, string, time
 		n, err := resp.Body.Read(buffer)
 		if n > 0 {
 			totalBytes += int64(n)
-			if totalBytes >= pc.downloadMinSize {
-				if err == io.EOF {
-					break
-				}
-				if err != nil {
-					break
-				}
-			}
 		}
+
+		if totalBytes >= pc.downloadMinSize {
+			break
+		}
+
 		if err == io.EOF {
 			break
 		}
 		if err != nil {
-			if totalBytes < pc.downloadMinSize {
-				return false, fmt.Sprintf("Download error after %d bytes: %v", totalBytes, err), ttfb, nil
-			}
-			break
+			return false, fmt.Sprintf("Download error after %d bytes: %v", totalBytes, err), ttfb, nil
 		}
 	}
 
