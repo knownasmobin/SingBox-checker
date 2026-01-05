@@ -80,6 +80,7 @@ chmod +x xray-checker
   --web-show-details=false \
   --log-level=info \
   --run-once=false
+
 ```
 
 ### Основные операции CLI

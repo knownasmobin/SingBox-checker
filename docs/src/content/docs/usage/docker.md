@@ -159,3 +159,25 @@ services:
       retries: 3
       start_period: 40s
 ```
+
+### Download Check Method Example
+
+Example using the download check method:
+
+```bash
+docker run -d \
+  -e SUBSCRIPTION_URL=https://your-subscription-url/sub \
+  -e PROXY_CHECK_METHOD=download \
+  -e PROXY_DOWNLOAD_URL=https://proof.ovh.net/files/1Mb.dat \
+  -e PROXY_DOWNLOAD_TIMEOUT=60 \
+  -e PROXY_DOWNLOAD_MIN_SIZE=51200 \
+  -p 2112:2112 \
+  kutovoys/xray-checker
+```
+
+This configuration will:
+
+- Download a test file through each proxy
+- Consider the check successful if at least 10MB is downloaded
+- Timeout after 5 minutes
+- Test actual data transfer performance through proxies

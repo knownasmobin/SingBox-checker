@@ -391,3 +391,56 @@ func (pc *ProxyChecker) GetProxyByStableID(stableID string) (*models.ProxyConfig
 func (pc *ProxyChecker) GetProxies() []*models.ProxyConfig {
 	return pc.proxies
 }
+
+func (pc *ProxyChecker) checkByDownload(client *http.Client) (bool, string, error) {
+	if pc.downloadURL == "" {
+		return false, "Download URL not configured", fmt.Errorf("download URL not configured")
+	}
+
+	downloadClient := &http.Client{
+		Transport: client.Transport,
+		Timeout:   time.Second * time.Duration(pc.downloadTimeout),
+	}
+
+	resp, err := downloadClient.Get(pc.downloadURL)
+	if err != nil {
+		return false, "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return false, fmt.Sprintf("HTTP status: %d", resp.StatusCode), nil
+	}
+
+	totalBytes := int64(0)
+	buffer := make([]byte, 8192)
+
+	for {
+		n, err := resp.Body.Read(buffer)
+		if n > 0 {
+			totalBytes += int64(n)
+			if totalBytes >= pc.downloadMinSize {
+				if err == io.EOF {
+					break
+				}
+				if err != nil {
+					break
+				}
+			}
+		}
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			if totalBytes < pc.downloadMinSize {
+				return false, fmt.Sprintf("Download error after %d bytes: %v", totalBytes, err), nil
+			}
+			break
+		}
+	}
+
+	success := totalBytes >= pc.downloadMinSize
+	logMessage := fmt.Sprintf("Downloaded: %d bytes (min: %d)", totalBytes, pc.downloadMinSize)
+
+	return success, logMessage, nil
+}

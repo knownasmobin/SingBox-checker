@@ -159,3 +159,25 @@ services:
       retries: 3
       start_period: 40s
 ```
+
+### Пример использования метода проверки скачивания
+
+Пример использования метода проверки скачивания:
+
+```bash
+docker run -d \
+  -e SUBSCRIPTION_URL=https://your-subscription-url/sub \
+  -e PROXY_CHECK_METHOD=download \
+  -e PROXY_DOWNLOAD_URL=https://proof.ovh.net/files/1Mb.dat \
+  -e PROXY_DOWNLOAD_TIMEOUT=60 \
+  -e PROXY_DOWNLOAD_MIN_SIZE=51200 \
+  -p 2112:2112 \
+  kutovoys/xray-checker
+```
+
+Эта конфигурация будет:
+
+- Скачивать тестовый файл через каждый прокси
+- Считать проверку успешной если скачано минимум 50KB
+- Прерывать скачивание через 1 минуту
+- Тестировать реальную производительность передачи данных через прокси
