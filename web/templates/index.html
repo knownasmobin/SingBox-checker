@@ -199,6 +199,10 @@
         background: var(--filter-offline-bg);
         color: var(--color-red);
       }
+      .filter-all {
+        background: var(--hover-bg);
+        color: var(--text-primary);
+      }
       .btn-active {
         background: var(--btn-active-bg);
         border-color: var(--btn-active-border);
@@ -645,7 +649,7 @@
             <div class="flex gap-1 p-1 rounded-lg card-flat">
               <button
                 @click="setFilter('all')"
-                :class="filter === 'all' ? 'bg-white/10 text-primary' : 'text-muted hover:text-secondary'"
+                :class="filter === 'all' ? 'filter-all' : 'text-muted hover:text-secondary'"
                 class="px-3 py-1 rounded text-xs font-medium"
               >
                 All
