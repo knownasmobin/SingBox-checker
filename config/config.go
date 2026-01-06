@@ -21,9 +21,9 @@ func Parse(version string) {
 
 type CLI struct {
 	Subscription struct {
-		URL            string `name:"subscription-url" help:"URL of the subscription" required:"true" env:"SUBSCRIPTION_URL"`
-		Update         bool   `name:"subscription-update" help:"Whether to recheck the subscription" default:"true" env:"SUBSCRIPTION_UPDATE"`
-		UpdateInterval int    `name:"subscription-update-interval" help:"Interval for subscription updates in seconds" default:"300" env:"SUBSCRIPTION_UPDATE_INTERVAL"`
+		URLs           []string `name:"subscription-url" help:"URL(s) of the subscription (can be specified multiple times)" required:"true" env:"SUBSCRIPTION_URL"`
+		Update         bool     `name:"subscription-update" help:"Whether to recheck the subscription" default:"true" env:"SUBSCRIPTION_UPDATE"`
+		UpdateInterval int      `name:"subscription-update-interval" help:"Interval for subscription updates in seconds" default:"300" env:"SUBSCRIPTION_UPDATE_INTERVAL"`
 	} `embed:"" prefix:""`
 
 	Proxy struct {
@@ -55,8 +55,13 @@ type CLI struct {
 		BasePath  string `name:"metrics-base-path" help:"URL path to metrics (e.g. /xray/metrics)" default:"" env:"METRICS_BASE_PATH"`
 	} `embed:"" prefix:""`
 
-	Version VersionFlag `name:"version" help:"Print version information and quit"`
-	RunOnce bool        `name:"run-once" help:"Run one check cycle and exit" default:"false" env:"RUN_ONCE"`
+	Web struct {
+		ShowServerDetails bool `name:"web-show-details" help:"Show server IP addresses and ports in web UI" default:"false" env:"WEB_SHOW_DETAILS"`
+	} `embed:"" prefix:""`
+
+	Version  VersionFlag `name:"version" help:"Print version information and quit"`
+	RunOnce  bool        `name:"run-once" help:"Run one check cycle and exit" default:"false" env:"RUN_ONCE"`
+	LogLevel string      `name:"log-level" help:"Log level (debug|info|warn|error|none)" default:"info" env:"LOG_LEVEL"`
 }
 
 type VersionFlag string

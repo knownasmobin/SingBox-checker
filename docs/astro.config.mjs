@@ -8,6 +8,51 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "Xray Checker",
+      favicon: "/favicon.svg",
+      logo: {
+        light: "./src/assets/logo-light.svg",
+        dark: "./src/assets/logo-dark.svg",
+      },
+      head: [
+        {
+          tag: "link",
+          attrs: {
+            rel: "icon",
+            type: "image/png",
+            href: "/favicon-96x96.png",
+            sizes: "96x96",
+          },
+        },
+        {
+          tag: "link",
+          attrs: {
+            rel: "shortcut icon",
+            href: "/favicon.ico",
+          },
+        },
+        {
+          tag: "link",
+          attrs: {
+            rel: "apple-touch-icon",
+            sizes: "180x180",
+            href: "/apple-touch-icon.png",
+          },
+        },
+        {
+          tag: "meta",
+          attrs: {
+            name: "apple-mobile-web-app-title",
+            content: "Xray Checker",
+          },
+        },
+        {
+          tag: "link",
+          attrs: {
+            rel: "manifest",
+            href: "/site.webmanifest",
+          },
+        },
+      ],
       editLink: {
         baseUrl: "https://github.com/kutovoys/xray-checker/edit/main/docs/",
       },
@@ -27,18 +72,25 @@ export default defineConfig({
           label: "Русский",
           lang: "ru",
         },
+        fa: {
+          label: "فارسی",
+          lang: "fa",
+          dir: "rtl",
+        },
       },
       sidebar: [
         {
           label: "Introduction",
           translations: {
             ru: "Введение",
+            fa: "مقدمه",
           },
           items: [
             {
               label: "Overview",
               translations: {
                 ru: "Обзор",
+                fa: "نمای کلی",
               },
               slug: "index",
             },
@@ -46,6 +98,7 @@ export default defineConfig({
               label: "Features",
               translations: {
                 ru: "Возможности",
+                fa: "امکانات",
               },
               slug: "intro/features",
             },
@@ -53,6 +106,7 @@ export default defineConfig({
               label: "Architecture",
               translations: {
                 ru: "Архитектура",
+                fa: "معماری",
               },
               slug: "intro/architecture",
             },
@@ -60,6 +114,7 @@ export default defineConfig({
               label: "Quick Start",
               translations: {
                 ru: "Быстрый старт",
+                fa: "شروع سریع",
               },
               slug: "intro/quick-start",
             },
@@ -69,12 +124,14 @@ export default defineConfig({
           label: "Usage",
           translations: {
             ru: "Использование",
+            fa: "استفاده",
           },
           items: [
             {
               label: "CLI",
               translations: {
                 ru: "CLI",
+                fa: "خط فرمان",
               },
               slug: "usage/cli",
             },
@@ -82,6 +139,7 @@ export default defineConfig({
               label: "Docker",
               translations: {
                 ru: "Docker",
+                fa: "داکر",
               },
               slug: "usage/docker",
             },
@@ -89,6 +147,7 @@ export default defineConfig({
               label: "GitHub Actions",
               translations: {
                 ru: "GitHub Actions",
+                fa: "GitHub Actions",
               },
               slug: "usage/github-actions",
             },
@@ -96,6 +155,7 @@ export default defineConfig({
               label: "API Reference",
               translations: {
                 ru: "API Reference",
+                fa: "مرجع API",
               },
               slug: "usage/api-reference",
             },
@@ -103,6 +163,7 @@ export default defineConfig({
               label: "Troubleshooting",
               translations: {
                 ru: "Устранение неполадок",
+                fa: "عیب‌یابی",
               },
               slug: "usage/troubleshooting",
             },
@@ -112,12 +173,14 @@ export default defineConfig({
           label: "Configuration",
           translations: {
             ru: "Конфигурация",
+            fa: "پیکربندی",
           },
           items: [
             {
               label: "Environment Variables",
               translations: {
                 ru: "Переменные окружения",
+                fa: "متغیرهای محیطی",
               },
               slug: "configuration/envs",
             },
@@ -125,6 +188,7 @@ export default defineConfig({
               label: "Subscription Format",
               translations: {
                 ru: "Формат подписки",
+                fa: "فرمت اشتراک",
               },
               slug: "configuration/subscription",
             },
@@ -132,6 +196,7 @@ export default defineConfig({
               label: "Check Methods",
               translations: {
                 ru: "Методы проверки",
+                fa: "روش‌های بررسی",
               },
               slug: "configuration/check-methods",
             },
@@ -139,6 +204,7 @@ export default defineConfig({
               label: "Advanced Configuration",
               translations: {
                 ru: "Расширенная конфигурация",
+                fa: "پیکربندی پیشرفته",
               },
               slug: "configuration/advanced-conf",
             },
@@ -148,12 +214,14 @@ export default defineConfig({
           label: "Integrations",
           translations: {
             ru: "Интеграции",
+            fa: "یکپارچه‌سازی‌ها",
           },
           items: [
             {
               label: "Metrics",
               translations: {
                 ru: "Метрики",
+                fa: "متریک‌ها",
               },
               slug: "integrations/metrics",
             },
@@ -161,6 +229,7 @@ export default defineConfig({
               label: "Prometheus Setup",
               translations: {
                 ru: "Настройка Prometheus",
+                fa: "راه‌اندازی Prometheus",
               },
               slug: "integrations/prometheus",
             },
@@ -168,6 +237,7 @@ export default defineConfig({
               label: "Uptime Kuma",
               translations: {
                 ru: "Uptime Kuma",
+                fa: "Uptime Kuma",
               },
               slug: "integrations/uptime-kuma",
             },
@@ -175,6 +245,7 @@ export default defineConfig({
               label: "Grafana Dashboards",
               translations: {
                 ru: "Grafana Dashboard",
+                fa: "داشبوردهای Grafana",
               },
               slug: "integrations/grafana",
               badge: { text: "WIP", variant: "caution" },
@@ -183,6 +254,7 @@ export default defineConfig({
               label: "Alternatives",
               translations: {
                 ru: "Альтернативы",
+                fa: "جایگزین‌ها",
               },
               slug: "integrations/alternatives",
             },
@@ -192,12 +264,14 @@ export default defineConfig({
           label: "Contributing",
           translations: {
             ru: "Участие в разработке",
+            fa: "مشارکت",
           },
           items: [
             {
               label: "Development Guide",
               translations: {
                 ru: "Руководство для разработчиков",
+                fa: "راهنمای توسعه",
               },
               link: "/contributing/guide",
             },
@@ -205,18 +279,21 @@ export default defineConfig({
         },
         {
           label: "Other Software",
+          translations: {
+            fa: "نرم‌افزارهای دیگر",
+          },
           items: [
             {
-              label: "Marzban Exporter",
-              link: "https://github.com/kutovoys/marzban-exporter",
-            },
-            {
-              label: "Marzban Torrent Blocker",
-              link: "https://github.com/kutovoys/marzban-torrent-blocker",
+              label: "Xray Torrent Blocker",
+              link: "https://github.com/kutovoys/xray-torrent-blocker",
             },
             {
               label: "Speedtest Exporter",
               link: "https://github.com/kutovoys/speedtest-exporter",
+            },
+            {
+              label: "Marzban Exporter",
+              link: "https://github.com/kutovoys/marzban-exporter",
             },
           ],
         },
@@ -224,12 +301,13 @@ export default defineConfig({
           label: "VPN Recommendation",
           translations: {
             ru: "Рекомендуем",
+            fa: "پیشنهاد VPN",
           },
           items: [
             {
               label: "BlancVPN",
-              link: "https://getblancvpn.com/?ref=xc-doc",
-              badge: { text: "TRYBLANCVPN", variant: "success" },
+              link: "https://getblancvpn.com/pricing?promo=klugscl&ref=xc-doc",
+              badge: { text: "KLUGSCL", variant: "success" },
               attrs: {
                 class: "blanc-vpn-menu-item",
               },

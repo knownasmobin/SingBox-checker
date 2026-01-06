@@ -5,7 +5,11 @@ description: Check methods options and examples
 
 ## Check Methods
 
-Xray Checker supports three methods for verifying proxy functionality:
+Xray Checker supports three methods for verifying proxy functionality.
+
+:::note[Latency Measurement]
+All check methods measure latency using **TTFB (Time To First Byte)** - the time from request start until the first byte of the response is received. This provides consistent and accurate latency measurements across all methods.
+:::
 
 ### IP Check Method (Default)
 
@@ -69,15 +73,14 @@ PROXY_TIMEOUT=30
 This method:
 
 1. Connects through proxy
-2. Downloads a specified file
-3. Verifies download completion or minimum size threshold
+2. Downloads a file from specified URL
+3. Verifies minimum bytes received
 
 Benefits:
 
-- Tests actual data transfer through proxy
-- Verifies proxy performance with real file downloads
-- Configurable success criteria (minimum download size)
-- Single-threaded download in one TCP connection
+- Tests actual data transfer capability
+- Detects proxies with connection issues
+- Useful for verifying streaming/download capability
 
 Configuration:
 
@@ -88,9 +91,8 @@ PROXY_DOWNLOAD_TIMEOUT=60
 PROXY_DOWNLOAD_MIN_SIZE=51200
 ```
 
-The check is considered successful if:
-
-- The file is completely downloaded, OR
-- At least the minimum specified bytes are downloaded
-
-This method is ideal for testing proxy performance with actual file transfers and ensuring the proxy can handle sustained data connections.
+:::tip[Choosing the Right Method]
+- Use **ip** for most reliable verification (default)
+- Use **status** for fast checks with minimal bandwidth
+- Use **download** when you need to verify data transfer capability
+:::

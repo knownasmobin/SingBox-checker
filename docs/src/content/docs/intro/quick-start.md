@@ -41,7 +41,12 @@ curl http://localhost:2112/health
 1. Download the latest release:
 
 ```bash
-curl -Lo xray-checker https://github.com/kutovoys/xray-checker/releases/latest/download/xray-checker_linux_amd64
+# Linux amd64
+curl -sL -o - $(curl -s https://api.github.com/repos/kutovoys/xray-checker/releases/latest | grep "browser_download_url.*linux-amd64.tar.gz" | cut -d'"' -f4) | tar -xz
+chmod +x xray-checker
+
+# Linux arm64
+curl -sL -o - $(curl -s https://api.github.com/repos/kutovoys/xray-checker/releases/latest | grep "browser_download_url.*linux-arm64.tar.gz" | cut -d'"' -f4) | tar -xz
 chmod +x xray-checker
 ```
 

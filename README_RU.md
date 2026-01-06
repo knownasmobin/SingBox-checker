@@ -93,4 +93,4 @@ services:
 
 ## Рекомендация VPN
 
-Для безопасного и надежного доступа в интернет мы рекомендуем [BlancVPN](https://getblancvpn.com/?ref=xc-readme). Используйте промокод `TRYBLANCVPN` для получения скидки 15% на вашу подписку.
+Для безопасного и надежного доступа в интернет мы рекомендуем [BlancVPN](https://getblancvpn.com/pricing?promo=klugscl&ref=xc-readme). Используйте промокод `KLUGSCL` для получения скидки 15% на вашу подписку.

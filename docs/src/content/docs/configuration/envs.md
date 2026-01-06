@@ -18,6 +18,14 @@ URL, Base64 string or file path for proxy configuration. Supports multiple forma
 - Local file path with prefix `file://`
 - Local folder path with prefix `folder://`
 
+:::tip[Multiple Subscriptions]
+You can specify multiple subscription sources:
+- **CLI**: Use `--subscription-url` flag multiple times
+- **Environment**: Separate URLs with commas: `SUBSCRIPTION_URL="url1,url2,url3"`
+
+All proxies from all sources will be combined and monitored together.
+:::
+
 ### SUBSCRIPTION_UPDATE
 
 - CLI: `--subscription-update`
@@ -55,7 +63,7 @@ Method used to verify proxy functionality:
 
 - `ip`: Compares IP addresses with and without proxy
 - `status`: Checks HTTP status code from a test request
-- `download`: Downloads a file through proxy to verify functionality
+- `download`: Downloads a file and verifies minimum size received
 
 ### PROXY_IP_CHECK_URL
 
@@ -77,9 +85,9 @@ URL used for status verification when `PROXY_CHECK_METHOD=status`. Should return
 
 - CLI: `--proxy-download-url`
 - Required: No
-- Default: https://proof.ovh.net/files/1Mb.dat
+- Default: `https://proof.ovh.net/files/1Mb.dat`
 
-URL of the file to download when `PROXY_CHECK_METHOD=download`. The file will be downloaded through the proxy to verify functionality.
+URL used for download verification when `PROXY_CHECK_METHOD=download`. Should return a downloadable file.
 
 ### PROXY_DOWNLOAD_TIMEOUT
 
@@ -87,15 +95,15 @@ URL of the file to download when `PROXY_CHECK_METHOD=download`. The file will be
 - Required: No
 - Default: `60`
 
-Maximum time in seconds to wait for file download completion when using `PROXY_CHECK_METHOD=download`.
+Maximum time in seconds to wait for download completion when using `PROXY_CHECK_METHOD=download`.
 
 ### PROXY_DOWNLOAD_MIN_SIZE
 
 - CLI: `--proxy-download-min-size`
 - Required: No
-- Default: `51200`
+- Default: `51200` (50KB)
 
-Minimum number of bytes to download for a successful check when using `PROXY_CHECK_METHOD=download`. Default is 50KB.
+Minimum number of bytes that must be downloaded for the check to be considered successful when using `PROXY_CHECK_METHOD=download`.
 
 ### PROXY_TIMEOUT
 
@@ -129,7 +137,25 @@ This allows Xray Checker to monitor each resolved endpoint individually.
 - Required: No
 - Default: `true`
 
-Adds measured latency to endpoint responses, useful for monitoring systems.
+Adds measured latency (TTFB - Time To First Byte) to endpoint responses, useful for monitoring systems that can interpret response delays.
+
+### PROXY_RESOLVE_DOMAINS
+
+- CLI: `--proxy-resolve-domains`
+- Required: No
+- Default: `false`
+
+When enabled, resolves proxy server domain names to IP addresses and creates separate configurations for each resolved IP. Useful when a domain points to multiple servers.
+
+## Web UI
+
+### WEB_SHOW_DETAILS
+
+- CLI: `--web-show-details`
+- Required: No
+- Default: `false`
+
+Shows server IP addresses and ports in the web UI. When disabled, only proxy names are displayed for privacy.
 
 ## Xray
 
@@ -217,6 +243,15 @@ Prometheus Pushgateway URL for metric pushing. Format: `https://user:pass@host:p
 URL path for host metrics and monitoring. Format: `/vpn/metrics`. Monitoring page could be available on `http://localhost:port/metrics-base-path`
 
 ## Other
+
+### LOG_LEVEL
+
+- CLI: `--log-level`
+- Required: No
+- Default: `info`
+- Values: `debug`, `info`, `warn`, `error`, `none`
+
+Controls Xray Checker application logging verbosity. Note: This is separate from `XRAY_LOG_LEVEL` which controls the Xray Core logging.
 
 ### RUN_ONCE
 

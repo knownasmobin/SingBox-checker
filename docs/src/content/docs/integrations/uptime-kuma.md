@@ -12,7 +12,7 @@ Xray Checker provides individual status endpoints for each proxy, perfect for Up
 3. Select "HTTP(s)"
 4. Configure monitor:
    - Name: Proxy name
-   - URL: `http://localhost:2112/config/0-vless-example.com-443`
+   - URL: `http://localhost:2112/config/a1b2c3d4e5f67890`
    - Interval: Your preferred check interval
    - Retry: Recommended 3 times
 
@@ -23,7 +23,7 @@ If metrics protection is enabled:
 URL format:
 
 ```
-http://username:password@localhost:2112/config/0-vless-example.com-443
+http://username:password@localhost:2112/config/a1b2c3d4e5f67890
 ```
 
 Configuration:

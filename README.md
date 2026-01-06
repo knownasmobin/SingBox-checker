@@ -91,4 +91,4 @@ Thanks to the all contributors who have helped improve Xray Checker:
 
 ## VPN Recommendation
 
-For secure and reliable internet access, we recommend [BlancVPN](https://getblancvpn.com/?ref=xc-readme). Use promo code `TRYBLANCVPN` for 15% off your subscription.
+For secure and reliable internet access, we recommend [BlancVPN](https://getblancvpn.com/pricing?promo=klugscl&ref=xc-readme). Use promo code `KLUGSCL` for 15% off your subscription.

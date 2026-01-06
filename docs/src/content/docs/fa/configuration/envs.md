@@ -1,0 +1,244 @@
+---
+title: متغیرهای محیطی
+description: متغیرهای محیطی برای Xray Checker
+---
+
+## اشتراک
+
+### SUBSCRIPTION_URL
+
+- CLI: `--subscription-url`
+- الزامی: بله
+- پیش‌فرض: ندارد
+
+آدرس URL، رشته Base64 یا مسیر فایل برای پیکربندی پروکسی. فرمت‌های مختلف پشتیبانی می‌شود:
+
+- آدرس HTTP/HTTPS با محتوای کدگذاری شده Base64
+- رشته مستقیم کدگذاری شده Base64
+- مسیر فایل محلی با پیشوند `file://`
+- مسیر پوشه محلی با پیشوند `folder://`
+
+:::tip[چندین اشتراک]
+می‌توانید چندین منبع اشتراک مشخص کنید:
+- **CLI**: از فلگ `--subscription-url` چندین بار استفاده کنید
+- **متغیر محیطی**: آدرس‌ها را با کاما جدا کنید: `SUBSCRIPTION_URL="url1,url2,url3"`
+
+تمام پروکسی‌ها از همه منابع ترکیب شده و با هم نظارت می‌شوند.
+:::
+
+### SUBSCRIPTION_UPDATE
+
+- CLI: `--subscription-update`
+- الزامی: خیر
+- پیش‌فرض: `true`
+
+فعال‌سازی به‌روزرسانی خودکار پیکربندی پروکسی از منبع اشتراک. وقتی فعال باشد، Xray Checker به طور دوره‌ای تغییرات را بررسی و پیکربندی‌ها را به‌روزرسانی می‌کند.
+
+### SUBSCRIPTION_UPDATE_INTERVAL
+
+- CLI: `--subscription-update-interval`
+- الزامی: خیر
+- پیش‌فرض: `300`
+
+زمان به ثانیه بین بررسی‌های به‌روزرسانی اشتراک. فقط زمانی استفاده می‌شود که `SUBSCRIPTION_UPDATE` فعال باشد.
+
+## پروکسی
+
+### PROXY_CHECK_INTERVAL
+
+- CLI: `--proxy-check-interval`
+- الزامی: خیر
+- پیش‌فرض: `300`
+
+زمان به ثانیه بین بررسی‌های در دسترس بودن پروکسی. هر بررسی تمام پروکسی‌های پیکربندی شده را تأیید می‌کند.
+
+### PROXY_CHECK_METHOD
+
+- CLI: `--proxy-check-method`
+- الزامی: خیر
+- پیش‌فرض: `ip`
+- مقادیر: `ip`، `status`، `download`
+
+روش مورد استفاده برای تأیید عملکرد پروکسی:
+
+- `ip`: مقایسه آدرس‌های IP با و بدون پروکسی
+- `status`: بررسی کد وضعیت HTTP از یک درخواست آزمایشی
+- `download`: دانلود یک فایل و تأیید حداقل اندازه دریافتی
+
+### PROXY_IP_CHECK_URL
+
+- CLI: `--proxy-ip-check-url`
+- الزامی: خیر
+- پیش‌فرض: `https://api.ipify.org?format=text`
+
+آدرس URL مورد استفاده برای تأیید IP وقتی `PROXY_CHECK_METHOD=ip`. باید آدرس IP فعلی را در فرمت متن ساده برگرداند.
+
+### PROXY_STATUS_CHECK_URL
+
+- CLI: `--proxy-status-check-url`
+- الزامی: خیر
+- پیش‌فرض: `http://cp.cloudflare.com/generate_204`
+
+آدرس URL مورد استفاده برای تأیید وضعیت وقتی `PROXY_CHECK_METHOD=status`. باید کد وضعیت HTTP 204/200 برگرداند.
+
+### PROXY_DOWNLOAD_URL
+
+- CLI: `--proxy-download-url`
+- الزامی: خیر
+- پیش‌فرض: `https://proof.ovh.net/files/1Mb.dat`
+
+آدرس URL مورد استفاده برای تأیید دانلود وقتی `PROXY_CHECK_METHOD=download`. باید یک فایل قابل دانلود برگرداند.
+
+### PROXY_DOWNLOAD_TIMEOUT
+
+- CLI: `--proxy-download-timeout`
+- الزامی: خیر
+- پیش‌فرض: `60`
+
+حداکثر زمان به ثانیه برای انتظار تکمیل دانلود هنگام استفاده از `PROXY_CHECK_METHOD=download`.
+
+### PROXY_DOWNLOAD_MIN_SIZE
+
+- CLI: `--proxy-download-min-size`
+- الزامی: خیر
+- پیش‌فرض: `51200` (۵۰KB)
+
+حداقل تعداد بایت‌هایی که باید دانلود شود تا بررسی موفق در نظر گرفته شود هنگام استفاده از `PROXY_CHECK_METHOD=download`.
+
+### PROXY_TIMEOUT
+
+- CLI: `--proxy-timeout`
+- الزامی: خیر
+- پیش‌فرض: `30`
+
+حداکثر زمان به ثانیه برای انتظار پاسخ پروکسی در طول بررسی‌ها.
+
+### SIMULATE_LATENCY
+
+- CLI: `--simulate-latency`
+- الزامی: خیر
+- پیش‌فرض: `true`
+
+تأخیر اندازه‌گیری شده (TTFB - زمان تا اولین بایت) را به پاسخ‌های نقطه پایانی اضافه می‌کند، برای سیستم‌های نظارتی که می‌توانند تأخیر پاسخ را تفسیر کنند مفید است.
+
+### PROXY_RESOLVE_DOMAINS
+
+- CLI: `--proxy-resolve-domains`
+- الزامی: خیر
+- پیش‌فرض: `false`
+
+وقتی فعال باشد، نام‌های دامنه سرور پروکسی را به آدرس‌های IP تبدیل کرده و پیکربندی‌های جداگانه برای هر IP تبدیل شده ایجاد می‌کند. برای زمانی که یک دامنه به چندین سرور اشاره می‌کند مفید است.
+
+## رابط وب
+
+### WEB_SHOW_DETAILS
+
+- CLI: `--web-show-details`
+- الزامی: خیر
+- پیش‌فرض: `false`
+
+آدرس‌های IP و پورت‌های سرور را در رابط وب نمایش می‌دهد. وقتی غیرفعال باشد، فقط نام‌های پروکسی برای حفظ حریم خصوصی نمایش داده می‌شوند.
+
+## Xray
+
+### XRAY_START_PORT
+
+- CLI: `--xray-start-port`
+- الزامی: خیر
+- پیش‌فرض: `10000`
+
+شماره پورت شروع برای پروکسی‌های SOCKS5. هر پروکسی از پورت‌های متوالی شروع از این عدد استفاده می‌کند.
+
+### XRAY_LOG_LEVEL
+
+- CLI: `--xray-log-level`
+- الزامی: خیر
+- پیش‌فرض: `none`
+- مقادیر: `debug`، `info`، `warning`، `error`، `none`
+
+سطح جزئیات لاگ Xray Core را کنترل می‌کند.
+
+## متریک‌ها
+
+### METRICS_HOST
+
+- CLI: `--metrics-host`
+- الزامی: خیر
+- پیش‌فرض: `0.0.0.0`
+
+آدرس میزبان برای نقاط پایانی متریک و وضعیت.
+
+### METRICS_PORT
+
+- CLI: `--metrics-port`
+- الزامی: خیر
+- پیش‌فرض: `2112`
+
+شماره پورت برای سرور HTTP که نقاط پایانی متریک و وضعیت را ارائه می‌دهد.
+
+### METRICS_PROTECTED
+
+- CLI: `--metrics-protected`
+- الزامی: خیر
+- پیش‌فرض: `false`
+
+احراز هویت پایه را برای نقاط پایانی متریک و وضعیت فعال می‌کند.
+
+### METRICS_USERNAME
+
+- CLI: `--metrics-username`
+- الزامی: خیر
+- پیش‌فرض: `metricsUser`
+
+نام کاربری برای احراز هویت پایه وقتی `METRICS_PROTECTED=true`.
+
+### METRICS_PASSWORD
+
+- CLI: `--metrics-password`
+- الزامی: خیر
+- پیش‌فرض: `MetricsVeryHardPassword`
+
+رمز عبور برای احراز هویت پایه وقتی `METRICS_PROTECTED=true`.
+
+### METRICS_INSTANCE
+
+- CLI: `--metrics-instance`
+- الزامی: خیر
+- پیش‌فرض: ندارد
+
+برچسب نمونه که به تمام متریک‌ها اضافه می‌شود. برای تشخیص چندین نمونه Xray Checker مفید است.
+
+### METRICS_PUSH_URL
+
+- CLI: `--metrics-push-url`
+- الزامی: خیر
+- پیش‌فرض: ندارد
+
+آدرس URL Prometheus Pushgateway برای ارسال متریک. فرمت: `https://user:pass@host:port`
+
+### METRICS_BASE_PATH
+
+- CLI: `--metrics-base-path`
+- الزامی: خیر
+- پیش‌فرض: ""
+
+مسیر URL برای متریک‌ها و نظارت میزبان. فرمت: `/vpn/metrics`. صفحه نظارت در `http://localhost:port/metrics-base-path` در دسترس خواهد بود.
+
+## سایر
+
+### LOG_LEVEL
+
+- CLI: `--log-level`
+- الزامی: خیر
+- پیش‌فرض: `info`
+- مقادیر: `debug`، `info`، `warn`، `error`، `none`
+
+سطح جزئیات لاگ برنامه Xray Checker را کنترل می‌کند. توجه: این جدا از `XRAY_LOG_LEVEL` است که لاگ Xray Core را کنترل می‌کند.
+
+### RUN_ONCE
+
+- CLI: `--run-once`
+- الزامی: خیر
+- پیش‌فرض: `false`
+
+یک چرخه بررسی انجام داده و خارج می‌شود. برای محیط‌های اجرای زمان‌بندی شده مفید است.
