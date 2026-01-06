@@ -268,12 +268,39 @@ func (g *ConfigGenerator) generateStreamSettings(proxy *models.ProxyConfig) map[
 		}
 		ss["httpupgradeSettings"] = httpUpgradeSettings
 
-	case "splithttp", "xhttp":
-		splitSettings := map[string]interface{}{"path": proxy.Path}
-		if proxy.Host != "" {
-			splitSettings["host"] = proxy.Host
+	case "splithttp":
+		if proxy.RawXhttpSettings != "" {
+			var rawSettings map[string]interface{}
+			if err := json.Unmarshal([]byte(proxy.RawXhttpSettings), &rawSettings); err == nil {
+				ss["splithttpSettings"] = rawSettings
+			}
+		} else {
+			splitSettings := map[string]interface{}{"path": proxy.Path}
+			if proxy.Host != "" {
+				splitSettings["host"] = proxy.Host
+			}
+			if proxy.Mode != "" {
+				splitSettings["mode"] = proxy.Mode
+			}
+			ss["splithttpSettings"] = splitSettings
 		}
-		ss["splithttpSettings"] = splitSettings
+
+	case "xhttp":
+		if proxy.RawXhttpSettings != "" {
+			var rawSettings map[string]interface{}
+			if err := json.Unmarshal([]byte(proxy.RawXhttpSettings), &rawSettings); err == nil {
+				ss["xhttpSettings"] = rawSettings
+			}
+		} else {
+			xhttpSettings := map[string]interface{}{"path": proxy.Path}
+			if proxy.Host != "" {
+				xhttpSettings["host"] = proxy.Host
+			}
+			if proxy.Mode != "" {
+				xhttpSettings["mode"] = proxy.Mode
+			}
+			ss["xhttpSettings"] = xhttpSettings
+		}
 	}
 
 	return ss

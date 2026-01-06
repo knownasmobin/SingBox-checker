@@ -25,7 +25,6 @@ type ProxyConfig struct {
 	PublicKey     string
 	ShortID       string
 	Mode          string
-	ExtraXhttp    string
 	Password      string
 	Method        string
 	Level         int
@@ -36,10 +35,11 @@ type ProxyConfig struct {
 	IdleTimeout   int
 	WindowsSize   int
 	AllowInsecure bool
-	ALPN          []string
-	Index         int
-	Settings      map[string]string
-	StableID      string
+	ALPN              []string
+	Index             int
+	Settings          map[string]string
+	StableID          string
+	RawXhttpSettings  string
 }
 
 func (pc *ProxyConfig) Validate() error {
@@ -192,12 +192,18 @@ func (pc *ProxyConfig) DebugString() string {
 	transport := pc.GetTransportType()
 	sb.WriteString(fmt.Sprintf("      Transport: %s\n", transport))
 
-	if transport == "ws" || transport == "httpupgrade" || transport == "splithttp" || transport == "h2" || transport == "http" {
+	if transport == "ws" || transport == "httpupgrade" || transport == "splithttp" || transport == "xhttp" || transport == "h2" || transport == "http" {
 		if pc.Path != "" {
 			sb.WriteString(fmt.Sprintf("      Path:     %s\n", pc.Path))
 		}
 		if pc.Host != "" {
 			sb.WriteString(fmt.Sprintf("      Host:     %s\n", pc.Host))
+		}
+		if pc.Mode != "" {
+			sb.WriteString(fmt.Sprintf("      Mode:     %s\n", pc.Mode))
+		}
+		if pc.RawXhttpSettings != "" {
+			sb.WriteString("      RawSettings: (present)\n")
 		}
 	}
 

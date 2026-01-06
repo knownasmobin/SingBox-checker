@@ -60,8 +60,8 @@ type libXrayStreamSettings struct {
 	GrpcSettings        *libXrayGrpcSettings        `json:"grpcSettings"`
 	HttpSettings        *libXrayHttpSettings        `json:"httpSettings"`
 	HttpupgradeSettings *libXrayHttpupgradeSettings `json:"httpupgradeSettings"`
-	XhttpSettings       *libXrayXhttpSettings       `json:"xhttpSettings"`
-	SplithttpSettings   *libXraySplithttpSettings   `json:"splithttpSettings"`
+	XhttpSettings       json.RawMessage             `json:"xhttpSettings"`
+	SplithttpSettings   json.RawMessage             `json:"splithttpSettings"`
 }
 
 type libXrayTlsSettings struct {
@@ -116,11 +116,7 @@ type libXrayHttpupgradeSettings struct {
 type libXrayXhttpSettings struct {
 	Path string `json:"path"`
 	Host string `json:"host"`
-}
-
-type libXraySplithttpSettings struct {
-	Path string `json:"path"`
-	Host string `json:"host"`
+	Mode string `json:"mode"`
 }
 
 type originalLinkData struct {
@@ -652,16 +648,25 @@ func (p *Parser) convertOutbound(raw json.RawMessage, index int, originalData ma
 			pc.Host = ss.HttpupgradeSettings.Host
 		}
 
-		if ss.XhttpSettings != nil {
-			pc.Type = "xhttp"
-			pc.Path = ss.XhttpSettings.Path
-			pc.Host = ss.XhttpSettings.Host
-		}
+		if ss.Network == "xhttp" || ss.Network == "splithttp" {
+			pc.Type = ss.Network
 
-		if ss.SplithttpSettings != nil {
-			pc.Type = "splithttp"
-			pc.Path = ss.SplithttpSettings.Path
-			pc.Host = ss.SplithttpSettings.Host
+			var rawSettings json.RawMessage
+			if len(ss.XhttpSettings) > 0 {
+				rawSettings = ss.XhttpSettings
+			} else if len(ss.SplithttpSettings) > 0 {
+				rawSettings = ss.SplithttpSettings
+			}
+
+			if len(rawSettings) > 0 {
+				pc.RawXhttpSettings = string(rawSettings)
+				var parsed libXrayXhttpSettings
+				if err := json.Unmarshal(rawSettings, &parsed); err == nil {
+					pc.Path = parsed.Path
+					pc.Host = parsed.Host
+					pc.Mode = parsed.Mode
+				}
+			}
 		}
 	}
 
