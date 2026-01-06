@@ -4,6 +4,7 @@
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/kutovoys/xray-checker/build-publish.yml)](https://github.com/kutovoys/xray-checker/actions/workflows/build-publish.yml)
 [![DockerHub](https://img.shields.io/badge/DockerHub-kutovoys%2Fxray--checker-blue)](https://hub.docker.com/r/kutovoys/xray-checker/)
 [![Documentation](https://img.shields.io/badge/docs-xray--checker.kutovoy.dev-blue)](https://xray-checker.kutovoy.dev/)
+[![Telegram Chat](https://img.shields.io/badge/Telegram-Chat-blue?logo=telegram)](https://t.me/+uZCGx_FRY0tiOGIy)
 [![GitHub License](https://img.shields.io/github/license/kutovoys/xray-checker?color=greeen)](https://github.com/kutovoys/xray-checker/blob/main/LICENSE)
 [![ru](https://img.shields.io/badge/lang-ru-blue)](https://github.com/kutovoys/xray-checker/blob/main/README_RU.md)
 [![en](https://img.shields.io/badge/lang-en-red)](https://github.com/kutovoys/xray-checker/blob/main/README.md)
@@ -11,22 +12,24 @@
 Xray Checker is a tool for monitoring proxy server availability with support for VLESS, VMess, Trojan, and Shadowsocks protocols. It automatically tests connections through Xray Core and provides metrics for Prometheus, as well as API endpoints for integration with monitoring systems.
 
 <div align="center">
-  <img src=".github/screen/xray-checker.png" alt="Dashboard Screenshot">
+  <img src=".github/screen/xray-checker.webp" alt="Dashboard Screenshot">
 </div>
 
 ## 🚀 Key Features
 
 - 🔍 Monitoring of Xray proxy servers (VLESS, VMess, Trojan, Shadowsocks)
-- 🔄 Automatic configuration updates from subscription
-- 📊 Prometheus metrics export
+- 🔄 Automatic configuration updates from subscription (multiple subscriptions supported)
+- 📊 Prometheus metrics export with Pushgateway support
+- 🌐 REST API with OpenAPI/Swagger documentation
 - 🌓 Web interface with dark/light theme
-- 📥 Endpoints for monitoring system integration
+- 📥 Endpoints for monitoring system integration (Uptime Kuma, etc.)
 - 🔒 Basic Auth protection for metrics and web interface
 - 🐳 Docker and Docker Compose support
+- 🌍 Automatic geo files management (geoip.dat, geosite.dat)
 - 📝 Flexible configuration loading:
-  - URL-subscription
-  - Base64-strings
-  - JSON-files
+  - URL subscriptions (base64, JSON)
+  - Share links (vless://, vmess://, trojan://, ss://)
+  - JSON configuration files
   - Folders with configurations
 
 Full list of features available in the [documentation](https://xray-checker.kutovoy.dev/intro/features).
