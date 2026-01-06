@@ -159,3 +159,25 @@ services:
       retries: 3
       start_period: 40s
 ```
+
+### نمونه تنظیمات داکر برای روش بررسی دانلود
+
+مثالی با استفاده از روش بررسی دانلود:
+
+```bash
+docker run -d \
+  -e SUBSCRIPTION_URL=https://your-subscription-url/sub \
+  -e PROXY_CHECK_METHOD=download \
+  -e PROXY_DOWNLOAD_URL=https://proof.ovh.net/files/1Mb.dat \
+  -e PROXY_DOWNLOAD_TIMEOUT=60 \
+  -e PROXY_DOWNLOAD_MIN_SIZE=51200 \
+  -p 2112:2112 \
+  kutovoys/xray-checker
+```
+
+این پیکربندی موارد زیر را انجام خواهد داد:
+
+- دانلود یک فایل تست از طریق هر پروکسی
+- در نظر گرفتن بررسی به عنوان «موفقیت‌آمیز» در صورتی که حداقل ۱۰ مگابایت دانلود شود
+- ایجاد وقفه (Timeout) پس از ۵ دقیقه
+- تست عملکرد واقعی انتقال داده‌ها از طریق پروکسی‌ها

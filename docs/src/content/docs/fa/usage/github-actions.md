@@ -3,7 +3,7 @@ title: GitHub Actions
 description: اجرای Xray Checker با GitHub Actions
 ---
 
-# یکپارچه‌سازی GitHub Actions
+# یکپارچه‌سازی با GitHub Actions
 
 می‌توانید Xray Checker را با استفاده از GitHub Actions اجرا کنید. این روش زمانی مفید است که نیاز دارید بررسی‌ها را از مکان‌های مختلف اجرا کنید یا سرور اختصاصی ندارید.
 
@@ -15,14 +15,14 @@ description: اجرای Xray Checker با GitHub Actions
    - `PUSH_URL`: آدرس Prometheus pushgateway برای جمع‌آوری متریک‌ها
    - `INSTANCE`: (اختیاری) نام نمونه برای شناسایی متریک‌ها
 
-Action:
+این Action:
 
 - هر ۵ دقیقه اجرا می‌شود
 - از آخرین نسخه Xray Checker استفاده می‌کند
 - متریک‌ها را به Prometheus pushgateway شما ارسال می‌کند
 - با فلگ `--run-once` اجرا می‌شود تا اجرای تمیز تضمین شود
 
-این روش نیاز به Prometheus pushgateway پیکربندی شده دارد زیرا نمی‌تواند متریک‌ها را مستقیماً ارائه دهد. متریک‌ها به `PUSH_URL` مشخص شده با برچسب instance از پیکربندی شما ارسال می‌شوند.
+این روش به یک Prometheus pushgateway نیاز دارد زیرا نمی‌تواند متریک‌ها را مستقیماً ارائه دهد. متریک‌ها به `PUSH_URL` مشخص شده با برچسب instance از پیکربندی شما ارسال می‌شوند.
 
 ## پیکربندی‌های پیشرفته
 

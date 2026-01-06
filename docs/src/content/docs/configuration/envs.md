@@ -139,14 +139,6 @@ This allows Xray Checker to monitor each resolved endpoint individually.
 
 Adds measured latency (TTFB - Time To First Byte) to endpoint responses, useful for monitoring systems that can interpret response delays.
 
-### PROXY_RESOLVE_DOMAINS
-
-- CLI: `--proxy-resolve-domains`
-- Required: No
-- Default: `false`
-
-When enabled, resolves proxy server domain names to IP addresses and creates separate configurations for each resolved IP. Useful when a domain points to multiple servers.
-
 ## Web UI
 
 ### WEB_SHOW_DETAILS

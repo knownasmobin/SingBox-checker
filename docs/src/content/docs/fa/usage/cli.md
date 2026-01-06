@@ -1,11 +1,11 @@
 ---
-title: خط فرمان
+title: خط فرمان (CLI)
 description: استفاده از خط فرمان Xray Checker
 ---
 
-### استفاده پایه از خط فرمان
+### استفاده پایه از خط فرمان (CLI)
 
-رابط خط فرمان کنترل کامل بر عملکرد Xray Checker را از طریق آرگومان‌های خط فرمان فراهم می‌کند.
+رابط CLI کنترل کامل بر عملکرد Xray Checker را از طریق آرگومان‌های CLI فراهم می‌کند.
 
 ### نصب
 
@@ -96,7 +96,7 @@ chmod +x xray-checker
 ./xray-checker --subscription-url="https://your-sub-url" --run-once
 ```
 
-فعال‌سازی احراز هویت متریک:
+فعال‌سازی احراز هویت متریک‌ها:
 
 ```bash
 ./xray-checker \

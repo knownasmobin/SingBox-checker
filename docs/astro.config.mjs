@@ -90,7 +90,7 @@ export default defineConfig({
               label: "Overview",
               translations: {
                 ru: "Обзор",
-                fa: "نمای کلی",
+                fa: "معرفی",
               },
               slug: "index",
             },
@@ -301,7 +301,7 @@ export default defineConfig({
           label: "VPN Recommendation",
           translations: {
             ru: "Рекомендуем",
-            fa: "پیشنهاد VPN",
+            fa: "VPN پیشنهادی",
           },
           items: [
             {
