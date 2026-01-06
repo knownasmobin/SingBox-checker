@@ -5,7 +5,7 @@ description: گزینه‌ها و مثال‌های متریک‌ها
 
 Xray Checker دو متریک Prometheus برای نظارت بر وضعیت و عملکرد پروکسی ارائه می‌دهد. برای دستورالعمل‌های راه‌اندازی دقیق، [یکپارچه‌سازی Prometheus](/fa/integrations/prometheus) را ببینید.
 
-برای تجسم متریک، توصیه می‌کنیم از [Grafana](/fa/integrations/grafana) استفاده کنید.
+برای به تصویر کشیدن متریک‌ها، توصیه می‌کنیم از [Grafana](/fa/integrations/grafana) استفاده کنید.
 
 ### xray_proxy_status
 

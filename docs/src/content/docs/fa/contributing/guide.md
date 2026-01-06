@@ -50,7 +50,7 @@ go build -o xray-checker
 
 ### ایجاد تغییرات
 
-1. ایجاد شاخه جدید:
+1. ایجاد branch جدید:
 
 ```bash
 git checkout -b feature/your-feature-name
