@@ -59,7 +59,7 @@ export default defineConfig({
       customCss: ["./src/styles/custom.css"],
       social: {
         github: "https://github.com/kutovoys/xray-checker",
-        telegram: "https://t.me/kutovoys",
+        telegram: "https://t.me/+VEzFQmaTZcQ5ZGYy",
         linkedin: "https://www.linkedin.com/in/kutovoys/",
       },
       defaultLocale: "root",

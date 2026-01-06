@@ -4,6 +4,7 @@
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/kutovoys/xray-checker/build-publish.yml)](https://github.com/kutovoys/xray-checker/actions/workflows/build-publish.yml)
 [![DockerHub](https://img.shields.io/badge/DockerHub-kutovoys%2Fxray--checker-blue)](https://hub.docker.com/r/kutovoys/xray-checker/)
 [![Documentation](https://img.shields.io/badge/docs-xray--checker.kutovoy.dev-blue)](https://xray-checker.kutovoy.dev/)
+[![Telegram Chat](https://img.shields.io/badge/Telegram-Chat-blue?logo=telegram)](https://t.me/+uZCGx_FRY0tiOGIy)
 [![GitHub License](https://img.shields.io/github/license/kutovoys/xray-checker?color=greeen)](https://github.com/kutovoys/xray-checker/blob/main/LICENSE)
 [![ru](https://img.shields.io/badge/lang-ru-blue)](https://github.com/kutovoys/xray-checker/blob/main/README_RU.md)
 [![en](https://img.shields.io/badge/lang-en-red)](https://github.com/kutovoys/xray-checker/blob/main/README.md)
@@ -11,21 +12,23 @@
 Xray Checker - это инструмент для мониторинга доступности прокси-серверов с поддержкой протоколов VLESS, VMess, Trojan и Shadowsocks. Он автоматически тестирует соединения через Xray Core и предоставляет метрики для Prometheus, а также API-эндпоинты для интеграции с системами мониторинга.
 
 <div align="center">
-  <img src=".github/screen/xray-checker.png" alt="Dashboard Screenshot">
+  <img src=".github/screen/xray-checker.webp" alt="Dashboard Screenshot">
 </div>
 
 ## 🚀 Основные возможности
 
 - 🔍 Мониторинг работоспособности Xray-прокси серверов (VLESS, VMess, Trojan, Shadowsocks)
-- 🔄 Автоматическое обновление конфигурации из подписки
-- 📊 Экспорт метрик в формате Prometheus
+- 🔄 Автоматическое обновление конфигурации из подписки (поддержка нескольких подписок)
+- 📊 Экспорт метрик в формате Prometheus с поддержкой Pushgateway
+- 🌐 REST API с документацией OpenAPI/Swagger
 - 🌓 Веб-интерфейс с темной/светлой темой
-- 📥 Эндпоинты для интеграции с системами мониторинга
+- 📥 Эндпоинты для интеграции с системами мониторинга (Uptime Kuma и др.)
 - 🔒 Защита метрик и веб-интерфейса с помощью Basic Auth
 - 🐳 Поддержка Docker и Docker Compose
+- 🌍 Автоматическое управление geo-файлами (geoip.dat, geosite.dat)
 - 📝 Гибкая загрузка конфигурации:
-  - URL-подписки
-  - Base64-строки
+  - URL-подписки (base64, JSON)
+  - Share-ссылки (vless://, vmess://, trojan://, ss://)
   - JSON-файлы конфигурации
   - Папки с конфигурациями
 
