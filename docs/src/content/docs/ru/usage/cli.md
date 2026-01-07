@@ -34,7 +34,7 @@ chmod +x xray-checker
 Минимально необходимая конфигурация:
 
 ```bash
-./xray-checker --subscription-url="https://your-subscription-url/sub"
+./xray-checker --subscription-url=https://your-subscription-url/sub
 ```
 
 ### Несколько подписок
@@ -43,9 +43,9 @@ chmod +x xray-checker
 
 ```bash
 ./xray-checker \
-  --subscription-url="https://provider1.com/sub" \
-  --subscription-url="https://provider2.com/sub" \
-  --subscription-url="file:///path/to/local/config.json"
+  --subscription-url=https://provider1.com/sub \
+  --subscription-url=https://provider2.com/sub \
+  --subscription-url=file:///path/to/local/config.json
 ```
 
 Все прокси из всех подписок будут объединены и мониторятся вместе.
@@ -54,7 +54,7 @@ chmod +x xray-checker
 
 ```bash
 ./xray-checker \
-  --subscription-url="https://your-subscription-url/sub" \
+  --subscription-url=https://your-subscription-url/sub \
   --subscription-update=true \
   --subscription-update-interval=300 \
   --proxy-check-interval=300 \
@@ -94,14 +94,14 @@ chmod +x xray-checker
 Запуск одного цикла проверки:
 
 ```bash
-./xray-checker --subscription-url="https://your-sub-url" --run-once
+./xray-checker --subscription-url=https://your-sub-url --run-once
 ```
 
 Включение аутентификации метрик:
 
 ```bash
 ./xray-checker \
-  --subscription-url="https://your-sub-url" \
+  --subscription-url=https://your-sub-url \
   --metrics-protected=true \
   --metrics-username=user \
   --metrics-password=pass
@@ -111,7 +111,7 @@ chmod +x xray-checker
 
 ```bash
 ./xray-checker \
-  --subscription-url="https://your-sub-url" \
+  --subscription-url=https://your-sub-url \
   --metrics-host=127.0.0.1 \
   --metrics-port=3000 \
   --xray-start-port=20000

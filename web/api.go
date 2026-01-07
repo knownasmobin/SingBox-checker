@@ -19,6 +19,7 @@ type ProxyInfo struct {
 	Index     int    `json:"index"`
 	StableID  string `json:"stableId"`
 	Name      string `json:"name"`
+	SubName   string `json:"subName"`
 	Server    string `json:"server"`
 	Port      int    `json:"port"`
 	Protocol  string `json:"protocol"`
@@ -42,13 +43,14 @@ type StatusResponse struct {
 }
 
 type ConfigResponse struct {
-	CheckInterval              int    `json:"checkInterval"`
-	CheckMethod                string `json:"checkMethod"`
-	Timeout                    int    `json:"timeout"`
-	StartPort                  int    `json:"startPort"`
-	SubscriptionUpdate         bool   `json:"subscriptionUpdate"`
-	SubscriptionUpdateInterval int    `json:"subscriptionUpdateInterval"`
-	SimulateLatency            bool   `json:"simulateLatency"`
+	CheckInterval              int      `json:"checkInterval"`
+	CheckMethod                string   `json:"checkMethod"`
+	Timeout                    int      `json:"timeout"`
+	StartPort                  int      `json:"startPort"`
+	SubscriptionUpdate         bool     `json:"subscriptionUpdate"`
+	SubscriptionUpdateInterval int      `json:"subscriptionUpdateInterval"`
+	SimulateLatency            bool     `json:"simulateLatency"`
+	SubscriptionNames          []string `json:"subscriptionNames"`
 }
 
 type SystemInfoResponse struct {
@@ -90,6 +92,7 @@ func toProxyInfo(proxy *models.ProxyConfig, online bool, latency time.Duration, 
 		Index:     proxy.Index,
 		StableID:  proxy.StableID,
 		Name:      proxy.Name,
+		SubName:   proxy.SubName,
 		Server:    proxy.Server,
 		Port:      proxy.Port,
 		Protocol:  proxy.Protocol,
@@ -230,8 +233,9 @@ func APIStatusHandler(proxyChecker *checker.ProxyChecker) http.HandlerFunc {
 // @Produce json
 // @Success 200 {object} ConfigResponse
 // @Router /api/v1/config [get]
-func APIConfigHandler() http.HandlerFunc {
+func APIConfigHandler(proxyChecker *checker.ProxyChecker) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		subNames := CollectSubscriptionNames(proxyChecker.GetProxies())
 		writeJSON(w, ConfigResponse{
 			CheckInterval:              config.CLIConfig.Proxy.CheckInterval,
 			CheckMethod:                config.CLIConfig.Proxy.CheckMethod,
@@ -240,8 +244,21 @@ func APIConfigHandler() http.HandlerFunc {
 			SubscriptionUpdate:         config.CLIConfig.Subscription.Update,
 			SubscriptionUpdateInterval: config.CLIConfig.Subscription.UpdateInterval,
 			SimulateLatency:            config.CLIConfig.Proxy.SimulateLatency,
+			SubscriptionNames:          subNames,
 		})
 	}
+}
+
+func CollectSubscriptionNames(proxies []*models.ProxyConfig) []string {
+	seen := make(map[string]bool)
+	var names []string
+	for _, proxy := range proxies {
+		if proxy.SubName != "" && !seen[proxy.SubName] {
+			seen[proxy.SubName] = true
+			names = append(names, proxy.SubName)
+		}
+	}
+	return names
 }
 
 // APISystemInfoHandler returns system info

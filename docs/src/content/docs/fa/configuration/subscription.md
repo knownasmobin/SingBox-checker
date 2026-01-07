@@ -14,7 +14,7 @@ Xray Checker از پنج فرمت مختلف برای پیکربندی پروک�
 مثال:
 
 ```bash
-SUBSCRIPTION_URL="https://example.com/subscription"
+SUBSCRIPTION_URL=https://example.com/subscription
 ```
 
 الزامات:
@@ -38,7 +38,7 @@ User-Agent: Xray-Checker
 مثال:
 
 ```bash
-SUBSCRIPTION_URL="dmxlc3M6Ly91dWlkQGV4YW1wbGUuY29tOjQ0MyVlbmNyeXB0aW9uPW5vbmUmc2VjdXJpdHk9dGxzI3Byb3h5MQ=="
+SUBSCRIPTION_URL=dmxlc3M6Ly91dWlkQGV4YW1wbGUuY29tOjQ0MyVlbmNyeXB0aW9uPW5vbmUmc2VjdXJpdHk9dGxzI3Byb3h5MQ==
 ```
 
 فرمت محتوا (قبل از کدگذاری):
@@ -57,7 +57,7 @@ ss://base64encodedconfig
 مثال:
 
 ```bash
-SUBSCRIPTION_URL="file:///path/to/config.json"
+SUBSCRIPTION_URL=file:///path/to/config.json
 ```
 
 فرمت فایل:
@@ -97,7 +97,7 @@ SUBSCRIPTION_URL="file:///path/to/config.json"
 مثال:
 
 ```bash
-SUBSCRIPTION_URL="file:///path/to/configs.json"
+SUBSCRIPTION_URL=file:///path/to/configs.json
 ```
 
 فرمت فایل:
@@ -152,7 +152,7 @@ SUBSCRIPTION_URL="file:///path/to/configs.json"
 مثال:
 
 ```bash
-SUBSCRIPTION_URL="folder:///path/to/configs"
+SUBSCRIPTION_URL=folder:///path/to/configs
 ```
 
 الزامات:

@@ -17,6 +17,7 @@ Status metric indicating proxy availability:
   - `protocol`: Proxy protocol (vless/vmess/trojan/shadowsocks)
   - `address`: Server address and port
   - `name`: Proxy configuration name
+  - `sub_name`: Subscription name (parsed from URL fragment or profile-title header)
   - `instance`: Instance name (if configured)
 
 :::tip
@@ -28,7 +29,7 @@ Example:
 ```text
 # HELP xray_proxy_status Status of proxy connection (1: success, 0: failure)
 # TYPE xray_proxy_status gauge
-xray_proxy_status{protocol="vless",address="example.com:443",name="proxy1",instance="dc1"} 1
+xray_proxy_status{protocol="vless",address="example.com:443",name="proxy1",sub_name="Premium VPN",instance="dc1"} 1
 ```
 
 ### xray_proxy_latency_ms
@@ -44,5 +45,5 @@ Example:
 ```text
 # HELP xray_proxy_latency_ms Latency of proxy connection in milliseconds
 # TYPE xray_proxy_latency_ms gauge
-xray_proxy_latency_ms{protocol="vless",address="example.com:443",name="proxy1",instance="dc1"} 156
+xray_proxy_latency_ms{protocol="vless",address="example.com:443",name="proxy1",sub_name="Premium VPN",instance="dc1"} 156
 ```

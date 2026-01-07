@@ -17,6 +17,7 @@ Xray Checker دو متریک Prometheus برای نظارت بر وضعیت و �
   - `protocol`: پروتکل پروکسی (vless/vmess/trojan/shadowsocks)
   - `address`: آدرس و پورت سرور
   - `name`: نام پیکربندی پروکسی
+  - `sub_name`: نام اشتراک (از فرگمنت URL یا هدر profile-title)
   - `instance`: نام نمونه (اگر پیکربندی شده باشد)
 
 :::tip
@@ -28,7 +29,7 @@ Xray Checker دو متریک Prometheus برای نظارت بر وضعیت و �
 ```text
 # HELP xray_proxy_status Status of proxy connection (1: success, 0: failure)
 # TYPE xray_proxy_status gauge
-xray_proxy_status{protocol="vless",address="example.com:443",name="proxy1",instance="dc1"} 1
+xray_proxy_status{protocol="vless",address="example.com:443",name="proxy1",sub_name="Premium VPN",instance="dc1"} 1
 ```
 
 ### xray_proxy_latency_ms
@@ -44,5 +45,5 @@ xray_proxy_status{protocol="vless",address="example.com:443",name="proxy1",insta
 ```text
 # HELP xray_proxy_latency_ms Latency of proxy connection in milliseconds
 # TYPE xray_proxy_latency_ms gauge
-xray_proxy_latency_ms{protocol="vless",address="example.com:443",name="proxy1",instance="dc1"} 156
+xray_proxy_latency_ms{protocol="vless",address="example.com:443",name="proxy1",sub_name="Premium VPN",instance="dc1"} 156
 ```

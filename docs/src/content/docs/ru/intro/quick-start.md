@@ -53,7 +53,7 @@ chmod +x xray-checker
 2. Запустите с базовой конфигурацией:
 
 ```bash
-./xray-checker --subscription-url="https://your-subscription-url/sub"
+./xray-checker --subscription-url=https://your-subscription-url/sub
 ```
 
 ## Проверка установки
@@ -105,13 +105,13 @@ scrape_configs:
 Запуск одиночной проверки:
 
 ```bash
-./xray-checker --subscription-url="https://your-sub-url" --run-once
+./xray-checker --subscription-url=https://your-sub-url --run-once
 ```
 
 Включение аутентификации:
 
 ```bash
-./xray-checker --subscription-url="https://your-sub-url" \
+./xray-checker --subscription-url=https://your-sub-url \
   --metrics-protected=true \
   --metrics-username=user \
   --metrics-password=pass

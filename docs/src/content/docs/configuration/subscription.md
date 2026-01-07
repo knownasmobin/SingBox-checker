@@ -14,7 +14,7 @@ Standard subscription URL returning Base64 encoded list of proxy links.
 Example:
 
 ```bash
-SUBSCRIPTION_URL="https://example.com/subscription"
+SUBSCRIPTION_URL=https://example.com/subscription
 ```
 
 Requirements:
@@ -38,7 +38,7 @@ Direct Base64 encoded string containing proxy configuration links.
 Example:
 
 ```bash
-SUBSCRIPTION_URL="dmxlc3M6Ly91dWlkQGV4YW1wbGUuY29tOjQ0MyVlbmNyeXB0aW9uPW5vbmUmc2VjdXJpdHk9dGxzI3Byb3h5MQ=="
+SUBSCRIPTION_URL=dmxlc3M6Ly91dWlkQGV4YW1wbGUuY29tOjQ0MyVlbmNyeXB0aW9uPW5vbmUmc2VjdXJpdHk9dGxzI3Byb3h5MQ==
 ```
 
 Content format (before encoding):
@@ -57,7 +57,7 @@ Single JSON configuration file in V2Ray/Xray format.
 Example:
 
 ```bash
-SUBSCRIPTION_URL="file:///path/to/config.json"
+SUBSCRIPTION_URL=file:///path/to/config.json
 ```
 
 File format:
@@ -97,7 +97,7 @@ JSON array containing multiple Xray configurations with remarks. This format is 
 Example:
 
 ```bash
-SUBSCRIPTION_URL="file:///path/to/configs.json"
+SUBSCRIPTION_URL=file:///path/to/configs.json
 ```
 
 File format:
@@ -152,7 +152,7 @@ Directory containing multiple V2Ray/Xray JSON configuration files.
 Example:
 
 ```bash
-SUBSCRIPTION_URL="folder:///path/to/configs"
+SUBSCRIPTION_URL=folder:///path/to/configs
 ```
 
 Requirements:

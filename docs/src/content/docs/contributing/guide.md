@@ -66,7 +66,7 @@ git checkout -b feature/your-feature-name
 1. Set up test configuration:
 
 ```bash
-export SUBSCRIPTION_URL="your_test_subscription"
+export SUBSCRIPTION_URL=your_test_subscription
 ```
 
 2. Run in development mode:

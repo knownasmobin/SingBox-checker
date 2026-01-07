@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strings"
 	"time"
 	"xray-checker/checker"
 	"xray-checker/config"
@@ -46,6 +47,17 @@ func main() {
 
 	logger.Info("Loaded %d proxy configurations", len(*proxyConfigs))
 
+	if config.CLIConfig.Web.Public {
+		if name := subscription.GetSubscriptionName(); name != "" {
+			logger.Info("Subscription name for public status page: %s", name)
+		}
+	} else {
+		subNames := web.CollectSubscriptionNames(*proxyConfigs)
+		if len(subNames) > 0 {
+			logger.Info("Subscriptions: %s", strings.Join(subNames, ", "))
+		}
+	}
+
 	if logLevel == logger.LevelDebug {
 		logger.Debug("=== Parsed Proxy Configurations ===")
 		for _, pc := range *proxyConfigs {
@@ -80,7 +92,6 @@ func main() {
 		config.CLIConfig.Proxy.DownloadTimeout,
 		config.CLIConfig.Proxy.DownloadMinSize,
 		config.CLIConfig.Proxy.CheckMethod,
-		config.CLIConfig.Metrics.Instance,
 	)
 
 	runCheckIteration := func() {
@@ -116,7 +127,7 @@ func main() {
 
 	if config.CLIConfig.Subscription.Update {
 		updateScheduler := gocron.NewScheduler(time.UTC)
-		updateScheduler.Every(config.CLIConfig.Subscription.UpdateInterval).Seconds().Do(func() {
+		updateScheduler.Every(config.CLIConfig.Subscription.UpdateInterval).Seconds().WaitForSchedule().Do(func() {
 			logger.Info("Checking subscriptions for updates...")
 			newConfigs, err := subscription.ReadFromMultipleSources(config.CLIConfig.Subscription.URLs)
 			if err != nil {
@@ -152,29 +163,38 @@ func main() {
 	mux.Handle("/static/", web.StaticHandler())
 	mux.Handle("/api/v1/public/proxies", web.APIPublicProxiesHandler(proxyChecker))
 
-	protectedHandler := http.NewServeMux()
-	protectedHandler.Handle("/", web.IndexHandler(version, proxyChecker))
-	protectedHandler.Handle("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{}))
-
 	web.RegisterConfigEndpoints(*proxyConfigs, proxyChecker, config.CLIConfig.Xray.StartPort)
-	protectedHandler.Handle("/config/", web.ConfigStatusHandler(proxyChecker))
 
+	protectedHandler := http.NewServeMux()
+	protectedHandler.Handle("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{}))
+	protectedHandler.Handle("/config/", web.ConfigStatusHandler(proxyChecker))
 	protectedHandler.Handle("/api/v1/proxies/", web.APIProxyHandler(proxyChecker, config.CLIConfig.Xray.StartPort))
 	protectedHandler.Handle("/api/v1/proxies", web.APIProxiesHandler(proxyChecker, config.CLIConfig.Xray.StartPort))
-	protectedHandler.Handle("/api/v1/config", web.APIConfigHandler())
+	protectedHandler.Handle("/api/v1/config", web.APIConfigHandler(proxyChecker))
 	protectedHandler.Handle("/api/v1/status", web.APIStatusHandler(proxyChecker))
 	protectedHandler.Handle("/api/v1/system/info", web.APISystemInfoHandler(version, startTime))
 	protectedHandler.Handle("/api/v1/system/ip", web.APISystemIPHandler(proxyChecker))
 	protectedHandler.Handle("/api/v1/docs", web.APIDocsHandler())
 	protectedHandler.Handle("/api/v1/openapi.yaml", web.APIOpenAPIHandler())
 
-	if config.CLIConfig.Metrics.Protected {
+	if config.CLIConfig.Web.Public {
+		mux.Handle("/", web.IndexHandler(version, proxyChecker))
+		mux.Handle("/config/", web.ConfigStatusHandler(proxyChecker))
+		middlewareHandler := web.BasicAuthMiddleware(
+			config.CLIConfig.Metrics.Username,
+			config.CLIConfig.Metrics.Password,
+		)(protectedHandler)
+		mux.Handle("/metrics", middlewareHandler)
+		mux.Handle("/api/", middlewareHandler)
+	} else if config.CLIConfig.Metrics.Protected {
+		protectedHandler.Handle("/", web.IndexHandler(version, proxyChecker))
 		middlewareHandler := web.BasicAuthMiddleware(
 			config.CLIConfig.Metrics.Username,
 			config.CLIConfig.Metrics.Password,
 		)(protectedHandler)
 		mux.Handle("/", middlewareHandler)
 	} else {
+		protectedHandler.Handle("/", web.IndexHandler(version, proxyChecker))
 		mux.Handle("/", protectedHandler)
 	}
 

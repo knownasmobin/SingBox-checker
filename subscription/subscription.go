@@ -10,8 +10,26 @@ import (
 	"xray-checker/xray"
 )
 
+var (
+	subscriptionName string
+	subNameMu        sync.RWMutex
+)
+
+func GetSubscriptionName() string {
+	subNameMu.RLock()
+	defer subNameMu.RUnlock()
+	return subscriptionName
+}
+
+func SetSubscriptionName(name string) {
+	subNameMu.Lock()
+	defer subNameMu.Unlock()
+	subscriptionName = name
+}
+
 type subscriptionResult struct {
 	URL     string
+	Name    string
 	Configs []*models.ProxyConfig
 	Error   error
 }
@@ -52,49 +70,72 @@ func ReadFromMultipleSources(urls []string) ([]*models.ProxyConfig, error) {
 	}
 
 	if len(urls) == 1 {
-		return ReadFromSource(urls[0])
+		configs, name, err := ReadFromSource(urls[0])
+		if err != nil {
+			return nil, err
+		}
+		for _, cfg := range configs {
+			cfg.SubName = name
+		}
+		if name != "" {
+			SetSubscriptionName(name)
+		}
+		return configs, nil
 	}
 
 	logger.Debug("Fetching %d subscriptions in parallel", len(urls))
 
-	results := make(chan subscriptionResult, len(urls))
+	resultMap := make(map[string]subscriptionResult)
+	var resultMu sync.Mutex
 
 	var wg sync.WaitGroup
 	for _, url := range urls {
 		wg.Add(1)
 		go func(u string) {
 			defer wg.Done()
-			configs, err := ReadFromSource(u)
-			results <- subscriptionResult{
+			configs, name, err := ReadFromSource(u)
+			for _, cfg := range configs {
+				cfg.SubName = name
+			}
+			resultMu.Lock()
+			resultMap[u] = subscriptionResult{
 				URL:     u,
+				Name:    name,
 				Configs: configs,
 				Error:   err,
 			}
+			resultMu.Unlock()
 		}(url)
 	}
 
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
+	wg.Wait()
 
 	var allConfigs []*models.ProxyConfig
 	var errors []error
+	var firstName string
 	successCount := 0
 
-	for result := range results {
+	for _, url := range urls {
+		result := resultMap[url]
 		if result.Error != nil {
 			logger.Warn("Failed to fetch subscription %s: %v", result.URL, result.Error)
 			errors = append(errors, fmt.Errorf("%s: %v", result.URL, result.Error))
 			continue
 		}
-		logger.Debug("Fetched %d proxies from %s", len(result.Configs), result.URL)
+		logger.Debug("Fetched %d proxies from %s (name: %s)", len(result.Configs), result.URL, result.Name)
 		allConfigs = append(allConfigs, result.Configs...)
+		if firstName == "" && result.Name != "" {
+			firstName = result.Name
+		}
 		successCount++
 	}
 
 	if successCount == 0 {
 		return nil, fmt.Errorf("failed to fetch any subscription: %v", errors)
+	}
+
+	if firstName != "" {
+		SetSubscriptionName(firstName)
 	}
 
 	for i := range allConfigs {
@@ -105,9 +146,13 @@ func ReadFromMultipleSources(urls []string) ([]*models.ProxyConfig, error) {
 	return allConfigs, nil
 }
 
-func ReadFromSource(source string) ([]*models.ProxyConfig, error) {
+func ReadFromSource(source string) ([]*models.ProxyConfig, string, error) {
 	parser := NewParser()
-	return parser.Parse(source)
+	result, err := parser.Parse(source)
+	if err != nil {
+		return nil, "", err
+	}
+	return result.Configs, result.Name, nil
 }
 
 func ResolveDomainsForConfigs(configs []*models.ProxyConfig) ([]*models.ProxyConfig, error) {

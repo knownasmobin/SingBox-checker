@@ -34,7 +34,7 @@ chmod +x xray-checker
 Minimum required configuration:
 
 ```bash
-./xray-checker --subscription-url="https://your-subscription-url/sub"
+./xray-checker --subscription-url=https://your-subscription-url/sub
 ```
 
 ### Multiple Subscriptions
@@ -43,9 +43,9 @@ You can specify multiple subscription URLs by using the `--subscription-url` fla
 
 ```bash
 ./xray-checker \
-  --subscription-url="https://provider1.com/sub" \
-  --subscription-url="https://provider2.com/sub" \
-  --subscription-url="file:///path/to/local/config.json"
+  --subscription-url=https://provider1.com/sub \
+  --subscription-url=https://provider2.com/sub \
+  --subscription-url=file:///path/to/local/config.json
 ```
 
 All proxies from all subscriptions will be combined and monitored together.
@@ -54,7 +54,7 @@ All proxies from all subscriptions will be combined and monitored together.
 
 ```bash
 ./xray-checker \
-  --subscription-url="https://your-subscription-url/sub" \
+  --subscription-url=https://your-subscription-url/sub \
   --subscription-update=true \
   --subscription-update-interval=300 \
   --proxy-check-interval=300 \
@@ -93,14 +93,14 @@ Check version:
 Run single check cycle:
 
 ```bash
-./xray-checker --subscription-url="https://your-sub-url" --run-once
+./xray-checker --subscription-url=https://your-sub-url --run-once
 ```
 
 Enable metrics authentication:
 
 ```bash
 ./xray-checker \
-  --subscription-url="https://your-sub-url" \
+  --subscription-url=https://your-sub-url \
   --metrics-protected=true \
   --metrics-username=user \
   --metrics-password=pass
@@ -110,7 +110,7 @@ Change ports:
 
 ```bash
 ./xray-checker \
-  --subscription-url="https://your-sub-url" \
+  --subscription-url=https://your-sub-url \
   --metrics-host=127.0.0.1 \
   --metrics-port=3000 \
   --xray-start-port=20000

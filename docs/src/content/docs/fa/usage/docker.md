@@ -26,7 +26,7 @@ docker run -d \
 
 ```bash
 docker run -d \
-  -e SUBSCRIPTION_URL="https://provider1.com/sub,https://provider2.com/sub,file:///config/local.json" \
+  -e SUBSCRIPTION_URL=https://provider1.com/sub,https://provider2.com/sub,file:///config/local.json \
   -v /path/to/configs:/config \
   -p 2112:2112 \
   kutovoys/xray-checker
@@ -38,8 +38,8 @@ docker run -d \
 docker run -d \
   -p 2112:2112 \
   kutovoys/xray-checker \
-  --subscription-url="https://provider1.com/sub" \
-  --subscription-url="https://provider2.com/sub"
+  --subscription-url=https://provider1.com/sub \
+  --subscription-url=https://provider2.com/sub
 ```
 
 ### پیکربندی کامل Docker
@@ -178,6 +178,28 @@ docker run -d \
 این پیکربندی موارد زیر را انجام خواهد داد:
 
 - دانلود یک فایل تست از طریق هر پروکسی
-- در نظر گرفتن بررسی به عنوان «موفقیت‌آمیز» در صورتی که حداقل ۱۰ مگابایت دانلود شود
-- ایجاد وقفه (Timeout) پس از ۵ دقیقه
+- در نظر گرفتن بررسی به عنوان «موفقیت‌آمیز» در صورتی که حداقل ۵۰KB دانلود شود
+- ایجاد وقفه (Timeout) پس از ۱ دقیقه
 - تست عملکرد واقعی انتقال داده‌ها از طریق پروکسی‌ها
+
+### داشبورد عمومی
+
+برای عمومی کردن داشبورد (مثلاً به عنوان صفحه وضعیت برای سرویس VPN شما):
+
+```bash
+docker run -d \
+  -e SUBSCRIPTION_URL=https://your-subscription-url/sub#My%20VPN%20Status \
+  -e METRICS_PROTECTED=true \
+  -e METRICS_USERNAME=admin \
+  -e METRICS_PASSWORD=secret \
+  -e WEB_PUBLIC=true \
+  -p 2112:2112 \
+  kutovoys/xray-checker
+```
+
+این پیکربندی موارد زیر را انجام خواهد داد:
+
+- داشبورد را در مسیر `/` عمومی می‌کند (بدون نیاز به احراز هویت)
+- از نام اشتراک در فرگمنت URL به عنوان عنوان صفحه استفاده می‌کند ("My VPN Status")
+- نقاط پایانی `/metrics` و `/api/` را با احراز هویت پایه محافظت می‌کند
+- کنترل‌های مدیریتی و جزئیات فنی را از نمای عمومی پنهان می‌کند

@@ -225,6 +225,10 @@ components:
         name:
           type: string
           example: "US-Server-1"
+        subName:
+          type: string
+          description: Subscription name this proxy belongs to
+          example: "Premium VPN"
         server:
           type: string
           example: "192.168.1.1"
@@ -288,6 +292,12 @@ components:
         simulateLatency:
           type: boolean
           example: true
+        subscriptionNames:
+          type: array
+          description: List of unique subscription names
+          items:
+            type: string
+          example: ["Premium VPN", "Basic VPN"]
 
     SystemInfoResponse:
       type: object

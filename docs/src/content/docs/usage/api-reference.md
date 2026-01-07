@@ -68,11 +68,11 @@ Prometheus metrics endpoint.
 ```text
 # HELP xray_proxy_status Status of proxy connection (1: success, 0: failure)
 # TYPE xray_proxy_status gauge
-xray_proxy_status{protocol="vless",address="example.com:443",name="proxy1"} 1
+xray_proxy_status{protocol="vless",address="example.com:443",name="proxy1",sub_name="Premium VPN"} 1
 
 # HELP xray_proxy_latency_ms Latency of proxy connection in milliseconds
 # TYPE xray_proxy_latency_ms gauge
-xray_proxy_latency_ms{protocol="vless",address="example.com:443",name="proxy1"} 156
+xray_proxy_latency_ms{protocol="vless",address="example.com:443",name="proxy1",sub_name="Premium VPN"} 156
 ```
 
 ### Individual Proxy Status
@@ -111,6 +111,7 @@ Returns full information for all proxies.
       "index": 0,
       "stableId": "a1b2c3d4e5f67890",
       "name": "US-Server-1",
+      "subName": "Premium VPN",
       "server": "192.168.1.1",
       "port": 443,
       "protocol": "vless",
@@ -172,7 +173,8 @@ Returns current checker configuration.
     "startPort": 10000,
     "subscriptionUpdate": true,
     "subscriptionUpdateInterval": 300,
-    "simulateLatency": true
+    "simulateLatency": true,
+    "subscriptionNames": ["Premium VPN", "Basic VPN"]
   }
 }
 ```

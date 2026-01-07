@@ -26,7 +26,7 @@ You can specify multiple subscription URLs by separating them with commas:
 
 ```bash
 docker run -d \
-  -e SUBSCRIPTION_URL="https://provider1.com/sub,https://provider2.com/sub,file:///config/local.json" \
+  -e SUBSCRIPTION_URL=https://provider1.com/sub,https://provider2.com/sub,file:///config/local.json \
   -v /path/to/configs:/config \
   -p 2112:2112 \
   kutovoys/xray-checker
@@ -38,8 +38,8 @@ Or use CLI arguments for cleaner multi-subscription setup:
 docker run -d \
   -p 2112:2112 \
   kutovoys/xray-checker \
-  --subscription-url="https://provider1.com/sub" \
-  --subscription-url="https://provider2.com/sub"
+  --subscription-url=https://provider1.com/sub \
+  --subscription-url=https://provider2.com/sub
 ```
 
 ### Full Docker Configuration
@@ -178,6 +178,28 @@ docker run -d \
 This configuration will:
 
 - Download a test file through each proxy
-- Consider the check successful if at least 10MB is downloaded
-- Timeout after 5 minutes
+- Consider the check successful if at least 50KB is downloaded
+- Timeout after 1 minute
 - Test actual data transfer performance through proxies
+
+### Public Dashboard
+
+To expose the dashboard publicly (e.g., as a status page for your VPN service):
+
+```bash
+docker run -d \
+  -e SUBSCRIPTION_URL=https://your-subscription-url/sub#My%20VPN%20Status \
+  -e METRICS_PROTECTED=true \
+  -e METRICS_USERNAME=admin \
+  -e METRICS_PASSWORD=secret \
+  -e WEB_PUBLIC=true \
+  -p 2112:2112 \
+  kutovoys/xray-checker
+```
+
+This configuration will:
+
+- Make the dashboard public at `/` (no authentication required)
+- Use subscription name from URL fragment as page title ("My VPN Status")
+- Protect `/metrics` and `/api/` endpoints with basic auth
+- Hide admin controls and technical details from the public view

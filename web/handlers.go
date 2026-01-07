@@ -9,6 +9,7 @@ import (
 	"xray-checker/config"
 	"xray-checker/metrics"
 	"xray-checker/models"
+	"xray-checker/subscription"
 )
 
 var registeredEndpoints []EndpointInfo
@@ -32,6 +33,25 @@ func IndexHandler(version string, proxyChecker *checker.ProxyChecker) http.Handl
 
 		RegisterConfigEndpoints(proxyChecker.GetProxies(), proxyChecker, config.CLIConfig.Xray.StartPort)
 
+		isPublic := config.CLIConfig.Web.Public
+		showServerDetails := config.CLIConfig.Web.ShowServerDetails
+		if isPublic {
+			showServerDetails = false
+		}
+
+		endpoints := registeredEndpoints
+		if isPublic {
+			endpoints = make([]EndpointInfo, len(registeredEndpoints))
+			for i, ep := range registeredEndpoints {
+				endpoints[i] = EndpointInfo{
+					Name:    ep.Name,
+					Index:   ep.Index,
+					Status:  ep.Status,
+					Latency: ep.Latency,
+				}
+			}
+		}
+
 		data := PageData{
 			Version:                    version,
 			Host:                       config.CLIConfig.Metrics.Host,
@@ -48,8 +68,10 @@ func IndexHandler(version string, proxyChecker *checker.ProxyChecker) http.Handl
 			StartPort:                  config.CLIConfig.Xray.StartPort,
 			Instance:                   config.CLIConfig.Metrics.Instance,
 			PushUrl:                    metrics.GetPushURL(config.CLIConfig.Metrics.PushURL),
-			Endpoints:                  registeredEndpoints,
-			ShowServerDetails:          config.CLIConfig.Web.ShowServerDetails,
+			Endpoints:                  endpoints,
+			ShowServerDetails:          showServerDetails,
+			IsPublic:                   isPublic,
+			SubscriptionName:           subscription.GetSubscriptionName(),
 		}
 
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")

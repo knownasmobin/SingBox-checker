@@ -14,7 +14,7 @@ Xray Checker поддерживает пять различных формато
 Пример:
 
 ```bash
-SUBSCRIPTION_URL="https://example.com/subscription"
+SUBSCRIPTION_URL=https://example.com/subscription
 ```
 
 Требования:
@@ -38,7 +38,7 @@ User-Agent: Xray-Checker
 Пример:
 
 ```bash
-SUBSCRIPTION_URL="dmxlc3M6Ly91dWlkQGV4YW1wbGUuY29tOjQ0MyVlbmNyeXB0aW9uPW5vbmUmc2VjdXJpdHk9dGxzI3Byb3h5MQ=="
+SUBSCRIPTION_URL=dmxlc3M6Ly91dWlkQGV4YW1wbGUuY29tOjQ0MyVlbmNyeXB0aW9uPW5vbmUmc2VjdXJpdHk9dGxzI3Byb3h5MQ==
 ```
 
 Формат содержимого (до кодирования):
@@ -57,7 +57,7 @@ ss://base64encodedconfig
 Пример:
 
 ```bash
-SUBSCRIPTION_URL="file:///path/to/config.json"
+SUBSCRIPTION_URL=file:///path/to/config.json
 ```
 
 Формат файла:
@@ -97,7 +97,7 @@ JSON-массив, содержащий несколько конфигурац�
 Пример:
 
 ```bash
-SUBSCRIPTION_URL="file:///path/to/configs.json"
+SUBSCRIPTION_URL=file:///path/to/configs.json
 ```
 
 Формат файла:
@@ -152,7 +152,7 @@ SUBSCRIPTION_URL="file:///path/to/configs.json"
 Пример:
 
 ```bash
-SUBSCRIPTION_URL="folder:///path/to/configs"
+SUBSCRIPTION_URL=folder:///path/to/configs
 ```
 
 Требования:

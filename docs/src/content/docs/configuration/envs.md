@@ -21,7 +21,7 @@ URL, Base64 string or file path for proxy configuration. Supports multiple forma
 :::tip[Multiple Subscriptions]
 You can specify multiple subscription sources:
 - **CLI**: Use `--subscription-url` flag multiple times
-- **Environment**: Separate URLs with commas: `SUBSCRIPTION_URL="url1,url2,url3"`
+- **Environment**: Separate URLs with commas: `SUBSCRIPTION_URL=url1,url2,url3`
 
 All proxies from all sources will be combined and monitored together.
 :::
@@ -148,6 +148,18 @@ Adds measured latency (TTFB - Time To First Byte) to endpoint responses, useful 
 - Default: `false`
 
 Shows server IP addresses and ports in the web UI. When disabled, only proxy names are displayed for privacy.
+
+### WEB_PUBLIC
+
+- CLI: `--web-public`
+- Required: No
+- Default: `false`
+
+Makes the dashboard publicly accessible without authentication. When enabled, the dashboard displays subscription name as title, hides admin controls and technical details (version, ports, config links).
+
+:::caution[Requires Protected Metrics]
+This option requires `METRICS_PROTECTED=true`. The `/metrics` endpoint and API will still require authentication, but the main dashboard (`/`) and individual proxy status pages (`/config/{id}`) will be public.
+:::
 
 ## Xray
 

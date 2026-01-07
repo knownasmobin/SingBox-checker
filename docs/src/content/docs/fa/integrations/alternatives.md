@@ -23,7 +23,7 @@ scrape_configs:
 
 ```bash
 curl -fsS --retry 3 https://hc-ping.com/your-uuid-here && \
-./xray-checker --subscription-url="..." --run-once
+./xray-checker --subscription-url=... --run-once
 ```
 
 ### یکپارچه‌سازی صفحه وضعیت

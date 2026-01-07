@@ -66,7 +66,7 @@ git checkout -b feature/your-feature-name
 1. راه‌اندازی پیکربندی تست:
 
 ```bash
-export SUBSCRIPTION_URL="your_test_subscription"
+export SUBSCRIPTION_URL=your_test_subscription
 ```
 
 2. اجرا در حالت توسعه:

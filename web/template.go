@@ -48,6 +48,8 @@ type PageData struct {
 	PushUrl                    string
 	Endpoints                  []EndpointInfo
 	ShowServerDetails          bool
+	IsPublic                   bool
+	SubscriptionName           string
 }
 
 func RenderIndex(w io.Writer, data PageData) error {

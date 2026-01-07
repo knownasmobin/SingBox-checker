@@ -23,14 +23,18 @@ type RemoteWriteConfig struct {
 }
 
 var (
-	proxyStatus   *prometheus.GaugeVec
-	proxyLatency  *prometheus.GaugeVec
-	defaultLabels = []string{"protocol", "address", "name"}
+	proxyStatus     *prometheus.GaugeVec
+	proxyLatency    *prometheus.GaugeVec
+	metricsInstance string
+	hasInstance     bool
 )
 
 func InitMetrics(instance string) {
-	labels := defaultLabels
-	if instance != "" {
+	metricsInstance = instance
+	hasInstance = instance != ""
+
+	labels := []string{"protocol", "address", "name", "sub_name"}
+	if hasInstance {
 		labels = append(labels, "instance")
 	}
 
@@ -59,36 +63,28 @@ func GetProxyLatencyMetric() *prometheus.GaugeVec {
 	return proxyLatency
 }
 
-func RecordProxyStatus(protocol, address, name string, value float64, instance string) {
-	if instance != "" {
-		proxyStatus.WithLabelValues(protocol, address, name, instance).Set(value)
-	} else {
-		proxyStatus.WithLabelValues(protocol, address, name).Set(value)
+func buildLabelValues(protocol, address, name, subName string) []string {
+	labels := []string{protocol, address, name, subName}
+	if hasInstance {
+		labels = append(labels, metricsInstance)
 	}
+	return labels
 }
 
-func RecordProxyLatency(protocol, address, name string, value time.Duration, instance string) {
-	if instance != "" {
-		proxyLatency.WithLabelValues(protocol, address, name, instance).Set(float64(value.Milliseconds()))
-	} else {
-		proxyLatency.WithLabelValues(protocol, address, name).Set(float64(value.Milliseconds()))
-	}
+func RecordProxyStatus(protocol, address, name, subName string, value float64) {
+	proxyStatus.WithLabelValues(buildLabelValues(protocol, address, name, subName)...).Set(value)
 }
 
-func DeleteProxyStatus(protocol, address, name string, instance string) {
-	if instance != "" {
-		proxyStatus.DeleteLabelValues(protocol, address, name, instance)
-	} else {
-		proxyStatus.DeleteLabelValues(protocol, address, name)
-	}
+func RecordProxyLatency(protocol, address, name, subName string, value time.Duration) {
+	proxyLatency.WithLabelValues(buildLabelValues(protocol, address, name, subName)...).Set(float64(value.Milliseconds()))
 }
 
-func DeleteProxyLatency(protocol, address, name string, instance string) {
-	if instance != "" {
-		proxyLatency.DeleteLabelValues(protocol, address, name, instance)
-	} else {
-		proxyLatency.DeleteLabelValues(protocol, address, name)
-	}
+func DeleteProxyStatus(protocol, address, name, subName string) {
+	proxyStatus.DeleteLabelValues(buildLabelValues(protocol, address, name, subName)...)
+}
+
+func DeleteProxyLatency(protocol, address, name, subName string) {
+	proxyLatency.DeleteLabelValues(buildLabelValues(protocol, address, name, subName)...)
 }
 
 func ParseURL(remoteWriteURL string) (*RemoteWriteConfig, error) {

@@ -57,11 +57,19 @@ type CLI struct {
 
 	Web struct {
 		ShowServerDetails bool `name:"web-show-details" help:"Show server IP addresses and ports in web UI" default:"false" env:"WEB_SHOW_DETAILS"`
+		Public            bool `name:"web-public" help:"Make dashboard public (requires --metrics-protected)" default:"false" env:"WEB_PUBLIC"`
 	} `embed:"" prefix:""`
 
 	Version  VersionFlag `name:"version" help:"Print version information and quit"`
 	RunOnce  bool        `name:"run-once" help:"Run one check cycle and exit" default:"false" env:"RUN_ONCE"`
 	LogLevel string      `name:"log-level" help:"Log level (debug|info|warn|error|none)" default:"info" env:"LOG_LEVEL"`
+}
+
+func (c *CLI) Validate() error {
+	if c.Web.Public && !c.Metrics.Protected {
+		return fmt.Errorf("--web-public requires --metrics-protected to be enabled")
+	}
+	return nil
 }
 
 type VersionFlag string

@@ -20,6 +20,11 @@ import (
 
 type Parser struct{}
 
+type fetchResult struct {
+	Content []byte
+	Name    string
+}
+
 func NewParser() *Parser {
 	return &Parser{}
 }
@@ -161,22 +166,34 @@ type xrayStandardSettings struct {
 	} `json:"servers"`
 }
 
-func (p *Parser) Parse(subscriptionData string) ([]*models.ProxyConfig, error) {
+type ParseResult struct {
+	Configs []*models.ProxyConfig
+	Name    string
+}
+
+func (p *Parser) Parse(subscriptionData string) (*ParseResult, error) {
 	sourceType := p.detectSourceType(subscriptionData)
 	logger.Debug("Detected source type: %s", sourceType)
 
 	var rawData []byte
+	var subName string
 	var err error
 
 	switch sourceType {
 	case "url":
-		rawData, err = p.fetchURLContent(subscriptionData)
-		if err != nil {
-			return nil, fmt.Errorf("failed to fetch URL content: %v", err)
+		result, fetchErr := p.fetchURLContent(subscriptionData)
+		if fetchErr != nil {
+			return nil, fmt.Errorf("failed to fetch URL content: %v", fetchErr)
 		}
+		rawData = result.Content
+		subName = result.Name
 	case "folder":
 		folderPath := strings.TrimPrefix(subscriptionData, "folder://")
-		return p.parseFolder(folderPath)
+		configs, folderErr := p.parseFolder(folderPath)
+		if folderErr != nil {
+			return nil, folderErr
+		}
+		return &ParseResult{Configs: configs, Name: ""}, nil
 	case "file":
 		filePath := strings.TrimPrefix(subscriptionData, "file://")
 		rawData, err = os.ReadFile(filePath)
@@ -193,12 +210,20 @@ func (p *Parser) Parse(subscriptionData string) ([]*models.ProxyConfig, error) {
 	trimmedData := strings.TrimSpace(string(rawData))
 	if strings.HasPrefix(trimmedData, "[") {
 		logger.Debug("Detected JSON array format")
-		return p.parseJSONConfigs(rawData)
+		configs, jsonErr := p.parseJSONConfigs(rawData)
+		if jsonErr != nil {
+			return nil, jsonErr
+		}
+		return &ParseResult{Configs: configs, Name: subName}, nil
 	}
 
 	if strings.HasPrefix(trimmedData, "{") {
 		logger.Debug("Detected single JSON object format")
-		return p.parseSingleJSONConfig(rawData)
+		configs, jsonErr := p.parseSingleJSONConfig(rawData)
+		if jsonErr != nil {
+			return nil, jsonErr
+		}
+		return &ParseResult{Configs: configs, Name: subName}, nil
 	}
 
 	originalData := p.parseOriginalLinks(rawData)
@@ -250,7 +275,7 @@ func (p *Parser) Parse(subscriptionData string) ([]*models.ProxyConfig, error) {
 		return nil, fmt.Errorf("no valid proxy configurations found")
 	}
 
-	return proxyConfigs, nil
+	return &ParseResult{Configs: proxyConfigs, Name: subName}, nil
 }
 
 func (p *Parser) parseJSONConfigs(data []byte) ([]*models.ProxyConfig, error) {
@@ -358,8 +383,10 @@ func (p *Parser) detectSourceType(source string) string {
 	return "raw"
 }
 
-func (p *Parser) fetchURLContent(source string) ([]byte, error) {
-	req, err := http.NewRequest("GET", source, nil)
+func (p *Parser) fetchURLContent(source string) (*fetchResult, error) {
+	cleanURL, fragmentName := p.extractURLFragment(source)
+
+	req, err := http.NewRequest("GET", cleanURL, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -377,7 +404,66 @@ func (p *Parser) fetchURLContent(source string) ([]byte, error) {
 		return nil, fmt.Errorf("HTTP %d", resp.StatusCode)
 	}
 
-	return io.ReadAll(resp.Body)
+	content, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	name := fragmentName
+	if name == "" {
+		name = p.extractNameFromHeader(resp.Header.Get("profile-title"))
+	}
+
+	return &fetchResult{
+		Content: content,
+		Name:    name,
+	}, nil
+}
+
+func (p *Parser) extractURLFragment(source string) (cleanURL string, name string) {
+	if idx := strings.LastIndex(source, "#"); idx != -1 {
+		name = strings.TrimSpace(source[idx+1:])
+		cleanURL = source[:idx]
+		if decoded, err := url.QueryUnescape(name); err == nil {
+			name = decoded
+		}
+		return cleanURL, name
+	}
+	return source, ""
+}
+
+func (p *Parser) extractNameFromHeader(headerValue string) string {
+	if headerValue == "" {
+		return ""
+	}
+
+	headerValue = strings.TrimSpace(headerValue)
+
+	if strings.HasPrefix(headerValue, "base64:") {
+		encoded := strings.TrimPrefix(headerValue, "base64:")
+		if decoded, err := p.decodeBase64(encoded); err == nil {
+			return strings.TrimSpace(string(decoded))
+		}
+		return ""
+	}
+
+	if decoded, err := p.decodeBase64(headerValue); err == nil {
+		decodedStr := string(decoded)
+		if p.isPrintableString(decodedStr) {
+			return strings.TrimSpace(decodedStr)
+		}
+	}
+
+	return headerValue
+}
+
+func (p *Parser) isPrintableString(s string) bool {
+	for _, r := range s {
+		if r < 32 && r != '\t' && r != '\n' && r != '\r' {
+			return false
+		}
+	}
+	return true
 }
 
 func (p *Parser) parseOriginalLinks(rawData []byte) map[string]*originalLinkData {

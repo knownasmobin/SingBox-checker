@@ -26,7 +26,7 @@ docker run -d \
 
 ```bash
 docker run -d \
-  -e SUBSCRIPTION_URL="https://provider1.com/sub,https://provider2.com/sub,file:///config/local.json" \
+  -e SUBSCRIPTION_URL=https://provider1.com/sub,https://provider2.com/sub,file:///config/local.json \
   -v /path/to/configs:/config \
   -p 2112:2112 \
   kutovoys/xray-checker
@@ -38,8 +38,8 @@ docker run -d \
 docker run -d \
   -p 2112:2112 \
   kutovoys/xray-checker \
-  --subscription-url="https://provider1.com/sub" \
-  --subscription-url="https://provider2.com/sub"
+  --subscription-url=https://provider1.com/sub \
+  --subscription-url=https://provider2.com/sub
 ```
 
 ### Полная конфигурация Docker
@@ -178,6 +178,28 @@ docker run -d \
 Эта конфигурация будет:
 
 - Скачивать тестовый файл через каждый прокси
-- Считать проверку успешной если скачано минимум 50KB
+- Считать проверку успешной, если скачано минимум 50KB
 - Прерывать скачивание через 1 минуту
 - Тестировать реальную производительность передачи данных через прокси
+
+### Публичный дашборд
+
+Чтобы сделать дашборд публичным (например, как страницу статуса для вашего VPN-сервиса):
+
+```bash
+docker run -d \
+  -e SUBSCRIPTION_URL=https://your-subscription-url/sub#My%20VPN%20Status \
+  -e METRICS_PROTECTED=true \
+  -e METRICS_USERNAME=admin \
+  -e METRICS_PASSWORD=secret \
+  -e WEB_PUBLIC=true \
+  -p 2112:2112 \
+  kutovoys/xray-checker
+```
+
+Эта конфигурация будет:
+
+- Делать дашборд публичным по пути `/` (без аутентификации)
+- Использовать имя подписки из фрагмента URL как заголовок страницы ("My VPN Status")
+- Защищать эндпоинты `/metrics` и `/api/` базовой аутентификацией
+- Скрывать административные элементы и технические детали от публичного просмотра
