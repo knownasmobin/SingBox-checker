@@ -5,7 +5,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
-    <title>{{ if and .IsPublic .SubscriptionName }}{{ .SubscriptionName }}{{ else }}Xray Checker{{ end }}</title>
+    <title>
+      {{ if and .IsPublic .SubscriptionName }}{{ .SubscriptionName }}{{ else
+      }}Xray Checker{{ end }}
+    </title>
     <link rel="stylesheet" href="./static/tailwind.css" />
     <link
       rel="icon"
@@ -29,7 +32,7 @@
         font-style: normal;
         font-weight: 400 600;
         font-display: swap;
-        src: url("./static/inter-latin.woff2") format("woff2");
+        src: url("./static/inter-regular.woff2") format("woff2");
       }
       [x-cloak] {
         display: none !important;
@@ -365,7 +368,10 @@
             />
           </div>
           <div>
-            <h1 class="text-base font-semibold text-primary">{{ if and .IsPublic .SubscriptionName }}{{ .SubscriptionName }}{{ else }}Xray Checker{{ end }}</h1>
+            <h1 class="text-base font-semibold text-primary">
+              {{ if and .IsPublic .SubscriptionName }}{{ .SubscriptionName }}{{
+              else }}Xray Checker{{ end }}
+            </h1>
             {{ if .ShowServerDetails }}
             <p class="text-xs text-muted">
               {{.Host}}:{{.Port}}{{ if .Instance }} · {{.Instance}}{{ end }}
@@ -707,7 +713,10 @@
             <!-- Info -->
             <div class="flex-1 min-w-0">
               {{ if .IsPublic }}
-              <span class="text-sm text-primary truncate block" x-text="proxy.name"></span>
+              <span
+                class="text-sm text-primary truncate block"
+                x-text="proxy.name"
+              ></span>
               {{ else }}
               <a
                 :href="proxy.url"
@@ -715,8 +724,7 @@
                 class="text-sm text-primary link-hover truncate block transition-colors"
                 x-text="proxy.name"
               ></a>
-              {{ end }}
-              {{ if .ShowServerDetails }}
+              {{ end }} {{ if .ShowServerDetails }}
               <span class="text-xs text-muted truncate block"
                 ><span x-text="proxy.serverInfo"></span> · :<span
                   x-text="proxy.proxyPort"
@@ -794,8 +802,7 @@
           .CheckMethod "download" }}{{.DownloadUrl}}{{ end }}</span
         >
       </div>
-      {{ end }}
-      {{ end }}
+      {{ end }} {{ end }}
 
       <footer
         class="mt-8 pt-4 border-t border-default text-center text-xs text-muted"
