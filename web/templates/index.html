@@ -26,6 +26,10 @@
     <meta name="apple-mobile-web-app-title" content="Xray Checker" />
     <link rel="manifest" href="./static/site.webmanifest" />
     <script defer src="./static/alpine.min.js"></script>
+    <script type="module">
+      import { polyfillCountryFlagEmojis } from "./static/country-flag-emoji-polyfill.js";
+      polyfillCountryFlagEmojis();
+    </script>
     <style>
       @font-face {
         font-family: "Inter";
@@ -38,7 +42,7 @@
         display: none !important;
       }
       * {
-        font-family: "Inter", system-ui, sans-serif;
+        font-family: "Inter", "Twemoji Country Flags", system-ui, sans-serif;
       }
 
       /* Dark theme */
