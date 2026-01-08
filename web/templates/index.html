@@ -893,8 +893,18 @@
             else if (this.filter === 'offline') r = r.filter(p => !p.status);
 
             return [...r].sort((a, b) => {
-              if (this.sort === 'latency-asc') return a.latencyMs - b.latencyMs;
-              if (this.sort === 'latency-desc') return b.latencyMs - a.latencyMs;
+              if (this.sort === 'latency-asc') {
+                if (a.latencyMs === 0 && b.latencyMs === 0) return 0;
+                if (a.latencyMs === 0) return 1;
+                if (b.latencyMs === 0) return -1;
+                return a.latencyMs - b.latencyMs;
+              }
+              if (this.sort === 'latency-desc') {
+                if (a.latencyMs === 0 && b.latencyMs === 0) return 0;
+                if (a.latencyMs === 0) return 1;
+                if (b.latencyMs === 0) return -1;
+                return b.latencyMs - a.latencyMs;
+              }
               if (this.sort === 'status') return b.status - a.status;
               if (this.sort === 'name') return a.name.localeCompare(b.name);
               return a.index - b.index;
