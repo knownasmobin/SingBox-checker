@@ -8,39 +8,39 @@ import (
 )
 
 type ProxyConfig struct {
-	Protocol      string
-	Server        string
-	Port          int
-	Name          string
-	Security      string
-	Type          string
-	UUID          string
-	Flow          string
-	Encryption    string
-	HeaderType    string
-	Path          string
-	Host          string
-	SNI           string
-	Fingerprint   string
-	PublicKey     string
-	ShortID       string
-	Mode          string
-	Password      string
-	Method        string
-	Level         int
-	AlterId       int
-	VMessAid      int
-	MultiMode     bool
-	ServiceName   string
-	IdleTimeout   int
-	WindowsSize   int
-	AllowInsecure bool
-	ALPN              []string
-	Index             int
-	Settings          map[string]string
-	StableID          string
-	RawXhttpSettings  string
-	SubName           string
+	Protocol         string
+	Server           string
+	Port             int
+	Name             string
+	Security         string
+	Type             string
+	UUID             string
+	Flow             string
+	Encryption       string
+	HeaderType       string
+	Path             string
+	Host             string
+	SNI              string
+	Fingerprint      string
+	PublicKey        string
+	ShortID          string
+	Mode             string
+	Password         string
+	Method           string
+	Level            int
+	AlterId          int
+	VMessAid         int
+	MultiMode        bool
+	ServiceName      string
+	IdleTimeout      int
+	WindowsSize      int
+	AllowInsecure    bool
+	ALPN             []string
+	Index            int
+	Settings         map[string]string
+	StableID         string
+	RawXhttpSettings string
+	SubName          string
 }
 
 func (pc *ProxyConfig) Validate() error {
@@ -156,7 +156,7 @@ func (pc *ProxyConfig) GetUserLevel() int {
 
 func (pc *ProxyConfig) GetServiceName() string {
 	if pc.ServiceName == "" {
-		return "GunService"
+		return ""
 	}
 	return pc.ServiceName
 }
