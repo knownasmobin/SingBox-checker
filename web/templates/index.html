@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
+    <meta name="color-scheme" content="dark only" />
     <title>
       {{ if and .IsPublic .SubscriptionName }}{{ .SubscriptionName }}{{ else
       }}Xray Checker{{ end }}
@@ -321,12 +322,152 @@
       .segment-bad {
         background: var(--color-red);
       }
+
+      /* Transparent background */
+      .no-bg {
+        background: transparent !important;
+      }
+
+      /* Badge mode */
+      .badge-body {
+        min-height: auto;
+        background: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .badge-container {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .badge-card {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        font-size: 13px;
+        white-space: nowrap;
+        box-sizing: border-box;
+      }
+      .badge-status {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        position: relative;
+      }
+      .badge-name {
+        color: var(--text-primary);
+        font-weight: 500;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .badge-latency {
+        font-size: 12px;
+        font-variant-numeric: tabular-nums;
+        flex-shrink: 0;
+      }
+
+      /* Badge styles */
+      .badge-style-flat {
+        background: transparent;
+        border: none;
+        padding: 4px;
+      }
+      .badge-style-pill {
+        border-radius: 9999px;
+        padding: 4px 12px;
+      }
+
+      /* Badge rounded variants */
+      .badge-rounded-none {
+        border-radius: 0;
+      }
+      .badge-rounded-sm {
+        border-radius: 4px;
+      }
+      .badge-rounded-md {
+        border-radius: 8px;
+      }
+      .badge-rounded-lg {
+        border-radius: 12px;
+      }
+      .badge-rounded-full {
+        border-radius: 9999px;
+      }
+
+      /* Badge sizes */
+      .badge-size-sm {
+        font-size: 11px;
+        padding: 4px 8px;
+        gap: 6px;
+      }
+      .badge-size-sm .badge-status {
+        width: 6px;
+        height: 6px;
+      }
+      .badge-size-sm .badge-latency {
+        font-size: 10px;
+      }
+
+      .badge-size-lg {
+        font-size: 15px;
+        padding: 8px 16px;
+        gap: 10px;
+      }
+      .badge-size-lg .badge-status {
+        width: 10px;
+        height: 10px;
+      }
+      .badge-size-lg .badge-latency {
+        font-size: 14px;
+      }
+
+      /* Dot only style */
+      .badge-dot-only {
+        padding: 0;
+        background: transparent;
+        border: none;
+      }
+      .badge-dot-only .badge-status {
+        width: 12px;
+        height: 12px;
+      }
     </style>
   </head>
 
-  <body class="min-h-screen antialiased">
+  <body
+    class="min-h-screen antialiased"
+    :class="[badgeMode && 'badge-body', hideBackground && 'no-bg']"
+  >
+    <!-- Badge Mode -->
+    <template x-if="badgeMode && badgeProxy">
+      <div class="badge-container" :style="badgeContainerStyle">
+        <div class="badge-card" :class="badgeClasses" :style="badgeStyle">
+          <div
+            class="badge-status"
+            :class="badgeProxy.status ? 'status-online pulse' : 'status-offline'"
+          ></div>
+          <span
+            x-show="badgeShowName"
+            class="badge-name"
+            x-text="badgeProxy.name"
+          ></span>
+          <span
+            x-show="badgeShowLatency"
+            class="badge-latency"
+            :class="badgeProxy.latencyMs === 0 ? 'text-muted' : badgeProxy.latencyMs < 500 ? 'latency-good' : badgeProxy.latencyMs < 1000 ? 'latency-medium' : 'latency-bad'"
+            x-text="badgeProxy.latency"
+          ></span>
+        </div>
+      </div>
+    </template>
+
     <!-- Toast -->
-    <div class="fixed top-4 right-4 z-50">
+    <div x-show="!badgeMode" class="fixed top-4 right-4 z-50">
       <template x-for="t in toasts" :key="t.id">
         <div
           x-show="t.visible"
@@ -351,9 +492,12 @@
       </template>
     </div>
 
-    <div class="max-w-screen-2xl mx-auto px-4 lg:px-6 py-6">
+    <div x-show="!badgeMode" class="max-w-screen-2xl mx-auto px-4 lg:px-6 py-6">
       <!-- Header -->
-      <header class="flex items-center justify-between mb-6">
+      <header
+        x-show="showHeader"
+        class="flex items-center justify-between mb-6"
+      >
         <div class="flex items-center gap-3">
           <div
             class="w-9 h-9 rounded-lg card-flat flex items-center justify-center overflow-hidden"
@@ -454,7 +598,7 @@
       </header>
 
       <!-- Stats -->
-      <div class="grid grid-cols-4 gap-2 sm:gap-3 mb-6">
+      <div x-show="showStats" class="grid grid-cols-4 gap-2 sm:gap-3 mb-6">
         <div class="card rounded-lg p-2 sm:p-4 text-center">
           <div
             class="text-base sm:text-xl font-semibold text-primary"
@@ -492,7 +636,10 @@
       </div>
 
       <!-- Servers header -->
-      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+      <div
+        x-show="showServersHeader"
+        class="flex flex-wrap items-center justify-between gap-3 mb-4"
+      >
         <h2 class="text-base font-semibold text-primary">Servers</h2>
         {{ if not .IsPublic }}
         <div class="flex flex-wrap items-center gap-2">
@@ -582,7 +729,7 @@
 
       {{ if .Endpoints }}
       <!-- Controls -->
-      <div class="flex flex-col gap-2 mb-4">
+      <div x-show="showControls" class="flex flex-col gap-2 mb-4">
         <!-- Mobile expanded search (separate row) -->
         <div
           x-show="searchOpen"
@@ -700,7 +847,10 @@
       </div>
 
       <!-- Proxy Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 mb-4">
+      <div
+        x-show="showProxies"
+        class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 mb-4"
+      >
         <template x-for="(proxy, idx) in filteredProxies" :key="proxy.name">
           <div
             class="proxy-card group card rounded-lg px-3 py-2.5 flex items-center gap-3 transition-all duration-150"
@@ -784,7 +934,7 @@
       </div>
 
       <div
-        x-show="filteredProxies.length === 0"
+        x-show="showProxies && filteredProxies.length === 0"
         class="text-center py-12 text-muted"
       >
         No proxies match your criteria
@@ -792,6 +942,7 @@
 
       {{ if not .IsPublic }}
       <div
+        x-show="showStatusInfo"
         class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 text-xs text-muted pt-3 border-t border-default"
       >
         <span
@@ -809,6 +960,7 @@
       {{ end }} {{ end }}
 
       <footer
+        x-show="showFooter"
         class="mt-8 pt-4 border-t border-default text-center text-xs text-muted"
       >
         {{ if .IsPublic }}
@@ -853,6 +1005,11 @@
     <script>
       document.body.style.opacity = '1';
 
+      function getUrlParam(name) {
+        const params = new URLSearchParams(window.location.search);
+        return params.get(name) === 'true';
+      }
+
       function dashboard() {
         return {
           darkMode: localStorage.getItem('darkMode') !== 'false',
@@ -866,9 +1023,44 @@
           toasts: [],
           initialLoad: true,
 
+          // URL-controlled visibility
+          showHeader: !getUrlParam('hideHeader'),
+          showStats: !getUrlParam('hideStats'),
+          showServersHeader: !getUrlParam('hideServersHeader'),
+          showControls: !getUrlParam('hideControls'),
+          showProxies: !getUrlParam('hideProxies'),
+          showStatusInfo: !getUrlParam('hideStatusInfo'),
+          showFooter: !getUrlParam('hideFooter'),
+          hideBackground: getUrlParam('hideBackground'),
+
+          // Badge mode settings
+          badgeMode: false,
+          badgeProxy: null,
+          badgeTheme: 'dark',
+          badgeStyle: '',
+          badgeContainerStyle: '',
+          badgeShowName: true,
+          badgeShowLatency: true,
+          badgeVariant: 'default',
+          badgeSize: 'md',
+          badgeRounded: 'md',
+
+          get badgeClasses() {
+            const classes = [];
+            if (this.badgeVariant === 'flat') classes.push('badge-style-flat');
+            if (this.badgeVariant === 'pill') classes.push('badge-style-pill');
+            if (this.badgeVariant === 'dot') classes.push('badge-dot-only');
+            if (this.badgeSize === 'sm') classes.push('badge-size-sm');
+            if (this.badgeSize === 'lg') classes.push('badge-size-lg');
+            if (this.badgeVariant !== 'pill' && this.badgeVariant !== 'dot') {
+              classes.push('badge-rounded-' + this.badgeRounded);
+            }
+            return classes.join(' ');
+          },
+
           proxies: [
             {{ range $.Endpoints }}
-            { name: "{{.Name}}", {{ if $.ShowServerDetails }}serverInfo: "{{.ServerInfo}}", proxyPort: {{.ProxyPort}}, {{ end }}{{ if not $.IsPublic }}url: "{{.URL}}", {{ end }}index: {{.Index}}, status: {{.Status}}, latency: "{{ formatLatency .Latency }}", latencyMs: {{ .Latency.Milliseconds }} },
+            { name: "{{.Name}}", stableId: "{{.StableID}}", {{ if $.ShowServerDetails }}serverInfo: "{{.ServerInfo}}", proxyPort: {{.ProxyPort}}, {{ end }}{{ if not $.IsPublic }}url: "{{.URL}}", {{ end }}index: {{.Index}}, status: {{.Status}}, latency: "{{ formatLatency .Latency }}", latencyMs: {{ .Latency.Milliseconds }} },
             {{ end }}
           ],
 
@@ -912,6 +1104,72 @@
           },
 
           init() {
+            const params = new URLSearchParams(window.location.search);
+
+            // Check for badge mode
+            const stableId = params.get('stableId');
+            if (stableId) {
+              this.badgeProxy = this.proxies.find(p => p.stableId === stableId);
+              if (this.badgeProxy) {
+                this.badgeMode = true;
+
+                // Badge theme (dark/light)
+                const theme = params.get('theme');
+                if (theme === 'light' || theme === 'dark') {
+                  this.badgeTheme = theme;
+                  this.darkMode = theme === 'dark';
+                }
+
+                // Badge variant (default/flat/pill/dot)
+                const variant = params.get('variant');
+                if (['default', 'flat', 'pill', 'dot'].includes(variant)) {
+                  this.badgeVariant = variant;
+                  if (variant === 'dot') {
+                    this.badgeShowName = false;
+                    this.badgeShowLatency = false;
+                  }
+                }
+
+                // Badge size (sm/md/lg)
+                const size = params.get('size');
+                if (['sm', 'md', 'lg'].includes(size)) {
+                  this.badgeSize = size;
+                }
+
+                // Badge rounded (none/sm/md/lg/full)
+                const rounded = params.get('rounded');
+                if (['none', 'sm', 'md', 'lg', 'full'].includes(rounded)) {
+                  this.badgeRounded = rounded;
+                }
+
+                // Show/hide name
+                if (params.get('showName') === 'false') {
+                  this.badgeShowName = false;
+                }
+
+                // Show/hide latency
+                if (params.get('showLatency') === 'false') {
+                  this.badgeShowLatency = false;
+                }
+
+                // Custom width/height
+                const styles = [];
+                const width = params.get('width');
+                const height = params.get('height');
+                if (width) styles.push('width: ' + width + (isNaN(width) ? '' : 'px'));
+                if (height) styles.push('height: ' + height + (isNaN(height) ? '' : 'px'));
+                if (styles.length) this.badgeStyle = styles.join('; ');
+
+                // Container alignment
+                const containerStyles = [];
+                const align = params.get('align');
+                if (align === 'center') containerStyles.push('justify-content: center');
+                if (align === 'right') containerStyles.push('justify-content: flex-end');
+                if (width || height) containerStyles.push('width: 100%');
+                if (containerStyles.length) this.badgeContainerStyle = containerStyles.join('; ');
+              }
+            }
+
             if (this.autoRefresh) this.startCountdown();
             setTimeout(() => this.initialLoad = false, 500);
           },
@@ -965,6 +1223,15 @@
                     proxy.latency = updated.latencyMs > 0 ? updated.latencyMs + 'ms' : 'n/a';
                   }
                 });
+                // Update badge proxy if in badge mode
+                if (this.badgeMode && this.badgeProxy) {
+                  const updated = json.data.find(p => p.stableId === this.badgeProxy.stableId);
+                  if (updated) {
+                    this.badgeProxy.status = updated.online;
+                    this.badgeProxy.latencyMs = updated.latencyMs;
+                    this.badgeProxy.latency = updated.latencyMs > 0 ? updated.latencyMs + 'ms' : 'n/a';
+                  }
+                }
               }
             } catch (e) {
               console.error('Failed to refresh:', e);

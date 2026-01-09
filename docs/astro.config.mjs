@@ -234,6 +234,14 @@ export default defineConfig({
               slug: "integrations/prometheus",
             },
             {
+              label: "Public Status Page",
+              translations: {
+                ru: "Публичная страница статуса",
+                fa: "صفحه وضعیت عمومی",
+              },
+              slug: "integrations/status-page",
+            },
+            {
               label: "Uptime Kuma",
               translations: {
                 ru: "Uptime Kuma",
@@ -257,6 +265,31 @@ export default defineConfig({
                 fa: "جایگزین‌ها",
               },
               slug: "integrations/alternatives",
+            },
+          ],
+        },
+        {
+          label: "Badges",
+          translations: {
+            ru: "Бейджи",
+            fa: "نشان‌ها",
+          },
+          items: [
+            {
+              label: "Overview",
+              translations: {
+                ru: "Обзор",
+                fa: "معرفی",
+              },
+              slug: "badges/overview",
+            },
+            {
+              label: "Playground",
+              translations: {
+                ru: "Конструктор",
+                fa: "سازنده",
+              },
+              slug: "badges/playground",
             },
           ],
         },

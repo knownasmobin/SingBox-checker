@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 	"xray-checker/checker"
 	"xray-checker/config"
@@ -12,7 +13,10 @@ import (
 	"xray-checker/subscription"
 )
 
-var registeredEndpoints []EndpointInfo
+var (
+	registeredEndpoints []EndpointInfo
+	endpointsMu         sync.RWMutex
+)
 
 type EndpointInfo struct {
 	Name       string
@@ -22,6 +26,7 @@ type EndpointInfo struct {
 	Index      int
 	Status     bool
 	Latency    time.Duration
+	StableID   string
 }
 
 func IndexHandler(version string, proxyChecker *checker.ProxyChecker) http.HandlerFunc {
@@ -33,21 +38,27 @@ func IndexHandler(version string, proxyChecker *checker.ProxyChecker) http.Handl
 
 		RegisterConfigEndpoints(proxyChecker.GetProxies(), proxyChecker, config.CLIConfig.Xray.StartPort)
 
+		endpointsMu.RLock()
+		allEndpoints := make([]EndpointInfo, len(registeredEndpoints))
+		copy(allEndpoints, registeredEndpoints)
+		endpointsMu.RUnlock()
+
 		isPublic := config.CLIConfig.Web.Public
 		showServerDetails := config.CLIConfig.Web.ShowServerDetails
 		if isPublic {
 			showServerDetails = false
 		}
 
-		endpoints := registeredEndpoints
+		endpoints := allEndpoints
 		if isPublic {
-			endpoints = make([]EndpointInfo, len(registeredEndpoints))
-			for i, ep := range registeredEndpoints {
+			endpoints = make([]EndpointInfo, len(allEndpoints))
+			for i, ep := range allEndpoints {
 				endpoints[i] = EndpointInfo{
-					Name:    ep.Name,
-					Index:   ep.Index,
-					Status:  ep.Status,
-					Latency: ep.Latency,
+					Name:     ep.Name,
+					Index:    ep.Index,
+					Status:   ep.Status,
+					Latency:  ep.Latency,
+					StableID: ep.StableID,
 				}
 			}
 		}
@@ -139,7 +150,7 @@ func ConfigStatusHandler(proxyChecker *checker.ProxyChecker) http.HandlerFunc {
 }
 
 func RegisterConfigEndpoints(proxies []*models.ProxyConfig, proxyChecker *checker.ProxyChecker, startPort int) {
-	registeredEndpoints = make([]EndpointInfo, 0, len(proxies))
+	endpoints := make([]EndpointInfo, 0, len(proxies))
 
 	for _, proxy := range proxies {
 		if proxy.StableID == "" {
@@ -150,7 +161,7 @@ func RegisterConfigEndpoints(proxies []*models.ProxyConfig, proxyChecker *checke
 
 		status, latency, _ := proxyChecker.GetProxyStatus(proxy.Name)
 
-		registeredEndpoints = append(registeredEndpoints, EndpointInfo{
+		endpoints = append(endpoints, EndpointInfo{
 			Name:       proxy.Name,
 			ServerInfo: fmt.Sprintf("%s:%d", proxy.Server, proxy.Port),
 			URL:        endpoint,
@@ -158,8 +169,13 @@ func RegisterConfigEndpoints(proxies []*models.ProxyConfig, proxyChecker *checke
 			Index:      proxy.Index,
 			Status:     status,
 			Latency:    latency,
+			StableID:   proxy.StableID,
 		})
 	}
+
+	endpointsMu.Lock()
+	registeredEndpoints = endpoints
+	endpointsMu.Unlock()
 }
 
 type PrefixServeMux struct {
