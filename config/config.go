@@ -7,8 +7,10 @@ import (
 )
 
 var CLIConfig CLI
+var Version string
 
 func Parse(version string) {
+	Version = version
 	ctx := kong.Parse(&CLIConfig,
 		kong.Name("xray-checker"),
 		kong.Description("Xray Checker: A Prometheus exporter for monitoring Xray proxies"),

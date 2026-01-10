@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"xray-checker/config"
 	"xray-checker/logger"
 	"xray-checker/models"
 
@@ -392,6 +393,10 @@ func (p *Parser) fetchURLContent(source string) (*fetchResult, error) {
 	}
 	req.Header.Set("User-Agent", "Xray-Checker")
 	req.Header.Set("Accept", "*/*")
+	req.Header.Set("X-Device-OS", "CheckerOS")
+	req.Header.Set("X-Ver-OS", config.Version)
+	req.Header.Set("X-Device-Model", "Xray-Checker Pro Max")
+	req.Header.Set("X-Hwid", "0JLQq9Ca0JvQrtCn0Jgg0JHQm9Cp0KLQrCBIV0lE")
 
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)

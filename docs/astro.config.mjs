@@ -236,10 +236,11 @@ export default defineConfig({
             {
               label: "Public Status Page",
               translations: {
-                ru: "Публичная страница статуса",
+                ru: "Страница статуса",
                 fa: "صفحه وضعیت عمومی",
               },
               slug: "integrations/status-page",
+              badge: { text: "NEW", variant: "success" },
             },
             {
               label: "Uptime Kuma",
@@ -274,6 +275,7 @@ export default defineConfig({
             ru: "Бейджи",
             fa: "نشان‌ها",
           },
+          badge: { text: "NEW", variant: "success" },
           items: [
             {
               label: "Overview",
