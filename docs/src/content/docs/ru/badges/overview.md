@@ -115,4 +115,4 @@ curl https://your-xray-checker.com/api/v1/public/proxies
 ## Следующие шаги
 
 - Используйте [Конструктор бейджей](/ru/badges/playground) для интерактивного создания URL бейджа
-- Узнайте о [Публичной странице статуса](/ru/integrations/status-page) для публикации статуса прокси
+- Узнайте о [Публичной странице статуса](/ru/configuration/status-page) для публикации статуса прокси

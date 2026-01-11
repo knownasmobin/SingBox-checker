@@ -22,6 +22,7 @@ Xray Checker is a tool for monitoring proxy server availability with support for
 - 📊 Prometheus metrics export with Pushgateway support
 - 🌐 REST API with OpenAPI/Swagger documentation
 - 🌓 Web interface with dark/light theme
+- 🎨 Full web customization (custom logo, styles, or entire template)
 - 📄 Public status page for VPN services (no authentication required)
 - 📥 Endpoints for monitoring system integration (Uptime Kuma, etc.)
 - 🔒 Basic Auth protection for metrics and web interface

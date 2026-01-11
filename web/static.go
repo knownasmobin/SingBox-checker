@@ -19,28 +19,33 @@ func StaticHandler() http.HandlerFunc {
 			return
 		}
 
-		data, err := fs.ReadFile(staticFiles, path.Join("static", filePath))
-		if err != nil {
-			http.NotFound(w, r)
-			return
+		var data []byte
+		var found bool
+
+		loader := GetAssetLoader()
+		if loader != nil && loader.IsEnabled() {
+			data, found = loader.GetFile(filePath)
 		}
 
-		contentType := "application/octet-stream"
-		switch {
-		case strings.HasSuffix(filePath, ".css"):
-			contentType = "text/css; charset=utf-8"
-		case strings.HasSuffix(filePath, ".js"):
-			contentType = "application/javascript; charset=utf-8"
-		case strings.HasSuffix(filePath, ".woff2"):
-			contentType = "font/woff2"
-		case strings.HasSuffix(filePath, ".woff"):
-			contentType = "font/woff"
-		case strings.HasSuffix(filePath, ".svg"):
-			contentType = "image/svg+xml"
-		case strings.HasSuffix(filePath, ".png"):
-			contentType = "image/png"
+		if !found {
+			embeddedData, err := fs.ReadFile(staticFiles, path.Join("static", filePath))
+			if err != nil {
+				if loader != nil && loader.IsEnabled() {
+					if customData, customFound := loader.GetFile(filePath); customFound {
+						data = customData
+						found = true
+					}
+				}
+				if !found {
+					http.NotFound(w, r)
+					return
+				}
+			} else {
+				data = embeddedData
+			}
 		}
 
+		contentType := GetContentType(filePath)
 		w.Header().Set("Content-Type", contentType)
 		w.Header().Set("Cache-Control", "public, max-age=31536000")
 		w.Write(data)

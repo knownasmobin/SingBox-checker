@@ -115,4 +115,4 @@ curl https://your-xray-checker.com/api/v1/public/proxies
 ## مراحل بعدی
 
 - از [سازنده نشان](/fa/badges/playground) برای ساخت تعاملی URL نشان استفاده کنید
-- درباره [صفحه وضعیت عمومی](/fa/integrations/status-page) برای اشتراک‌گذاری وضعیت پروکسی بیاموزید
+- درباره [صفحه وضعیت عمومی](/fa/configuration/status-page) برای اشتراک‌گذاری وضعیت پروکسی بیاموزید

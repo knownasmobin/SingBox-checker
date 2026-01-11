@@ -208,6 +208,23 @@ export default defineConfig({
               },
               slug: "configuration/advanced-conf",
             },
+            {
+              label: "Public Status Page",
+              translations: {
+                ru: "Публичная страница статуса",
+                fa: "صفحه وضعیت عمومی",
+              },
+              slug: "configuration/status-page",
+            },
+            {
+              label: "Web Customization",
+              translations: {
+                ru: "Кастомизация веб-интерфейса",
+                fa: "سفارشی‌سازی وب",
+              },
+              slug: "configuration/web-customization",
+              badge: { text: "NEW", variant: "success" },
+            },
           ],
         },
         {
@@ -232,15 +249,6 @@ export default defineConfig({
                 fa: "راه‌اندازی Prometheus",
               },
               slug: "integrations/prometheus",
-            },
-            {
-              label: "Public Status Page",
-              translations: {
-                ru: "Страница статуса",
-                fa: "صفحه وضعیت عمومی",
-              },
-              slug: "integrations/status-page",
-              badge: { text: "NEW", variant: "success" },
             },
             {
               label: "Uptime Kuma",

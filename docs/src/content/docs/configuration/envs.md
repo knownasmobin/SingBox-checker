@@ -161,6 +161,23 @@ Makes the dashboard publicly accessible without authentication. When enabled, th
 This option requires `METRICS_PROTECTED=true`. The `/metrics` endpoint and API will still require authentication, but the main dashboard (`/`) and individual proxy status pages (`/config/{id}`) will be public.
 :::
 
+### WEB_CUSTOM_ASSETS_PATH
+
+- CLI: `--web-custom-assets-path`
+- Required: No
+- Default: None
+
+Path to a directory containing custom assets for the web interface. When set, files from this directory override the default assets.
+
+Supported files:
+- `index.html` — Full template replacement (Go template)
+- `logo.svg` — Custom logo
+- `favicon.ico` — Custom favicon
+- `custom.css` — Additional styles (auto-injected)
+- Any other files — Available at `/static/{filename}`
+
+See [Web Customization](/configuration/web-customization) for details.
+
 ## Xray
 
 ### XRAY_START_PORT

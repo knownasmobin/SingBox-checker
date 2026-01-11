@@ -1,10 +1,12 @@
 package web
 
 import (
+	"bytes"
 	"embed"
 	"fmt"
 	"html/template"
 	"io"
+	"strings"
 	"time"
 )
 
@@ -53,5 +55,28 @@ type PageData struct {
 }
 
 func RenderIndex(w io.Writer, data PageData) error {
-	return indexTmpl.Execute(w, data)
+	loader := GetAssetLoader()
+
+	var tmpl *template.Template
+	if loader != nil && loader.HasCustomTemplate() {
+		tmpl = loader.GetCustomTemplate()
+	} else {
+		tmpl = indexTmpl
+	}
+
+	if loader == nil || !loader.HasCustomCSS() {
+		return tmpl.Execute(w, data)
+	}
+
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, data); err != nil {
+		return err
+	}
+
+	html := buf.String()
+	customCSSLink := `<link rel="stylesheet" href="/static/custom.css">`
+	html = strings.Replace(html, "</head>", customCSSLink+"\n  </head>", 1)
+
+	_, err := io.WriteString(w, html)
+	return err
 }

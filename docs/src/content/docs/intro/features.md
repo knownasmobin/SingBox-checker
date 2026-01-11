@@ -17,6 +17,7 @@ tableOfContents: false
   - 🔍 Search and filter proxies by name or status
   - 📊 Sort by name, latency, or status
   - 🔄 Auto-refresh without page reload
+  - 🎨 [Full customization](/configuration/web-customization) — custom logo, styles, or entire template
 
 - 🌐 [REST API](/usage/api-reference) with OpenAPI/Swagger documentation
 

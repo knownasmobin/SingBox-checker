@@ -34,6 +34,10 @@ func main() {
 		logger.Startup("Log level: none (silent mode)")
 	}
 
+	if err := web.InitAssetLoader(config.CLIConfig.Web.CustomAssetsPath); err != nil {
+		logger.Fatal("Failed to initialize custom assets: %v", err)
+	}
+
 	geoManager := xray.NewGeoFileManager("")
 	if err := geoManager.EnsureGeoFiles(); err != nil {
 		logger.Fatal("Failed to ensure geo files: %v", err)

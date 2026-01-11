@@ -115,4 +115,4 @@ Create a status dashboard by combining multiple badges:
 ## Next Steps
 
 - Use the [Badge Playground](/badges/playground) to interactively build your badge URL
-- Learn about the [Public Status Page](/integrations/status-page) for sharing proxy status
+- Learn about the [Public Status Page](/configuration/status-page) for sharing proxy status
