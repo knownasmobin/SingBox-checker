@@ -26,7 +26,8 @@ Xray Checker is a tool for monitoring proxy server availability with support for
   <img src=".github/screen/xray-checker.webp" alt="Dashboard Screenshot">
 </div>
 
-> [!TIP] > **Try the Live Demo:** See Xray Checker in action at [demo-xray-checker.kutovoy.dev](https://demo-xray-checker.kutovoy.dev/)
+> [!TIP]
+> **Try the Live Demo:** See Xray Checker in action at [demo-xray-checker.kutovoy.dev](https://demo-xray-checker.kutovoy.dev/)
 
 ## 🚀 Key Features
 
