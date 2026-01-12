@@ -70,6 +70,7 @@ docker run -d \
   -e METRICS_PUSH_URL=https://push.example.com \
   -e METRICS_BASE_PATH=/xray/monitor \
   -e WEB_SHOW_DETAILS=false \
+  -e WEB_PUBLIC=false \
   -e LOG_LEVEL=info \
   -e RUN_ONCE=false \
   -p 2112:2112 \
@@ -121,6 +122,7 @@ services:
       - METRICS_PUSH_URL=https://push.example.com
       - METRICS_BASE_PATH=/xray/monitor
       - WEB_SHOW_DETAILS=false
+      - WEB_PUBLIC=false
       - LOG_LEVEL=info
       - RUN_ONCE=false
     ports:

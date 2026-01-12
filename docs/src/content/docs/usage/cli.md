@@ -78,6 +78,7 @@ All proxies from all subscriptions will be combined and monitored together.
   --metrics-push-url="https://push.example.com" \
   --metrics-base-path="/xray/monitor" \
   --web-show-details=false \
+  --web-public=false \
   --log-level=info \
   --run-once=false
 ```

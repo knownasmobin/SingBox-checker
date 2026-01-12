@@ -35,7 +35,7 @@ tableOfContents: false
 
 - 🌐 [REST API](/usage/api-reference) with OpenAPI/Swagger documentation for custom integrations
 
-- 📄 [Public status page](/usage/docker#public-dashboard) for VPN services — display proxy status without authentication, customizable title from subscription name
+- 📄 [Public status page](/configuration/status-page) for VPN services — display proxy status without authentication, customizable title from subscription name
 
 - 📥 [Automatic endpoint generation](/integrations/uptime-kuma) for integration with monitoring systems (e.g., Uptime-Kuma)
 

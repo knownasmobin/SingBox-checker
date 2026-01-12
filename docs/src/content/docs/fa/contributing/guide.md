@@ -38,11 +38,12 @@ go build -o xray-checker
 .
 ├── checker/       # منطق بررسی پروکسی
 ├── config/        # مدیریت پیکربندی
+├── geo/           # فایل‌های Geo (geoip.dat, geosite.dat)
 ├── logger/        # لاگ ساختاریافته
 ├── metrics/       # متریک‌های Prometheus
 ├── models/        # مدل‌های داده
 ├── subscription/  # تجزیه و مدیریت اشتراک
-├── web/           # رابط وب و API
+├── web/           # رابط وب، API و فایل‌های استاتیک
 ├── xray/          # یکپارچه‌سازی و اجراکننده Xray
 ├── go.mod         # فایل ماژول‌های Go
 └── main.go        # نقطه ورود برنامه

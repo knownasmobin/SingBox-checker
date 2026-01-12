@@ -43,6 +43,16 @@ Xray Checker consists of several key components working together to provide comp
    - Handles API requests
    - Manages authentication
 
+6. **Badge System**
+   - Generates embeddable status badges
+   - Supports multiple themes and styles
+   - Real-time status updates
+
+7. **Asset Manager**
+   - Handles custom assets (logo, favicon, CSS)
+   - Supports full template replacement
+   - Overlay system (custom first, default fallback)
+
 ## Component Details
 
 ### Subscription Manager
@@ -90,6 +100,24 @@ Provides the web interface and API:
 - API request processing
 - Authentication management
 
+### Badge System
+
+Provides embeddable status indicators:
+
+- URL-based badge generation
+- Multiple visual styles (default, flat, pill, dot)
+- Theme support (dark/light)
+- Configurable display options
+
+### Asset Manager
+
+Handles web interface customization:
+
+- Custom logo and favicon loading
+- CSS injection for styling overrides
+- Full template replacement support
+- File caching at startup
+
 ## Security Model
 
 ### Authentication
@@ -97,6 +125,7 @@ Provides the web interface and API:
 - Optional Basic Auth protection
 - Configurable credentials
 - Separate authentication for metrics
+- Public mode for status pages (hides sensitive data)
 
 ### Network Security
 

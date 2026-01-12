@@ -1,5 +1,5 @@
 ---
-title: Check Methods
+title: Advanced Configuration
 description: Advanced configuration options
 ---
 
@@ -89,18 +89,16 @@ METRICS_PORT=9090
 
 ### Configuration for steal-from-yourself domain
 
-
-You have your own domain, your-domain.com, with a website running on it, 
+You have your own domain, your-domain.com, with a website running on it,
 and you want to display monitoring at `your-domain.com/xray/monitor`.
 
-Run Xray Checker on the same server where your website is hosted. 
-The parameter `-p 127.0.0.1:2112:2112` ensures that direct access 
+Run Xray Checker on the same server where your website is hosted.
+The parameter `-p 127.0.0.1:2112:2112` ensures that direct access
 to it is only possible from the server itself:
 
-
 :::caution
-If the web interface is publicly accessible, it's recommended to use basic auth for protection. 
-You can enable this using the following environment variables: 
+If the web interface is publicly accessible, it's recommended to use basic auth for protection.
+You can enable this using the following environment variables:
 `METRICS_PROTECTED`, `METRICS_USERNAME`, `METRICS_PASSWORD`.
 :::
 
@@ -117,7 +115,7 @@ docker run -d \
 
 Open nginx configuration file (`sudo nano /etc/nginx/your-domain.com`), find main section:
 
-```
+```nginx
 server {
     root /var/www/your-domain.com/html;
 
@@ -129,7 +127,7 @@ server {
 
 and paste there 3 new locations:
 
-```config
+```nginx
 
     # Handle /xray/monitor without a trailing slash
     location = /xray/monitor {

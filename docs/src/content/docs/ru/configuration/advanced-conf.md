@@ -91,12 +91,12 @@ METRICS_PORT=9090
 и вы хотите отображать мониторинг по адресу `your-domain.com/xray/monitor`.
 
 Запустите xray checher на том же сервере, где запущен ваш сайт
-(параметр `-p 127.0.0.1:2112:2112` означает, что прямой доступ 
+(параметр `-p 127.0.0.1:2112:2112` означает, что прямой доступ
 к нему будет только с самого сервера):
 
 :::caution
-Для публично доступной страницы с мониторингом настоятельно рекомендуется 
-включить авторизацию по логину и паролю. Включить её можно с помощью переменных окружения 
+Для публично доступной страницы с мониторингом настоятельно рекомендуется
+включить авторизацию по логину и паролю. Включить её можно с помощью переменных окружения
 `METRICS_PROTECTED`, `METRICS_USERNAME`, `METRICS_PASSWORD`.
 :::
 
@@ -111,18 +111,10 @@ docker run -d \
   kutovoys/xray-checker
 ```
 
-```bash
-docker run -d \
-  -e SUBSCRIPTION_URL=https://your-subscription-url/sub \
-  -p 127.0.0.1:2112:2112 \
-  -e METRICS_BASE_PATH="/xray/monitor \
-  kutovoys/xray-checker
-```
-
-Откройте файл с настройками nginx (`sudo nano /etc/nginx/your-domain.com`), 
+Откройте файл с настройками nginx (`sudo nano /etc/nginx/your-domain.com`),
 найдите там главную секцию, она выглядит так:
 
-```
+```nginx
 server {
     root /var/www/your-domain.com/html;
 
@@ -134,7 +126,7 @@ server {
 
 Добавьте в неё 2 новых location для переадресации запросов на запущенный xray-checker:
 
-```config
+```nginx
 
     # Обработка адреса /xray/monitor (без слеша в конце)
     location = /xray/monitor {

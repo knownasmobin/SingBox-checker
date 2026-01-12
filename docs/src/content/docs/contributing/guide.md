@@ -38,11 +38,12 @@ go build -o xray-checker
 .
 ├── checker/       # Proxy checking logic
 ├── config/        # Configuration handling
+├── geo/           # Geo files (geoip.dat, geosite.dat)
 ├── logger/        # Structured logging
 ├── metrics/       # Prometheus metrics
 ├── models/        # Data models
 ├── subscription/  # Subscription parsing and management
-├── web/           # Web interface and API
+├── web/           # Web interface, API, and assets
 ├── xray/          # Xray integration and runner
 ├── go.mod         # Go modules file
 └── main.go        # Application entry point
