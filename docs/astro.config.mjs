@@ -52,6 +52,19 @@ export default defineConfig({
             href: "/site.webmanifest",
           },
         },
+        // Plausible Analytics
+        {
+          tag: "script",
+          attrs: {
+            async: true,
+            src: "https://ps.log.rw/js/pa-mlJHNSq4iSgTf0o8D8qJM.js",
+          },
+        },
+        {
+          tag: "script",
+          content:
+            'window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()',
+        },
       ],
       editLink: {
         baseUrl: "https://github.com/kutovoys/xray-checker/edit/main/docs/",
