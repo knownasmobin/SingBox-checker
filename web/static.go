@@ -25,6 +25,31 @@ func StaticHandler() http.HandlerFunc {
 		loader := GetAssetLoader()
 		if loader != nil && loader.IsEnabled() {
 			data, found = loader.GetFile(filePath)
+
+			if !found && (filePath == "logo-dark.svg" || filePath == "logo-light.svg") {
+				variant := "logo-dark"
+				if filePath == "logo-light.svg" {
+					variant = "logo-light"
+				}
+
+				fallbacks := []struct {
+					name        string
+					contentType string
+				}{
+					{variant + ".png", "image/png"},
+					{"logo.svg", "image/svg+xml"},
+					{"logo.png", "image/png"},
+				}
+
+				for _, fb := range fallbacks {
+					if logoData, ok := loader.GetFile(fb.name); ok {
+						w.Header().Set("Content-Type", fb.contentType)
+						w.Header().Set("Cache-Control", "public, max-age=31536000")
+						w.Write(logoData)
+						return
+					}
+				}
+			}
 		}
 
 		if !found {

@@ -25,12 +25,30 @@ xray-checker --web-custom-assets-path=/path/to/custom
 
 ```
 custom/
-  ├── index.html      # Полная замена шаблона (опционально)
-  ├── logo.svg        # Замена логотипа (опционально)
-  ├── favicon.ico     # Замена favicon (опционально)
-  ├── custom.css      # Дополнительные стили, инжектятся автоматически (опционально)
-  └── any-file.ext    # Доступен по /static/any-file.ext
+  ├── index.html       # Полная замена шаблона (опционально)
+  ├── logo.svg         # Единый логотип для обеих тем (опционально)
+  ├── logo.png         # Единый логотип PNG (опционально)
+  ├── logo-dark.svg    # Логотип для тёмной темы (опционально)
+  ├── logo-dark.png    # Логотип для тёмной темы PNG (опционально)
+  ├── logo-light.svg   # Логотип для светлой темы (опционально)
+  ├── logo-light.png   # Логотип для светлой темы PNG (опционально)
+  ├── favicon.ico      # Замена favicon (опционально)
+  ├── custom.css       # Дополнительные стили, инжектятся автоматически (опционально)
+  └── any-file.ext     # Доступен по /static/any-file.ext
 ```
+
+### Файлы логотипа
+
+Вы можете кастомизировать логотип двумя способами:
+
+1. **Единый логотип** — предоставьте `logo.svg` или `logo.png` для использования одного логотипа в обеих темах
+2. **Логотипы для каждой темы** — предоставьте `logo-dark.svg`/`logo-dark.png` и `logo-light.svg`/`logo-light.png` для разных логотипов
+
+Порядок приоритета (используется первый найденный):
+1. `logo-dark.svg` / `logo-light.svg` (SVG для конкретной темы)
+2. `logo-dark.png` / `logo-light.png` (PNG для конкретной темы)
+3. `logo.svg` (универсальный SVG)
+4. `logo.png` (универсальный PNG)
 
 ## Кастомные стили (custom.css)
 
@@ -207,7 +225,7 @@ services:
 my-project/
   ├── docker-compose.yml
   └── custom/
-      ├── logo.svg
+      ├── logo.svg        # или logo-dark.svg + logo-light.svg
       ├── favicon.ico
       └── custom.css
 ```

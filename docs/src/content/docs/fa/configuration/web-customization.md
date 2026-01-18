@@ -25,12 +25,30 @@ xray-checker --web-custom-assets-path=/path/to/custom
 
 ```
 custom/
-  ├── index.html      # جایگزینی کامل قالب (اختیاری)
-  ├── logo.svg        # جایگزینی لوگو (اختیاری)
-  ├── favicon.ico     # جایگزینی favicon (اختیاری)
-  ├── custom.css      # استایل‌های اضافی، به‌صورت خودکار تزریق می‌شوند (اختیاری)
-  └── any-file.ext    # در /static/any-file.ext قابل دسترسی است
+  ├── index.html       # جایگزینی کامل قالب (اختیاری)
+  ├── logo.svg         # لوگوی واحد برای هر دو تم (اختیاری)
+  ├── logo.png         # لوگوی واحد PNG (اختیاری)
+  ├── logo-dark.svg    # لوگو برای تم تاریک (اختیاری)
+  ├── logo-dark.png    # لوگو برای تم تاریک PNG (اختیاری)
+  ├── logo-light.svg   # لوگو برای تم روشن (اختیاری)
+  ├── logo-light.png   # لوگو برای تم روشن PNG (اختیاری)
+  ├── favicon.ico      # جایگزینی favicon (اختیاری)
+  ├── custom.css       # استایل‌های اضافی، به‌صورت خودکار تزریق می‌شوند (اختیاری)
+  └── any-file.ext     # در /static/any-file.ext قابل دسترسی است
 ```
+
+### فایل‌های لوگو
+
+شما می‌توانید لوگو را به دو روش سفارشی کنید:
+
+1. **لوگوی واحد** — فایل `logo.svg` یا `logo.png` را برای استفاده از یک لوگو در هر دو تم ارائه دهید
+2. **لوگوهای خاص تم** — فایل‌های `logo-dark.svg`/`logo-dark.png` و `logo-light.svg`/`logo-light.png` را برای لوگوهای متفاوت ارائه دهید
+
+ترتیب اولویت (اولین یافت شده استفاده می‌شود):
+1. `logo-dark.svg` / `logo-light.svg` (SVG خاص تم)
+2. `logo-dark.png` / `logo-light.png` (PNG خاص تم)
+3. `logo.svg` (SVG جهانی)
+4. `logo.png` (PNG جهانی)
 
 ## استایل‌های سفارشی (custom.css)
 
@@ -207,7 +225,7 @@ services:
 my-project/
   ├── docker-compose.yml
   └── custom/
-      ├── logo.svg
+      ├── logo.svg        # یا logo-dark.svg + logo-light.svg
       ├── favicon.ico
       └── custom.css
 ```

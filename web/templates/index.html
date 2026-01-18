@@ -1098,7 +1098,7 @@
                 return b.latencyMs - a.latencyMs;
               }
               if (this.sort === 'status') return b.status - a.status;
-              if (this.sort === 'name') return a.name.localeCompare(b.name);
+              if (this.sort === 'name') return this.stripLeadingEmoji(a.name).localeCompare(this.stripLeadingEmoji(b.name));
               return a.index - b.index;
             });
           },
@@ -1195,6 +1195,10 @@
             if (ms < 800) return 3;
             if (ms < 1200) return 2;
             return 1;
+          },
+
+          stripLeadingEmoji(str) {
+            return str.replace(/^[\p{Emoji}\p{Emoji_Modifier}\p{Emoji_Component}\p{Emoji_Modifier_Base}\p{Emoji_Presentation}\u200d\ufe0f\s]+/u, '').trim() || str;
           },
 
           startCountdown() {

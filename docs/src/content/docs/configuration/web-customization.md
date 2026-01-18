@@ -25,12 +25,30 @@ Place your custom files in a flat directory (no subdirectories):
 
 ```
 custom/
-  ├── index.html      # Full template replacement (optional)
-  ├── logo.svg        # Logo override (optional)
-  ├── favicon.ico     # Favicon override (optional)
-  ├── custom.css      # Additional styles, auto-injected (optional)
-  └── any-file.ext    # Available at /static/any-file.ext
+  ├── index.html       # Full template replacement (optional)
+  ├── logo.svg         # Single logo for both themes (optional)
+  ├── logo.png         # Single logo PNG (optional)
+  ├── logo-dark.svg    # Logo for dark theme (optional)
+  ├── logo-dark.png    # Logo for dark theme PNG (optional)
+  ├── logo-light.svg   # Logo for light theme (optional)
+  ├── logo-light.png   # Logo for light theme PNG (optional)
+  ├── favicon.ico      # Favicon override (optional)
+  ├── custom.css       # Additional styles, auto-injected (optional)
+  └── any-file.ext     # Available at /static/any-file.ext
 ```
+
+### Logo Files
+
+You can customize the logo in two ways:
+
+1. **Single logo** — provide `logo.svg` or `logo.png` to use the same logo for both dark and light themes
+2. **Theme-specific logos** — provide `logo-dark.svg`/`logo-dark.png` and `logo-light.svg`/`logo-light.png` for different logos per theme
+
+Priority order (first found is used):
+1. `logo-dark.svg` / `logo-light.svg` (theme-specific SVG)
+2. `logo-dark.png` / `logo-light.png` (theme-specific PNG)
+3. `logo.svg` (universal SVG)
+4. `logo.png` (universal PNG)
 
 ## Custom Styles (custom.css)
 
@@ -207,7 +225,7 @@ Directory structure:
 my-project/
   ├── docker-compose.yml
   └── custom/
-      ├── logo.svg
+      ├── logo.svg        # or logo-dark.svg + logo-light.svg
       ├── favicon.ico
       └── custom.css
 ```
