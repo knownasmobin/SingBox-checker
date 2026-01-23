@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"xray-checker/logger"
@@ -31,6 +32,8 @@ type ProxyChecker struct {
 	downloadTimeout int
 	downloadMinSize int64
 	checkMethod     string
+	mu              sync.RWMutex
+	generation      uint64
 }
 
 func NewProxyChecker(proxies []*models.ProxyConfig, startPort int, ipCheckURL string, ipCheckTimeout int, genMethodURL string, downloadURL string, downloadTimeout int, downloadMinSize int64, checkMethod string) *ProxyChecker {
@@ -72,6 +75,10 @@ func (pc *ProxyChecker) GetCurrentIP() (string, error) {
 }
 
 func (pc *ProxyChecker) CheckProxy(proxy *models.ProxyConfig) {
+	pc.checkProxyInternal(proxy, 0, false)
+}
+
+func (pc *ProxyChecker) checkProxyInternal(proxy *models.ProxyConfig, expectedGeneration uint64, checkGeneration bool) {
 	if proxy.StableID == "" {
 		proxy.StableID = proxy.GenerateStableID()
 	}
@@ -85,7 +92,18 @@ func (pc *ProxyChecker) CheckProxy(proxy *models.ProxyConfig) {
 		proxy.StableID,
 	)
 
+	isGenerationValid := func() bool {
+		if !checkGeneration {
+			return true
+		}
+		return atomic.LoadUint64(&pc.generation) == expectedGeneration
+	}
+
 	setFailedStatus := func() {
+		if !isGenerationValid() {
+			logger.Debug("%s | Skipping metric update: generation changed", proxy.Name)
+			return
+		}
 		metrics.RecordProxyStatus(
 			proxy.Protocol,
 			fmt.Sprintf("%s:%d", proxy.Server, proxy.Port),
@@ -97,6 +115,9 @@ func (pc *ProxyChecker) CheckProxy(proxy *models.ProxyConfig) {
 	}
 
 	setFailedLatency := func() {
+		if !isGenerationValid() {
+			return
+		}
 		metrics.RecordProxyLatency(
 			proxy.Protocol,
 			fmt.Sprintf("%s:%d", proxy.Server, proxy.Port),
@@ -155,6 +176,10 @@ func (pc *ProxyChecker) CheckProxy(proxy *models.ProxyConfig) {
 		setFailedLatency()
 	} else {
 		logger.Result("%s | Success | %s | Latency: %s", proxy.Name, logMessage, latency)
+		if !isGenerationValid() {
+			logger.Debug("%s | Skipping metric update: generation changed", proxy.Name)
+			return
+		}
 		metrics.RecordProxyStatus(
 			proxy.Protocol,
 			fmt.Sprintf("%s:%d", proxy.Server, proxy.Port),
@@ -311,6 +336,9 @@ func (pc *ProxyChecker) ClearMetrics() {
 }
 
 func (pc *ProxyChecker) UpdateProxies(newProxies []*models.ProxyConfig) {
+	pc.mu.Lock()
+	defer pc.mu.Unlock()
+	atomic.AddUint64(&pc.generation, 1)
 	pc.ClearMetrics()
 	pc.proxies = newProxies
 }
@@ -321,18 +349,25 @@ func (pc *ProxyChecker) CheckAllProxies() {
 		return
 	}
 
+	pc.mu.RLock()
+	proxiesToCheck := make([]*models.ProxyConfig, len(pc.proxies))
+	copy(proxiesToCheck, pc.proxies)
+	currentGeneration := atomic.LoadUint64(&pc.generation)
+	pc.mu.RUnlock()
+
 	var wg sync.WaitGroup
-	for _, proxy := range pc.proxies {
+	for _, proxy := range proxiesToCheck {
 		wg.Add(1)
-		go func(p *models.ProxyConfig) {
+		go func(p *models.ProxyConfig, gen uint64) {
 			defer wg.Done()
-			pc.CheckProxy(p)
-		}(proxy)
+			pc.checkProxyInternal(p, gen, true)
+		}(proxy, currentGeneration)
 	}
 	wg.Wait()
 }
 
 func (pc *ProxyChecker) GetProxyStatus(name string) (bool, time.Duration, error) {
+	pc.mu.RLock()
 	var metricKey string
 	for _, proxy := range pc.proxies {
 		if proxy.Name == name {
@@ -351,6 +386,7 @@ func (pc *ProxyChecker) GetProxyStatus(name string) (bool, time.Duration, error)
 			break
 		}
 	}
+	pc.mu.RUnlock()
 
 	if metricKey == "" {
 		return false, 0, fmt.Errorf("proxy not found")
@@ -370,6 +406,8 @@ func (pc *ProxyChecker) GetProxyStatus(name string) (bool, time.Duration, error)
 }
 
 func (pc *ProxyChecker) GetProxyByStableID(stableID string) (*models.ProxyConfig, bool) {
+	pc.mu.RLock()
+	defer pc.mu.RUnlock()
 	for _, proxy := range pc.proxies {
 		if proxy.StableID == "" {
 			proxy.StableID = proxy.GenerateStableID()
@@ -383,5 +421,9 @@ func (pc *ProxyChecker) GetProxyByStableID(stableID string) (*models.ProxyConfig
 }
 
 func (pc *ProxyChecker) GetProxies() []*models.ProxyConfig {
-	return pc.proxies
+	pc.mu.RLock()
+	defer pc.mu.RUnlock()
+	result := make([]*models.ProxyConfig, len(pc.proxies))
+	copy(result, pc.proxies)
+	return result
 }
