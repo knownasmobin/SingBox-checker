@@ -19,6 +19,7 @@
         <select id="theme">
           <option value="dark">Dark</option>
           <option value="light">Light</option>
+          <option value="transparent">Transparent</option>
         </select>
       </div>
 
@@ -375,7 +376,7 @@
     const copyUrlBtn = document.getElementById('copy-url')!;
     const copyEmbedBtn = document.getElementById('copy-embed')!;
 
-    function generateUrl(forTheme?: string): string {
+    function generateUrl(forTheme?: string, forceTransparent?: boolean): string {
       const base = baseUrl.value.trim().replace(/\/$/, '');
       const id = stableId.value.trim();
 
@@ -384,8 +385,15 @@
       const params = new URLSearchParams();
       params.set('stableId', id);
 
-      const themeValue = forTheme || theme.value;
-      if (themeValue !== 'dark') params.set('theme', themeValue);
+      const isTransparent = forceTransparent || theme.value === 'transparent';
+      const themeValue = forTheme || (isTransparent ? 'dark' : theme.value);
+
+      if (themeValue !== 'dark') {
+        params.set('theme', themeValue);
+      }
+      if (isTransparent) {
+        params.set('transparent', 'true');
+      }
 
       if (variant.value !== 'default') params.set('variant', variant.value);
       if (size.value !== 'md') params.set('size', size.value);
@@ -413,8 +421,9 @@
       previewContainer.classList.add('visible');
       previewNote.classList.add('hidden');
 
-      const urlDark = generateUrl('dark');
-      const urlLight = generateUrl('light');
+      const isTransparent = theme.value === 'transparent';
+      const urlDark = generateUrl('dark', isTransparent);
+      const urlLight = generateUrl('light', isTransparent);
       const mainUrl = generateUrl();
 
       iframeDark.src = urlDark;

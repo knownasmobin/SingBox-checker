@@ -436,6 +436,11 @@
         width: 12px;
         height: 12px;
       }
+
+      /* Transparent background */
+      .badge-transparent {
+        background: transparent;
+      }
     </style>
   </head>
 
@@ -1044,6 +1049,7 @@
           badgeVariant: 'default',
           badgeSize: 'md',
           badgeRounded: 'md',
+          badgeTransparent: false,
 
           get badgeClasses() {
             const classes = [];
@@ -1055,6 +1061,7 @@
             if (this.badgeVariant !== 'pill' && this.badgeVariant !== 'dot') {
               classes.push('badge-rounded-' + this.badgeRounded);
             }
+            if (this.badgeTransparent) classes.push('badge-transparent');
             return classes.join(' ');
           },
 
@@ -1150,6 +1157,11 @@
                 // Show/hide latency
                 if (params.get('showLatency') === 'false') {
                   this.badgeShowLatency = false;
+                }
+
+                // Transparent background
+                if (params.get('transparent') === 'true') {
+                  this.badgeTransparent = true;
                 }
 
                 // Custom width/height
