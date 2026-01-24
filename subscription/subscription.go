@@ -3,6 +3,7 @@ package subscription
 import (
 	"fmt"
 	"net"
+	"sort"
 	"sync"
 	"xray-checker/config"
 	"xray-checker/logger"
@@ -170,14 +171,31 @@ func ResolveDomainsForConfigs(configs []*models.ProxyConfig) ([]*models.ProxyCon
 			continue
 		}
 
-		for i, ip := range ips {
+		type resolvedConfig struct {
+			config   *models.ProxyConfig
+			stableID string
+		}
+		resolved := make([]resolvedConfig, 0, len(ips))
+
+		for _, ip := range ips {
 			clone := *cfg
 			clone.Server = ip.String()
-			clone.StableID = ""
+			clone.StableID = clone.GenerateStableID()
+			resolved = append(resolved, resolvedConfig{
+				config:   &clone,
+				stableID: clone.StableID,
+			})
+		}
+
+		sort.Slice(resolved, func(i, j int) bool {
+			return resolved[i].stableID < resolved[j].stableID
+		})
+
+		for i, item := range resolved {
 			if len(ips) > 1 {
-				clone.Name = fmt.Sprintf("%s #%d", cfg.Name, i+1)
+				item.config.Name = fmt.Sprintf("%s #%d", cfg.Name, i+1)
 			}
-			out = append(out, &clone)
+			out = append(out, item.config)
 		}
 	}
 	return out, nil
