@@ -28,12 +28,13 @@ FROM alpine:3.21
 LABEL org.opencontainers.image.source=https://github.com/knownasmobin/SingBox-checker
 
 RUN apk add --no-cache ca-certificates curl tzdata && \
-    adduser -D -u 1000 appuser && \
-    mkdir -p /app/geo && \
-    chown -R appuser:appuser /app
+    adduser -D -u 1000 appuser
 
 WORKDIR /app
 COPY --from=builder /usr/bin/singbox-checker /usr/bin/singbox-checker
+
+RUN mkdir -p /app/geo && \
+    chown -R appuser:appuser /app
 
 USER appuser
 
