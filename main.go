@@ -9,6 +9,8 @@ import (
 	"xray-checker/logger"
 	"xray-checker/metrics"
 	"xray-checker/models"
+	"xray-checker/runner"
+	"xray-checker/singbox"
 	"xray-checker/subscription"
 	"xray-checker/web"
 	"xray-checker/xray"
@@ -29,7 +31,7 @@ func main() {
 	logLevel := logger.ParseLevel(config.CLIConfig.LogLevel)
 	logger.SetLevel(logLevel)
 
-	logger.Startup("Xray Checker %s", version)
+	logger.Startup("Proxy Checker %s (backend: %s)", version, config.CLIConfig.Backend)
 	if logLevel == logger.LevelNone {
 		logger.Startup("Log level: none (silent mode)")
 	}
@@ -43,7 +45,13 @@ func main() {
 		logger.Fatal("Failed to ensure geo files: %v", err)
 	}
 
-	configFile := "xray_config.json"
+	var configFile string
+	if config.CLIConfig.Backend == "singbox" {
+		configFile = "singbox_config.json"
+	} else {
+		configFile = "xray_config.json"
+	}
+
 	proxyConfigs, err := subscription.InitializeConfiguration(configFile, version)
 	if err != nil {
 		logger.Fatal("Error initializing configuration: %v", err)
@@ -69,14 +77,22 @@ func main() {
 		}
 	}
 
-	xrayRunner := xray.NewRunner(configFile)
-	if err := xrayRunner.Start(); err != nil {
-		logger.Fatal("Error starting Xray: %v", err)
+	var proxyRunner runner.Runner
+	if config.CLIConfig.Backend == "singbox" {
+		proxyRunner = singbox.NewRunner(configFile)
+		if err := proxyRunner.Start(); err != nil {
+			logger.Fatal("Error starting sing-box: %v", err)
+		}
+	} else {
+		proxyRunner = xray.NewRunner(configFile)
+		if err := proxyRunner.Start(); err != nil {
+			logger.Fatal("Error starting Xray: %v", err)
+		}
 	}
 
 	defer func() {
-		if err := xrayRunner.Stop(); err != nil {
-			logger.Error("Error stopping Xray: %v", err)
+		if err := proxyRunner.Stop(); err != nil {
+			logger.Error("Error stopping proxy backend: %v", err)
 		}
 	}()
 
@@ -88,7 +104,7 @@ func main() {
 
 	proxyChecker := checker.NewProxyChecker(
 		*proxyConfigs,
-		config.CLIConfig.Xray.StartPort,
+		config.CLIConfig.GetStartPort(),
 		config.CLIConfig.Proxy.IpCheckUrl,
 		config.CLIConfig.Proxy.Timeout,
 		config.CLIConfig.Proxy.StatusCheckUrl,
@@ -133,9 +149,34 @@ func main() {
 		updateScheduler := gocron.NewScheduler(time.UTC)
 		updateScheduler.Every(config.CLIConfig.Subscription.UpdateInterval).Seconds().WaitForSchedule().Do(func() {
 			logger.Info("Checking subscriptions for updates...")
-			newConfigs, err := subscription.ReadFromMultipleSources(config.CLIConfig.Subscription.URLs)
-			if err != nil {
-				logger.Error("Error fetching subscriptions: %v", err)
+
+			var newConfigs []*models.ProxyConfig
+
+			// Load from subscription URLs
+			if len(config.CLIConfig.Subscription.URLs) > 0 {
+				subConfigs, err := subscription.ReadFromMultipleSources(config.CLIConfig.Subscription.URLs)
+				if err != nil {
+					logger.Error("Error fetching subscriptions: %v", err)
+				} else {
+					newConfigs = append(newConfigs, subConfigs...)
+				}
+			}
+
+			// Load WireGuard configs
+			if len(config.CLIConfig.WireGuard.Configs) > 0 {
+				wgConfigs, err := subscription.ParseWireGuardConfigs(config.CLIConfig.WireGuard.Configs)
+				if err != nil {
+					logger.Error("Error loading WireGuard configs: %v", err)
+				} else {
+					for _, cfg := range wgConfigs {
+						cfg.SubName = "wireguard"
+					}
+					newConfigs = append(newConfigs, wgConfigs...)
+				}
+			}
+
+			if len(newConfigs) == 0 {
+				logger.Error("No proxy configurations loaded during update")
 				return
 			}
 
@@ -148,8 +189,14 @@ func main() {
 				}
 			}
 
-			if !xray.IsConfigsEqual(*proxyConfigs, newConfigs) {
-				if err := updateConfiguration(newConfigs, proxyConfigs, xrayRunner, proxyChecker); err != nil {
+			configsEqual := false
+			if config.CLIConfig.Backend == "singbox" {
+				configsEqual = singbox.IsConfigsEqual(*proxyConfigs, newConfigs)
+			} else {
+				configsEqual = xray.IsConfigsEqual(*proxyConfigs, newConfigs)
+			}
+			if !configsEqual {
+				if err := updateConfiguration(newConfigs, proxyConfigs, proxyRunner, proxyChecker, configFile); err != nil {
 					logger.Error("Error updating configuration: %v", err)
 				}
 			} else {
@@ -167,13 +214,13 @@ func main() {
 	mux.Handle("/static/", web.StaticHandler())
 	mux.Handle("/api/v1/public/proxies", web.APIPublicProxiesHandler(proxyChecker))
 
-	web.RegisterConfigEndpoints(*proxyConfigs, proxyChecker, config.CLIConfig.Xray.StartPort)
+	web.RegisterConfigEndpoints(*proxyConfigs, proxyChecker, config.CLIConfig.GetStartPort())
 
 	protectedHandler := http.NewServeMux()
 	protectedHandler.Handle("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{}))
 	protectedHandler.Handle("/config/", web.ConfigStatusHandler(proxyChecker))
-	protectedHandler.Handle("/api/v1/proxies/", web.APIProxyHandler(proxyChecker, config.CLIConfig.Xray.StartPort))
-	protectedHandler.Handle("/api/v1/proxies", web.APIProxiesHandler(proxyChecker, config.CLIConfig.Xray.StartPort))
+	protectedHandler.Handle("/api/v1/proxies/", web.APIProxyHandler(proxyChecker, config.CLIConfig.GetStartPort()))
+	protectedHandler.Handle("/api/v1/proxies", web.APIProxiesHandler(proxyChecker, config.CLIConfig.GetStartPort()))
 	protectedHandler.Handle("/api/v1/config", web.APIConfigHandler(proxyChecker))
 	protectedHandler.Handle("/api/v1/status", web.APIStatusHandler(proxyChecker))
 	protectedHandler.Handle("/api/v1/system/info", web.APISystemInfoHandler(version, startTime))
@@ -215,28 +262,39 @@ func main() {
 }
 
 func updateConfiguration(newConfigs []*models.ProxyConfig, currentConfigs *[]*models.ProxyConfig,
-	xrayRunner *xray.Runner, proxyChecker *checker.ProxyChecker) error {
+	proxyRunner runner.Runner, proxyChecker *checker.ProxyChecker, configFile string) error {
 
 	logger.Info("Subscription changed, updating configuration...")
 
-	xray.PrepareProxyConfigs(newConfigs)
+	if config.CLIConfig.Backend == "singbox" {
+		singbox.PrepareProxyConfigs(newConfigs)
+		configGenerator := singbox.NewConfigGenerator()
+		if err := configGenerator.GenerateAndSaveConfig(
+			newConfigs,
+			config.CLIConfig.GetStartPort(),
+			configFile,
+			config.CLIConfig.GetLogLevel(),
+		); err != nil {
+			return err
+		}
+	} else {
+		xray.PrepareProxyConfigs(newConfigs)
+		configGenerator := xray.NewConfigGenerator()
+		if err := configGenerator.GenerateAndSaveConfig(
+			newConfigs,
+			config.CLIConfig.GetStartPort(),
+			configFile,
+			config.CLIConfig.GetLogLevel(),
+		); err != nil {
+			return err
+		}
+	}
 
-	configFile := "xray_config.json"
-	configGenerator := xray.NewConfigGenerator()
-	if err := configGenerator.GenerateAndSaveConfig(
-		newConfigs,
-		config.CLIConfig.Xray.StartPort,
-		configFile,
-		config.CLIConfig.Xray.LogLevel,
-	); err != nil {
+	if err := proxyRunner.Stop(); err != nil {
 		return err
 	}
 
-	if err := xrayRunner.Stop(); err != nil {
-		return err
-	}
-
-	if err := xrayRunner.Start(); err != nil {
+	if err := proxyRunner.Start(); err != nil {
 		return err
 	}
 
@@ -244,7 +302,7 @@ func updateConfiguration(newConfigs []*models.ProxyConfig, currentConfigs *[]*mo
 
 	*currentConfigs = newConfigs
 
-	web.RegisterConfigEndpoints(newConfigs, proxyChecker, config.CLIConfig.Xray.StartPort)
+	web.RegisterConfigEndpoints(newConfigs, proxyChecker, config.CLIConfig.GetStartPort())
 
 	logger.Info("Configuration updated: %d proxies", len(newConfigs))
 	return nil

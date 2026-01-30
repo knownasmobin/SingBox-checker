@@ -41,6 +41,17 @@ type ProxyConfig struct {
 	StableID         string
 	RawXhttpSettings string
 	SubName          string
+
+	// WireGuard specific fields
+	WGPrivateKey        string
+	WGPublicKey         string
+	WGPresharedKey      string
+	WGLocalAddress      []string
+	WGDNS               []string
+	WGMTU               int
+	WGPersistentKeepalive int
+	WGAllowedIPs        []string
+	WGReserved          []int
 }
 
 func (pc *ProxyConfig) Validate() error {
@@ -66,6 +77,13 @@ func (pc *ProxyConfig) Validate() error {
 	case "shadowsocks":
 		if pc.Password == "" || pc.Method == "" {
 			return fmt.Errorf("password and method are required for Shadowsocks")
+		}
+	case "wireguard":
+		if pc.WGPrivateKey == "" {
+			return fmt.Errorf("private key is required for WireGuard")
+		}
+		if pc.WGPublicKey == "" {
+			return fmt.Errorf("peer public key is required for WireGuard")
 		}
 	default:
 		return fmt.Errorf("unsupported protocol: %s", pc.Protocol)
@@ -93,6 +111,13 @@ func (pc *ProxyConfig) GenerateStableID() string {
 		}
 		if pc.Protocol == "shadowsocks" && pc.Method != "" {
 			idComponents = append(idComponents, pc.Method)
+		}
+	case "wireguard":
+		if pc.WGPrivateKey != "" {
+			idComponents = append(idComponents, pc.WGPrivateKey)
+		}
+		if pc.WGPublicKey != "" {
+			idComponents = append(idComponents, pc.WGPublicKey)
 		}
 	}
 
@@ -188,6 +213,15 @@ func (pc *ProxyConfig) DebugString() string {
 	case "shadowsocks":
 		sb.WriteString(fmt.Sprintf("      Method:   %s\n", pc.Method))
 		sb.WriteString(fmt.Sprintf("      Password: %s\n", maskSecret(pc.Password)))
+	case "wireguard":
+		sb.WriteString(fmt.Sprintf("      PrivateKey: %s\n", maskSecret(pc.WGPrivateKey)))
+		sb.WriteString(fmt.Sprintf("      PublicKey:  %s\n", maskSecret(pc.WGPublicKey)))
+		if len(pc.WGLocalAddress) > 0 {
+			sb.WriteString(fmt.Sprintf("      Address:    %s\n", strings.Join(pc.WGLocalAddress, ", ")))
+		}
+		if pc.WGMTU > 0 {
+			sb.WriteString(fmt.Sprintf("      MTU:        %d\n", pc.WGMTU))
+		}
 	}
 
 	transport := pc.GetTransportType()

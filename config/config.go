@@ -12,8 +12,8 @@ var Version string
 func Parse(version string) {
 	Version = version
 	ctx := kong.Parse(&CLIConfig,
-		kong.Name("xray-checker"),
-		kong.Description("Xray Checker: A Prometheus exporter for monitoring Xray proxies"),
+		kong.Name("proxy-checker"),
+		kong.Description("Proxy Checker: A Prometheus exporter for monitoring proxies (supports Xray and sing-box backends)"),
 		kong.Vars{
 			"version": version,
 		},
@@ -23,9 +23,13 @@ func Parse(version string) {
 
 type CLI struct {
 	Subscription struct {
-		URLs           []string `name:"subscription-url" help:"URL(s) of the subscription (can be specified multiple times)" required:"true" env:"SUBSCRIPTION_URL"`
+		URLs           []string `name:"subscription-url" help:"URL(s) of the subscription (can be specified multiple times)" env:"SUBSCRIPTION_URL"`
 		Update         bool     `name:"subscription-update" help:"Whether to recheck the subscription" default:"true" env:"SUBSCRIPTION_UPDATE"`
 		UpdateInterval int      `name:"subscription-update-interval" help:"Interval for subscription updates in seconds" default:"300" env:"SUBSCRIPTION_UPDATE_INTERVAL"`
+	} `embed:"" prefix:""`
+
+	WireGuard struct {
+		Configs []string `name:"wireguard-config" help:"Path(s) to WireGuard config files or directories (can be specified multiple times)" env:"WIREGUARD_CONFIG"`
 	} `embed:"" prefix:""`
 
 	Proxy struct {
@@ -41,9 +45,16 @@ type CLI struct {
 		ResolveDomains  bool   `name:"proxy-resolve-domains" help:"Resolve proxy server domains into IPs and expand configs" env:"PROXY_RESOLVE_DOMAINS"`
 	} `embed:"" prefix:""`
 
+	Backend string `name:"backend" help:"Proxy backend to use (xray|singbox)" default:"xray" env:"BACKEND"`
+
 	Xray struct {
 		StartPort int    `name:"xray-start-port" help:"Start port for proxy configuration" default:"10000" env:"XRAY_START_PORT"`
 		LogLevel  string `name:"xray-log-level" help:"Xray log level (debug|info|warning|error|none)" default:"none" env:"XRAY_LOG_LEVEL"`
+	} `embed:"" prefix:""`
+
+	SingBox struct {
+		StartPort int    `name:"singbox-start-port" help:"Start port for sing-box proxy configuration" default:"10000" env:"SINGBOX_START_PORT"`
+		LogLevel  string `name:"singbox-log-level" help:"sing-box log level (debug|info|warn|error|silent)" default:"warn" env:"SINGBOX_LOG_LEVEL"`
 	} `embed:"" prefix:""`
 
 	Metrics struct {
@@ -69,10 +80,30 @@ type CLI struct {
 }
 
 func (c *CLI) Validate() error {
+	if len(c.Subscription.URLs) == 0 && len(c.WireGuard.Configs) == 0 {
+		return fmt.Errorf("at least one --subscription-url or --wireguard-config is required")
+	}
 	if c.Web.Public && !c.Metrics.Protected {
 		return fmt.Errorf("--web-public requires --metrics-protected to be enabled")
 	}
+	if c.Backend != "xray" && c.Backend != "singbox" {
+		return fmt.Errorf("--backend must be either 'xray' or 'singbox'")
+	}
 	return nil
+}
+
+func (c *CLI) GetStartPort() int {
+	if c.Backend == "singbox" {
+		return c.SingBox.StartPort
+	}
+	return c.Xray.StartPort
+}
+
+func (c *CLI) GetLogLevel() string {
+	if c.Backend == "singbox" {
+		return c.SingBox.LogLevel
+	}
+	return c.Xray.LogLevel
 }
 
 type VersionFlag string
@@ -80,7 +111,7 @@ type VersionFlag string
 func (v VersionFlag) Decode(ctx *kong.DecodeContext) error { return nil }
 func (v VersionFlag) IsBool() bool                         { return true }
 func (v VersionFlag) BeforeApply(app *kong.Kong, vars kong.Vars) error {
-	fmt.Println("Xray Checker: A Prometheus exporter for monitoring Xray proxies")
+	fmt.Println("Proxy Checker: A Prometheus exporter for monitoring proxies (Xray/sing-box)")
 	fmt.Printf("Version:\t %s\n", vars["version"])
 	fmt.Printf("GitHub: https://github.com/kutovoys/xray-checker\n")
 	app.Exit(0)

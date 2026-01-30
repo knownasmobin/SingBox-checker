@@ -1,4 +1,4 @@
-# Xray Checker
+# Proxy Checker
 
 <div align="center">
 
@@ -20,7 +20,7 @@
 
 </div>
 
-Xray Checker is a tool for monitoring proxy server availability with support for VLESS, VMess, Trojan, and Shadowsocks protocols. It automatically tests connections through Xray Core and provides metrics for Prometheus, as well as API endpoints for integration with monitoring systems.
+Proxy Checker is a tool for monitoring proxy server availability with support for VLESS, VMess, Trojan, Shadowsocks, and WireGuard protocols. It supports both **Xray Core** and **sing-box** backends, automatically tests connections and provides metrics for Prometheus, as well as API endpoints for integration with monitoring systems.
 
 <div align="center">
   <img src=".github/screen/xray-checker.webp" alt="Dashboard Screenshot">
@@ -31,7 +31,8 @@ Xray Checker is a tool for monitoring proxy server availability with support for
 
 ## 🚀 Key Features
 
-- 🔍 Monitoring of Xray proxy servers (VLESS, VMess, Trojan, Shadowsocks)
+- 🔍 Monitoring of proxy servers (VLESS, VMess, Trojan, Shadowsocks, WireGuard)
+- ⚡ Dual backend support: **Xray Core** and **sing-box**
 - 🔄 Automatic configuration updates from subscription (multiple subscriptions supported)
 - 📊 Prometheus metrics export with Pushgateway support
 - 🌐 REST API with OpenAPI/Swagger documentation
@@ -45,6 +46,7 @@ Xray Checker is a tool for monitoring proxy server availability with support for
 - 📝 Flexible configuration loading:
   - URL subscriptions (base64, JSON)
   - Share links (vless://, vmess://, trojan://, ss://)
+  - WireGuard config files (.conf)
   - JSON configuration files
   - Folders with configurations
 
@@ -55,8 +57,23 @@ Full list of features available in the [documentation](https://xray-checker.kuto
 ### Docker
 
 ```bash
+# Using Xray backend (default)
 docker run -d \
   -e SUBSCRIPTION_URL=https://your-subscription-url/sub \
+  -p 2112:2112 \
+  kutovoys/xray-checker
+
+# Using sing-box backend
+docker run -d \
+  -e BACKEND=singbox \
+  -e SUBSCRIPTION_URL=https://your-subscription-url/sub \
+  -p 2112:2112 \
+  kutovoys/xray-checker
+
+# With WireGuard configs
+docker run -d \
+  -e WIREGUARD_CONFIG=/app/wireguard \
+  -v ./wireguard:/app/wireguard:ro \
   -p 2112:2112 \
   kutovoys/xray-checker
 ```
@@ -65,13 +82,30 @@ docker run -d \
 
 ```yaml
 services:
-  xray-checker:
+  proxy-checker:
     image: kutovoys/xray-checker
     environment:
+      - BACKEND=xray                    # or singbox
       - SUBSCRIPTION_URL=https://your-subscription-url/sub
+      - WIREGUARD_CONFIG=/app/wireguard # optional
+    volumes:
+      - ./wireguard:/app/wireguard:ro   # optional: WireGuard configs
     ports:
       - "2112:2112"
 ```
+
+### Configuration Options
+
+| Environment Variable | Description | Default |
+|---------------------|-------------|---------|
+| `BACKEND` | Proxy backend: `xray` or `singbox` | `xray` |
+| `SUBSCRIPTION_URL` | Subscription URL(s), comma-separated | - |
+| `WIREGUARD_CONFIG` | WireGuard config path(s), comma-separated | - |
+| `PROXY_CHECK_INTERVAL` | Check interval in seconds | `300` |
+| `PROXY_CHECK_METHOD` | Check method: `ip`, `status`, `download` | `ip` |
+| `METRICS_PROTECTED` | Enable basic auth | `false` |
+
+See [.env.example](.env.example) for all configuration options.
 
 Detailed installation and configuration documentation is available at [xray-checker.kutovoy.dev](https://xray-checker.kutovoy.dev/intro/quick-start)
 

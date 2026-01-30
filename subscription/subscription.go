@@ -8,6 +8,7 @@ import (
 	"xray-checker/config"
 	"xray-checker/logger"
 	"xray-checker/models"
+	"xray-checker/singbox"
 	"xray-checker/xray"
 )
 
@@ -36,30 +37,68 @@ type subscriptionResult struct {
 }
 
 func InitializeConfiguration(configFile string, version string) (*[]*models.ProxyConfig, error) {
-	configs, err := ReadFromMultipleSources(config.CLIConfig.Subscription.URLs)
-	if err != nil {
-		return nil, err
+	var allConfigs []*models.ProxyConfig
+
+	// Load from subscription URLs if provided
+	if len(config.CLIConfig.Subscription.URLs) > 0 {
+		configs, err := ReadFromMultipleSources(config.CLIConfig.Subscription.URLs)
+		if err != nil {
+			logger.Warn("Failed to load subscription configs: %v", err)
+		} else {
+			allConfigs = append(allConfigs, configs...)
+		}
 	}
 
-	proxyConfigs := configs
+	// Load WireGuard configs if provided
+	if len(config.CLIConfig.WireGuard.Configs) > 0 {
+		wgConfigs, err := ParseWireGuardConfigs(config.CLIConfig.WireGuard.Configs)
+		if err != nil {
+			logger.Warn("Failed to load WireGuard configs: %v", err)
+		} else {
+			for _, cfg := range wgConfigs {
+				cfg.SubName = "wireguard"
+			}
+			allConfigs = append(allConfigs, wgConfigs...)
+			logger.Info("Loaded %d WireGuard configurations", len(wgConfigs))
+		}
+	}
+
+	if len(allConfigs) == 0 {
+		return nil, fmt.Errorf("no proxy configurations loaded")
+	}
+
+	proxyConfigs := allConfigs
 
 	if config.CLIConfig.Proxy.ResolveDomains {
-		proxyConfigs, err = ResolveDomainsForConfigs(configs)
+		var err error
+		proxyConfigs, err = ResolveDomainsForConfigs(allConfigs)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	xray.PrepareProxyConfigs(proxyConfigs)
-
-	configGenerator := xray.NewConfigGenerator()
-	if err := configGenerator.GenerateAndSaveConfig(
-		proxyConfigs,
-		config.CLIConfig.Xray.StartPort,
-		configFile,
-		config.CLIConfig.Xray.LogLevel,
-	); err != nil {
-		return nil, err
+	if config.CLIConfig.Backend == "singbox" {
+		singbox.PrepareProxyConfigs(proxyConfigs)
+		configGenerator := singbox.NewConfigGenerator()
+		if err := configGenerator.GenerateAndSaveConfig(
+			proxyConfigs,
+			config.CLIConfig.GetStartPort(),
+			configFile,
+			config.CLIConfig.GetLogLevel(),
+		); err != nil {
+			return nil, err
+		}
+	} else {
+		xray.PrepareProxyConfigs(proxyConfigs)
+		configGenerator := xray.NewConfigGenerator()
+		if err := configGenerator.GenerateAndSaveConfig(
+			proxyConfigs,
+			config.CLIConfig.GetStartPort(),
+			configFile,
+			config.CLIConfig.GetLogLevel(),
+		); err != nil {
+			return nil, err
+		}
 	}
 
 	return &proxyConfigs, nil
@@ -67,7 +106,7 @@ func InitializeConfiguration(configFile string, version string) (*[]*models.Prox
 
 func ReadFromMultipleSources(urls []string) ([]*models.ProxyConfig, error) {
 	if len(urls) == 0 {
-		return nil, fmt.Errorf("no subscription URLs provided")
+		return nil, nil
 	}
 
 	if len(urls) == 1 {

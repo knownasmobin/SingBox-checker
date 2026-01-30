@@ -27,6 +27,7 @@ type EndpointInfo struct {
 	Status     bool
 	Latency    time.Duration
 	StableID   string
+	Protocol   string
 }
 
 func IndexHandler(version string, proxyChecker *checker.ProxyChecker) http.HandlerFunc {
@@ -59,6 +60,7 @@ func IndexHandler(version string, proxyChecker *checker.ProxyChecker) http.Handl
 					Status:   ep.Status,
 					Latency:  ep.Latency,
 					StableID: ep.StableID,
+					Protocol: ep.Protocol,
 				}
 			}
 		}
@@ -170,6 +172,7 @@ func RegisterConfigEndpoints(proxies []*models.ProxyConfig, proxyChecker *checke
 			Status:     status,
 			Latency:    latency,
 			StableID:   proxy.StableID,
+			Protocol:   proxy.Protocol,
 		})
 	}
 

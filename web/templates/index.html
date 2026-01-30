@@ -5,26 +5,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
-    <meta name="color-scheme" content="dark only" />
+    <meta name="color-scheme" content="dark light" />
     <title>
-      {{ if and .IsPublic .SubscriptionName }}{{ .SubscriptionName }}{{ else
-      }}Xray Checker{{ end }}
+      {{ if and .IsPublic .SubscriptionName }}{{ .SubscriptionName }}{{ else }}Proxy Checker{{ end }}
     </title>
     <link rel="stylesheet" href="./static/tailwind.css" />
-    <link
-      rel="icon"
-      type="image/png"
-      href="./static/favicon-96x96.png"
-      sizes="96x96"
-    />
+    <link rel="icon" type="image/png" href="./static/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="./static/favicon.svg" />
     <link rel="shortcut icon" href="./static/favicon.ico" />
-    <link
-      rel="apple-touch-icon"
-      sizes="180x180"
-      href="./static/apple-touch-icon.png"
-    />
-    <meta name="apple-mobile-web-app-title" content="Xray Checker" />
+    <link rel="apple-touch-icon" sizes="180x180" href="./static/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Proxy Checker" />
     <link rel="manifest" href="./static/site.webmanifest" />
     <script defer src="./static/alpine.min.js"></script>
     <script type="module">
@@ -35,300 +25,305 @@
       @font-face {
         font-family: "Inter";
         font-style: normal;
-        font-weight: 400 600;
+        font-weight: 400 700;
         font-display: swap;
         src: url("./static/inter-regular.woff2") format("woff2");
       }
-      [x-cloak] {
-        display: none !important;
-      }
-      * {
-        font-family: "Inter", "Twemoji Country Flags", system-ui, sans-serif;
-      }
+      [x-cloak] { display: none !important; }
+      * { font-family: "Inter", "Twemoji Country Flags", system-ui, sans-serif; }
 
-      /* Dark theme */
+      /* Dark theme - Modern dark with subtle blue tint */
       :root {
-        --bg-primary: #0f1114;
-        --bg-secondary: #1a1d21;
-        --bg-tertiary: #23262b;
-        --border: #2d3138;
-        --border-hover: #3e434b;
-        --text-primary: #cdcdcd;
-        --text-secondary: #9ca3af;
-        --text-muted: #5c6370;
-        --hover-bg: rgba(255, 255, 255, 0.08);
-        --segment-empty: #3e434b;
-        --accent: #294bff;
-        --color-green: #3aff82;
-        --color-red: #ff3232;
-        --color-yellow: #ffae00;
-        --filter-online-bg: rgba(58, 255, 130, 0.15);
-        --filter-offline-bg: rgba(255, 50, 50, 0.15);
-        --btn-active-bg: rgba(58, 255, 130, 0.1);
-        --btn-active-border: rgba(58, 255, 130, 0.3);
+        --bg-primary: #0a0a0f;
+        --bg-secondary: #12121a;
+        --bg-card: rgba(20, 20, 30, 0.8);
+        --bg-card-hover: rgba(30, 30, 45, 0.9);
+        --bg-glass: rgba(255, 255, 255, 0.03);
+        --bg-input: rgba(255, 255, 255, 0.05);
+        --border: rgba(255, 255, 255, 0.08);
+        --border-hover: rgba(255, 255, 255, 0.15);
+        --border-accent: rgba(99, 102, 241, 0.5);
+        --text-primary: #f0f0f5;
+        --text-secondary: #a0a0b0;
+        --text-muted: #606070;
+        --accent: #6366f1;
+        --accent-light: #818cf8;
+        --color-green: #22c55e;
+        --color-green-glow: rgba(34, 197, 94, 0.4);
+        --color-red: #ef4444;
+        --color-red-glow: rgba(239, 68, 68, 0.4);
+        --color-yellow: #f59e0b;
+        --color-blue: #3b82f6;
+        --gradient-accent: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        --gradient-green: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        --gradient-red: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        --shadow-card: 0 4px 24px -4px rgba(0, 0, 0, 0.5);
+        --shadow-glow: 0 0 40px -10px;
       }
 
-      /* Light theme */
+      /* Light theme - Clean and modern */
       .light {
-        --bg-primary: #f5f8fa;
+        --bg-primary: #f8fafc;
         --bg-secondary: #ffffff;
-        --bg-tertiary: #edf1f7;
-        --border: #d0d9e8;
-        --border-hover: #b8c4d6;
-        --text-primary: #0a0a0a;
-        --text-secondary: #4b5563;
-        --text-muted: #8c95a4;
-        --hover-bg: rgba(0, 0, 0, 0.05);
-        --segment-empty: #c4cdd9;
-        --accent: #294bff;
-        --color-green: #00a63d;
-        --color-red: #ff0000;
-        --color-yellow: #ea8900;
-        --filter-online-bg: rgba(0, 166, 61, 0.15);
-        --filter-offline-bg: rgba(255, 0, 0, 0.15);
-        --btn-active-bg: rgba(0, 166, 61, 0.1);
-        --btn-active-border: rgba(0, 166, 61, 0.3);
+        --bg-card: rgba(255, 255, 255, 0.9);
+        --bg-card-hover: rgba(255, 255, 255, 1);
+        --bg-glass: rgba(255, 255, 255, 0.7);
+        --bg-input: rgba(0, 0, 0, 0.03);
+        --border: rgba(0, 0, 0, 0.08);
+        --border-hover: rgba(0, 0, 0, 0.15);
+        --border-accent: rgba(99, 102, 241, 0.3);
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+        --text-muted: #94a3b8;
+        --accent: #6366f1;
+        --accent-light: #818cf8;
+        --color-green: #16a34a;
+        --color-green-glow: rgba(22, 163, 74, 0.2);
+        --color-red: #dc2626;
+        --color-red-glow: rgba(220, 38, 38, 0.2);
+        --color-yellow: #d97706;
+        --color-blue: #2563eb;
+        --gradient-accent: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        --gradient-green: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        --gradient-red: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        --shadow-card: 0 4px 24px -4px rgba(0, 0, 0, 0.1);
+        --shadow-glow: 0 0 40px -10px;
       }
 
       body {
         background: var(--bg-primary);
         color: var(--text-secondary);
+        min-height: 100vh;
       }
 
-      .card {
-        background: var(--bg-secondary);
-        border: 1px solid var(--border);
+      /* Background gradient effect */
+      .bg-gradient {
+        position: fixed;
+        inset: 0;
+        background:
+          radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.15), transparent),
+          radial-gradient(ellipse 60% 40% at 100% 100%, rgba(139, 92, 246, 0.1), transparent);
+        pointer-events: none;
+        z-index: 0;
       }
-      .light .card {
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      .light .bg-gradient {
+        background:
+          radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.08), transparent),
+          radial-gradient(ellipse 60% 40% at 100% 100%, rgba(139, 92, 246, 0.05), transparent);
+      }
+
+      /* Glass card effect */
+      .card {
+        background: var(--bg-card);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-card);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
       .card:hover {
         border-color: var(--border-hover);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-card), var(--shadow-glow) var(--accent);
       }
 
       .card-flat {
-        background: var(--bg-tertiary);
+        background: var(--bg-glass);
         border: 1px solid var(--border);
       }
 
-      .text-primary {
-        color: var(--text-primary);
+      /* Stats cards with gradient accents */
+      .stat-card {
+        position: relative;
+        overflow: hidden;
       }
-      .text-secondary {
-        color: var(--text-secondary);
+      .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--stat-gradient, var(--gradient-accent));
+        opacity: 0.8;
       }
-      .text-muted {
-        color: var(--text-muted);
-      }
-      .border-default {
-        border-color: var(--border);
-      }
-      .bg-tertiary {
-        background: var(--bg-tertiary);
-      }
+      .stat-card.stat-total::before { --stat-gradient: var(--gradient-accent); }
+      .stat-card.stat-online::before { --stat-gradient: var(--gradient-green); }
+      .stat-card.stat-offline::before { --stat-gradient: var(--gradient-red); }
+      .stat-card.stat-latency::before { --stat-gradient: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%); }
 
+      /* Button styles */
       .btn {
-        background: var(--bg-tertiary);
+        background: var(--bg-glass);
         border: 1px solid var(--border);
         color: var(--text-secondary);
-        transition: all 0.15s ease;
+        transition: all 0.2s ease;
       }
       .btn:hover {
+        background: var(--bg-input);
         border-color: var(--border-hover);
-        color: var(--text-primary);
-      }
-
-      .btn-icon:hover {
-        background: var(--hover-bg);
-        color: var(--text-primary);
-      }
-
-      input,
-      select {
-        background: var(--bg-tertiary);
-        border: 1px solid var(--border);
-        color: var(--text-primary);
-      }
-      input:focus,
-      select:focus {
-        outline: none;
-        border-color: var(--border-hover);
-      }
-      input::placeholder {
-        color: var(--text-muted);
-      }
-      select {
-        padding-right: 2rem;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23737373'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 0.5rem center;
-        background-size: 1rem;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        appearance: none;
-      }
-
-      /* Status colors */
-      .status-online {
-        background: var(--color-green);
-      }
-      .status-offline {
-        background: var(--color-red);
-      }
-      .latency-good {
-        color: var(--color-green);
-      }
-      .latency-medium {
-        color: var(--color-yellow);
-      }
-      .latency-bad {
-        color: var(--color-red);
-      }
-      .bar-good {
-        background: var(--color-green);
-      }
-      .bar-medium {
-        background: var(--color-yellow);
-      }
-      .bar-bad {
-        background: var(--color-red);
-      }
-      .text-online {
-        color: var(--color-green);
-      }
-      .text-offline {
-        color: var(--color-red);
-      }
-      .filter-online {
-        background: var(--filter-online-bg);
-        color: var(--color-green);
-      }
-      .filter-offline {
-        background: var(--filter-offline-bg);
-        color: var(--color-red);
-      }
-      .filter-all {
-        background: var(--hover-bg);
         color: var(--text-primary);
       }
       .btn-active {
-        background: var(--btn-active-bg);
-        border-color: var(--btn-active-border);
-        color: var(--color-green);
-      }
-      .link-hover:hover {
-        color: var(--color-green);
+        background: rgba(99, 102, 241, 0.15);
+        border-color: var(--border-accent);
+        color: var(--accent-light);
       }
 
-      /* Pulse animation for online status */
-      .pulse::after {
-        content: "";
+      .btn-primary {
+        background: var(--gradient-accent);
+        border: none;
+        color: white;
+      }
+      .btn-primary:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+      }
+
+      /* Input styles */
+      input, select {
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        color: var(--text-primary);
+        transition: all 0.2s ease;
+      }
+      input:focus, select:focus {
+        outline: none;
+        border-color: var(--border-accent);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+      }
+      input::placeholder { color: var(--text-muted); }
+
+      /* Status indicators */
+      .status-dot {
+        position: relative;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+      .status-online {
+        background: var(--color-green);
+        box-shadow: 0 0 12px var(--color-green-glow);
+      }
+      .status-offline {
+        background: var(--color-red);
+        box-shadow: 0 0 12px var(--color-red-glow);
+      }
+      .status-online::after {
+        content: '';
         position: absolute;
-        inset: 0;
+        inset: -3px;
         border-radius: 50%;
         background: var(--color-green);
-        animation: pulse 2s ease-out infinite;
+        animation: pulse-ring 2s ease-out infinite;
       }
-      @keyframes pulse {
-        0% {
-          transform: scale(1);
-          opacity: 0.4;
-        }
-        100% {
-          transform: scale(3);
-          opacity: 0;
-        }
+      @keyframes pulse-ring {
+        0% { transform: scale(1); opacity: 0.4; }
+        100% { transform: scale(2); opacity: 0; }
+      }
+
+      /* Latency colors */
+      .latency-good { color: var(--color-green); }
+      .latency-medium { color: var(--color-yellow); }
+      .latency-bad { color: var(--color-red); }
+
+      /* Latency bar */
+      .latency-bar {
+        display: flex;
+        gap: 3px;
+        align-items: flex-end;
+      }
+      .latency-bar-segment {
+        width: 4px;
+        border-radius: 2px;
+        background: var(--border);
+        transition: all 0.3s ease;
+      }
+      .latency-bar-segment.active { background: var(--bar-color, var(--color-green)); }
+      .latency-bar-segment:nth-child(1) { height: 6px; }
+      .latency-bar-segment:nth-child(2) { height: 9px; }
+      .latency-bar-segment:nth-child(3) { height: 12px; }
+      .latency-bar-segment:nth-child(4) { height: 15px; }
+      .latency-bar-segment:nth-child(5) { height: 18px; }
+
+      /* Protocol icons */
+      .protocol-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 600;
+        color: white;
+        flex-shrink: 0;
+      }
+      .protocol-vless { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+      .protocol-vmess { background: linear-gradient(135deg, #3b82f6, #06b6d4); }
+      .protocol-trojan { background: linear-gradient(135deg, #f59e0b, #f97316); }
+      .protocol-shadowsocks { background: linear-gradient(135deg, #22c55e, #10b981); }
+      .protocol-ss { background: linear-gradient(135deg, #22c55e, #10b981); }
+      .protocol-wireguard { background: linear-gradient(135deg, #ef4444, #ec4899); }
+      .protocol-wg { background: linear-gradient(135deg, #ef4444, #ec4899); }
+
+      /* Proxy card animations */
+      .proxy-card {
+        animation: card-appear 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+      }
+      @keyframes card-appear {
+        from { opacity: 0; transform: translateY(20px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+      .proxy-card:nth-child(1) { animation-delay: 0ms; }
+      .proxy-card:nth-child(2) { animation-delay: 50ms; }
+      .proxy-card:nth-child(3) { animation-delay: 100ms; }
+      .proxy-card:nth-child(4) { animation-delay: 150ms; }
+      .proxy-card:nth-child(5) { animation-delay: 200ms; }
+      .proxy-card:nth-child(6) { animation-delay: 250ms; }
+      .proxy-card:nth-child(n+7) { animation-delay: 300ms; }
+
+      /* Filter buttons */
+      .filter-btn {
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        color: var(--text-muted);
+      }
+      .filter-btn:hover { color: var(--text-secondary); }
+      .filter-btn.active-all {
+        background: var(--bg-input);
+        color: var(--text-primary);
+      }
+      .filter-btn.active-online {
+        background: rgba(34, 197, 94, 0.15);
+        color: var(--color-green);
+      }
+      .filter-btn.active-offline {
+        background: rgba(239, 68, 68, 0.15);
+        color: var(--color-red);
       }
 
       /* Scrollbar */
-      ::-webkit-scrollbar {
-        width: 6px;
-      }
-      ::-webkit-scrollbar-track {
-        background: transparent;
-      }
+      ::-webkit-scrollbar { width: 8px; }
+      ::-webkit-scrollbar-track { background: transparent; }
       ::-webkit-scrollbar-thumb {
         background: var(--border);
-        border-radius: 3px;
+        border-radius: 4px;
       }
+      ::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
 
-      /* Toast */
+      /* Toast notifications */
       .toast {
-        background: var(--bg-secondary);
+        background: var(--bg-card);
+        backdrop-filter: blur(20px);
         border: 1px solid var(--border);
+        box-shadow: var(--shadow-card);
       }
 
-      /* Card animations - only on initial load */
-      .proxy-card.animate {
-        animation: cardAppear 0.3s ease-out both;
-      }
-      @keyframes cardAppear {
-        from {
-          opacity: 0;
-          transform: translateY(8px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      /* Staggered animation delays */
-      .proxy-card.animate:nth-child(1) {
-        animation-delay: 0ms;
-      }
-      .proxy-card.animate:nth-child(2) {
-        animation-delay: 20ms;
-      }
-      .proxy-card.animate:nth-child(3) {
-        animation-delay: 40ms;
-      }
-      .proxy-card.animate:nth-child(4) {
-        animation-delay: 60ms;
-      }
-      .proxy-card.animate:nth-child(5) {
-        animation-delay: 80ms;
-      }
-      .proxy-card.animate:nth-child(6) {
-        animation-delay: 100ms;
-      }
-      .proxy-card.animate:nth-child(7) {
-        animation-delay: 120ms;
-      }
-      .proxy-card.animate:nth-child(8) {
-        animation-delay: 140ms;
-      }
-      .proxy-card.animate:nth-child(9) {
-        animation-delay: 160ms;
-      }
-      .proxy-card.animate:nth-child(n + 10) {
-        animation-delay: 180ms;
-      }
-
-      /* Latency segments */
-      .latency-segment {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: var(--segment-empty);
-        transition: background 0.2s ease;
-      }
-      .segment-good {
-        background: var(--color-green);
-      }
-      .segment-medium {
-        background: var(--color-yellow);
-      }
-      .segment-bad {
-        background: var(--color-red);
-      }
-
-      /* Transparent background */
-      .no-bg {
-        background: transparent !important;
-      }
-
-      /* Badge mode */
+      /* Badge mode styles */
       .badge-body {
         min-height: auto;
         background: transparent;
@@ -336,601 +331,280 @@
         align-items: center;
         justify-content: center;
       }
-      .badge-container {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-      }
+      .badge-container { display: inline-flex; align-items: center; justify-content: center; }
       .badge-card {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        padding: 6px 12px;
-        background: var(--bg-secondary);
+        padding: 8px 14px;
+        background: var(--bg-card);
+        backdrop-filter: blur(20px);
         border: 1px solid var(--border);
+        border-radius: 10px;
         font-size: 13px;
         white-space: nowrap;
-        box-sizing: border-box;
       }
-      .badge-status {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        flex-shrink: 0;
-        position: relative;
-      }
-      .badge-name {
-        color: var(--text-primary);
-        font-weight: 500;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .badge-latency {
-        font-size: 12px;
-        font-variant-numeric: tabular-nums;
-        flex-shrink: 0;
-      }
+      .badge-status { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+      .badge-name { color: var(--text-primary); font-weight: 500; }
+      .badge-latency { font-size: 12px; font-variant-numeric: tabular-nums; }
+      .badge-style-flat { background: transparent; border: none; }
+      .badge-style-pill { border-radius: 9999px; }
+      .badge-rounded-none { border-radius: 0; }
+      .badge-rounded-sm { border-radius: 4px; }
+      .badge-rounded-md { border-radius: 8px; }
+      .badge-rounded-lg { border-radius: 12px; }
+      .badge-rounded-full { border-radius: 9999px; }
+      .badge-size-sm { font-size: 11px; padding: 4px 10px; gap: 6px; }
+      .badge-size-sm .badge-status { width: 6px; height: 6px; }
+      .badge-size-lg { font-size: 15px; padding: 10px 18px; gap: 10px; }
+      .badge-size-lg .badge-status { width: 10px; height: 10px; }
+      .badge-dot-only { padding: 0; background: transparent; border: none; }
+      .badge-dot-only .badge-status { width: 14px; height: 14px; }
+      .badge-transparent { background: transparent; }
+      .no-bg { background: transparent !important; }
 
-      /* Badge styles */
-      .badge-style-flat {
-        background: transparent;
-        border: none;
-        padding: 4px;
-      }
-      .badge-style-pill {
-        border-radius: 9999px;
-        padding: 4px 12px;
-      }
-
-      /* Badge rounded variants */
-      .badge-rounded-none {
-        border-radius: 0;
-      }
-      .badge-rounded-sm {
-        border-radius: 4px;
-      }
-      .badge-rounded-md {
-        border-radius: 8px;
-      }
-      .badge-rounded-lg {
-        border-radius: 12px;
-      }
-      .badge-rounded-full {
-        border-radius: 9999px;
-      }
-
-      /* Badge sizes */
-      .badge-size-sm {
-        font-size: 11px;
-        padding: 4px 8px;
-        gap: 6px;
-      }
-      .badge-size-sm .badge-status {
-        width: 6px;
-        height: 6px;
-      }
-      .badge-size-sm .badge-latency {
-        font-size: 10px;
-      }
-
-      .badge-size-lg {
-        font-size: 15px;
-        padding: 8px 16px;
-        gap: 10px;
-      }
-      .badge-size-lg .badge-status {
-        width: 10px;
-        height: 10px;
-      }
-      .badge-size-lg .badge-latency {
-        font-size: 14px;
-      }
-
-      /* Dot only style */
-      .badge-dot-only {
-        padding: 0;
-        background: transparent;
-        border: none;
-      }
-      .badge-dot-only .badge-status {
-        width: 12px;
-        height: 12px;
-      }
-
-      /* Transparent background */
-      .badge-transparent {
-        background: transparent;
+      /* Responsive */
+      @media (max-width: 640px) {
+        .hide-mobile { display: none !important; }
       }
     </style>
   </head>
 
-  <body
-    class="min-h-screen antialiased"
-    :class="[badgeMode && 'badge-body', hideBackground && 'no-bg']"
-  >
+  <body class="min-h-screen antialiased" :class="[badgeMode && 'badge-body', hideBackground && 'no-bg']">
+    <!-- Background gradient -->
+    <div x-show="!badgeMode && !hideBackground" class="bg-gradient"></div>
+
     <!-- Badge Mode -->
     <template x-if="badgeMode && badgeProxy">
       <div class="badge-container" :style="badgeContainerStyle">
         <div class="badge-card" :class="badgeClasses" :style="badgeStyle">
-          <div
-            class="badge-status"
-            :class="badgeProxy.status ? 'status-online pulse' : 'status-offline'"
-          ></div>
-          <span
-            x-show="badgeShowName"
-            class="badge-name"
-            x-text="badgeProxy.name"
-          ></span>
-          <span
-            x-show="badgeShowLatency"
-            class="badge-latency"
+          <div class="badge-status" :class="badgeProxy.status ? 'status-online' : 'status-offline'"></div>
+          <span x-show="badgeShowName" class="badge-name" x-text="badgeProxy.name"></span>
+          <span x-show="badgeShowLatency" class="badge-latency"
             :class="badgeProxy.latencyMs === 0 ? 'text-muted' : badgeProxy.latencyMs < 500 ? 'latency-good' : badgeProxy.latencyMs < 1000 ? 'latency-medium' : 'latency-bad'"
-            x-text="badgeProxy.latency"
-          ></span>
+            x-text="badgeProxy.latency"></span>
         </div>
       </div>
     </template>
 
-    <!-- Toast -->
+    <!-- Toast notifications -->
     <div x-show="!badgeMode" class="fixed top-4 right-4 z-50">
       <template x-for="t in toasts" :key="t.id">
-        <div
-          x-show="t.visible"
-          x-transition.opacity
-          class="toast px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 mb-2"
-        >
-          <svg
-            class="w-4 h-4 text-online"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M5 13l4 4L19 7"
-            />
-          </svg>
-          <span class="text-sm text-primary" x-text="t.message"></span>
+        <div x-show="t.visible" x-transition.opacity class="toast px-4 py-3 rounded-xl flex items-center gap-3 mb-2">
+          <div class="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center">
+            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+          </div>
+          <span class="text-sm" style="color: var(--text-primary)" x-text="t.message"></span>
         </div>
       </template>
     </div>
 
-    <div x-show="!badgeMode" class="max-w-screen-2xl mx-auto px-4 lg:px-6 py-6">
+    <div x-show="!badgeMode" class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <!-- Header -->
-      <header
-        x-show="showHeader"
-        class="flex items-center justify-between mb-6"
-      >
-        <div class="flex items-center gap-3">
-          <div
-            class="w-9 h-9 rounded-lg card-flat flex items-center justify-center overflow-hidden"
-          >
-            <img
-              x-show="darkMode"
-              src="./static/logo-dark.svg"
-              alt="Logo"
-              class="w-7 h-7"
-            />
-            <img
-              x-show="!darkMode"
-              src="./static/logo-light.svg"
-              alt="Logo"
-              class="w-7 h-7"
-            />
+      <header x-show="showHeader" class="flex items-center justify-between mb-8">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-2xl card flex items-center justify-center overflow-hidden" style="padding: 0;">
+            <img x-show="darkMode" src="./static/logo-dark.svg" alt="Logo" class="w-8 h-8" />
+            <img x-show="!darkMode" src="./static/logo-light.svg" alt="Logo" class="w-8 h-8" />
           </div>
           <div>
-            <h1 class="text-base font-semibold text-primary">
-              {{ if and .IsPublic .SubscriptionName }}{{ .SubscriptionName }}{{
-              else }}Xray Checker{{ end }}
+            <h1 class="text-xl font-bold" style="color: var(--text-primary)">
+              {{ if and .IsPublic .SubscriptionName }}{{ .SubscriptionName }}{{ else }}Proxy Checker{{ end }}
             </h1>
             {{ if .ShowServerDetails }}
-            <p class="text-xs text-muted">
+            <p class="text-sm" style="color: var(--text-muted)">
               {{.Host}}:{{.Port}}{{ if .Instance }} · {{.Instance}}{{ end }}
             </p>
             {{ end }}
           </div>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-3">
           {{ if not .IsPublic }}
-          <span
-            class="h-9 px-3 text-xs rounded-lg card-flat text-muted flex items-center"
-            >{{.Version}}</span
-          >
+          <span class="hidden sm:flex h-10 px-4 text-xs rounded-xl card items-center" style="color: var(--text-muted)">
+            v{{.Version}}
+          </span>
           {{ end }}
 
-          <button
-            @click="toggleAutoRefresh()"
-            class="btn h-9 px-3 rounded-lg text-xs font-medium flex items-center gap-1.5"
-            :class="autoRefresh && 'btn-active'"
-          >
-            <svg
-              class="w-3.5 h-3.5"
-              :class="autoRefresh && 'animate-spin'"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
+          <button @click="toggleAutoRefresh()"
+            class="btn h-10 px-4 rounded-xl text-sm font-medium flex items-center gap-2"
+            :class="autoRefresh && 'btn-active'">
+            <svg class="w-4 h-4" :class="autoRefresh && 'animate-spin'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
             </svg>
-            <span
-              class="inline-block min-w-[2.5rem] text-right tabular-nums"
-              x-text="autoRefresh ? countdown + 's' : 'Auto'"
-            ></span>
+            <span class="tabular-nums min-w-[3rem] text-center" x-text="autoRefresh ? countdown + 's' : 'Auto'"></span>
           </button>
 
-          <button
-            @click="toggleDarkMode()"
-            class="btn h-9 w-9 rounded-lg flex items-center justify-center"
-          >
-            <svg
-              x-show="darkMode"
-              class="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-              />
+          <button @click="toggleDarkMode()" class="btn h-10 w-10 rounded-xl flex items-center justify-center">
+            <svg x-show="darkMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
             </svg>
-            <svg
-              x-show="!darkMode"
-              class="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-              />
+            <svg x-show="!darkMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
             </svg>
           </button>
         </div>
       </header>
 
-      <!-- Stats -->
-      <div x-show="showStats" class="grid grid-cols-4 gap-2 sm:gap-3 mb-6">
-        <div class="card rounded-lg p-2 sm:p-4 text-center">
-          <div
-            class="text-base sm:text-xl font-semibold text-primary"
-            x-text="stats.total"
-          >
-            0
+      <!-- Stats Grid -->
+      <div x-show="showStats" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="card stat-card stat-total rounded-2xl p-5">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: var(--gradient-accent)">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2"/>
+              </svg>
+            </div>
+            <span class="text-sm font-medium" style="color: var(--text-muted)">Total Servers</span>
           </div>
-          <div class="text-xs text-muted mt-0.5">Total</div>
+          <div class="text-3xl font-bold" style="color: var(--text-primary)" x-text="stats.total">0</div>
         </div>
-        <div class="card rounded-lg p-2 sm:p-4 text-center">
-          <div
-            class="text-base sm:text-xl font-semibold text-online"
-            x-text="stats.online"
-          >
-            0
+
+        <div class="card stat-card stat-online rounded-2xl p-5">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: var(--gradient-green)">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+            <span class="text-sm font-medium" style="color: var(--text-muted)">Online</span>
           </div>
-          <div class="text-xs text-muted mt-0.5">Online</div>
+          <div class="text-3xl font-bold" style="color: var(--color-green)" x-text="stats.online">0</div>
         </div>
-        <div class="card rounded-lg p-2 sm:p-4 text-center">
-          <div
-            class="text-base sm:text-xl font-semibold text-offline"
-            x-text="stats.offline"
-          >
-            0
+
+        <div class="card stat-card stat-offline rounded-2xl p-5">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: var(--gradient-red)">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </div>
+            <span class="text-sm font-medium" style="color: var(--text-muted)">Offline</span>
           </div>
-          <div class="text-xs text-muted mt-0.5">Offline</div>
+          <div class="text-3xl font-bold" style="color: var(--color-red)" x-text="stats.offline">0</div>
         </div>
-        <div class="card rounded-lg p-2 sm:p-4 text-center">
-          <div class="text-base sm:text-xl font-semibold text-primary">
-            <span x-text="stats.avgLatency">0</span
-            ><span class="text-xs sm:text-sm text-muted ml-0.5">ms</span>
+
+        <div class="card stat-card stat-latency rounded-2xl p-5">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #3b82f6, #06b6d4)">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+            </div>
+            <span class="text-sm font-medium" style="color: var(--text-muted)">Avg Latency</span>
           </div>
-          <div class="text-xs text-muted mt-0.5">Avg Latency</div>
+          <div class="text-3xl font-bold" style="color: var(--text-primary)">
+            <span x-text="stats.avgLatency">0</span>
+            <span class="text-lg font-normal" style="color: var(--text-muted)">ms</span>
+          </div>
         </div>
       </div>
 
-      <!-- Servers header -->
-      <div
-        x-show="showServersHeader"
-        class="flex flex-wrap items-center justify-between gap-3 mb-4"
-      >
-        <h2 class="text-base font-semibold text-primary">Servers</h2>
+      <!-- Controls Section -->
+      <div x-show="showServersHeader" class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+        <h2 class="text-lg font-semibold" style="color: var(--text-primary)">Proxy Servers</h2>
+
         {{ if not .IsPublic }}
         <div class="flex flex-wrap items-center gap-2">
-          <a
-            href="./metrics"
-            target="_blank"
-            class="btn px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5"
-          >
-            <svg
-              class="w-3.5 h-3.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-              />
+          <a href="./metrics" target="_blank" class="btn px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
             </svg>
-            Metrics
+            <span class="hide-mobile">Metrics</span>
           </a>
-          <a
-            href="./health"
-            target="_blank"
-            class="btn px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5"
-          >
-            <svg
-              class="w-3.5 h-3.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-              />
+          <a href="./api/v1/docs" target="_blank" class="btn px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
             </svg>
-            Health
+            <span class="hide-mobile">API</span>
           </a>
-          <a
-            href="./api/v1/docs"
-            target="_blank"
-            class="btn px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5"
-          >
-            <svg
-              class="w-3.5 h-3.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
-              />
+          <a href="https://xray-checker.kutovoy.dev" target="_blank" class="btn px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
             </svg>
-            API
-          </a>
-          <a
-            href="https://xray-checker.kutovoy.dev"
-            target="_blank"
-            class="btn px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5"
-          >
-            <svg
-              class="w-3.5 h-3.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-              />
-            </svg>
-            Docs
+            <span class="hide-mobile">Docs</span>
           </a>
         </div>
         {{ end }}
       </div>
 
       {{ if .Endpoints }}
-      <!-- Controls -->
-      <div x-show="showControls" class="flex flex-col gap-2 mb-4">
-        <!-- Mobile expanded search (separate row) -->
-        <div
-          x-show="searchOpen"
-          x-transition
-          class="sm:hidden relative"
-          @click.outside="if (!search) searchOpen = false"
-        >
-          <svg
-            class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
+      <!-- Search and Filters -->
+      <div x-show="showControls" class="flex flex-col sm:flex-row gap-4 mb-6">
+        <div class="flex-1 relative">
+          <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style="color: var(--text-muted)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
           </svg>
-          <input
-            type="text"
-            x-ref="searchInput"
-            x-model="search"
-            placeholder="Search..."
-            class="w-full pl-9 pr-4 py-2 rounded-lg text-sm"
-            @keydown.escape="search = ''; searchOpen = false"
-          />
+          <input type="text" x-model="search" placeholder="Search servers..."
+            class="w-full pl-12 pr-4 py-3 rounded-xl text-sm" />
         </div>
 
-        <!-- Main controls row -->
-        <div class="flex items-center gap-2 sm:gap-3">
-          <!-- Mobile search icon button -->
-          <button
-            x-show="!searchOpen"
-            @click="searchOpen = true; $nextTick(() => $refs.searchInput.focus())"
-            class="sm:hidden btn h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0"
-          >
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </button>
-
-          <!-- Desktop search (always visible) -->
-          <div class="hidden sm:block relative flex-1">
-            <svg
-              class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-            <input
-              type="text"
-              x-model="search"
-              placeholder="Search..."
-              class="w-full pl-9 pr-4 py-2 rounded-lg text-sm"
-            />
+        <div class="flex gap-3">
+          <div class="flex gap-1 p-1.5 rounded-xl card-flat">
+            <button @click="setFilter('all')" class="filter-btn" :class="filter === 'all' && 'active-all'">All</button>
+            <button @click="setFilter('online')" class="filter-btn" :class="filter === 'online' && 'active-online'">Online</button>
+            <button @click="setFilter('offline')" class="filter-btn" :class="filter === 'offline' && 'active-offline'">Offline</button>
           </div>
 
-          <div class="flex gap-2 sm:gap-3 flex-1 sm:flex-none justify-end">
-            <div class="flex gap-1 p-1 rounded-lg card-flat">
-              <button
-                @click="setFilter('all')"
-                :class="filter === 'all' ? 'filter-all' : 'text-muted hover:text-secondary'"
-                class="px-3 py-1 rounded text-xs font-medium"
-              >
-                All
-              </button>
-              <button
-                @click="setFilter('online')"
-                :class="filter === 'online' ? 'filter-online' : 'text-muted hover:text-secondary'"
-                class="px-3 py-1 rounded text-xs font-medium"
-              >
-                Online
-              </button>
-              <button
-                @click="setFilter('offline')"
-                :class="filter === 'offline' ? 'filter-offline' : 'text-muted hover:text-secondary'"
-                class="px-3 py-1 rounded text-xs font-medium"
-              >
-                Offline
-              </button>
-            </div>
-
-            <select
-              x-model="sort"
-              @change="saveSort()"
-              class="pl-3 pr-8 py-2 rounded-lg text-xs cursor-pointer min-w-[110px]"
-            >
-              <option value="default">Default</option>
-              <option value="name">Name</option>
-              <option value="latency-asc">Latency ↑</option>
-              <option value="latency-desc">Latency ↓</option>
-              <option value="status">Status</option>
-            </select>
-          </div>
+          <select x-model="sort" @change="saveSort()" class="px-4 py-3 rounded-xl text-sm cursor-pointer min-w-[130px]">
+            <option value="default">Default</option>
+            <option value="name">Name</option>
+            <option value="latency-asc">Latency ↑</option>
+            <option value="latency-desc">Latency ↓</option>
+            <option value="status">Status</option>
+          </select>
         </div>
       </div>
 
       <!-- Proxy Grid -->
-      <div
-        x-show="showProxies"
-        class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 mb-4"
-      >
+      <div x-show="showProxies" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
         <template x-for="(proxy, idx) in filteredProxies" :key="proxy.name">
-          <div
-            class="proxy-card group card rounded-lg px-3 py-2.5 flex items-center gap-3 transition-all duration-150"
-            :class="initialLoad && 'animate'"
-          >
-            <!-- Status dot -->
-            <div class="relative flex-shrink-0">
-              <div
-                class="w-2 h-2 rounded-full"
-                :class="proxy.status ? 'status-online pulse' : 'status-offline'"
-              ></div>
+          <div class="proxy-card card rounded-2xl p-4 flex items-center gap-4">
+            <!-- Protocol icon -->
+            <div class="protocol-icon" :class="'protocol-' + (proxy.protocol || 'vless')">
+              <span x-text="(proxy.protocol || 'VL').substring(0,2).toUpperCase()"></span>
             </div>
+
+            <!-- Status dot -->
+            <div class="status-dot" :class="proxy.status ? 'status-online' : 'status-offline'"></div>
 
             <!-- Info -->
             <div class="flex-1 min-w-0">
               {{ if .IsPublic }}
-              <span
-                class="text-sm text-primary truncate block"
-                x-text="proxy.name"
-              ></span>
+              <span class="text-sm font-medium truncate block" style="color: var(--text-primary)" x-text="proxy.name"></span>
               {{ else }}
-              <a
-                :href="proxy.url"
-                target="_blank"
-                class="text-sm text-primary link-hover truncate block transition-colors"
-                x-text="proxy.name"
-              ></a>
-              {{ end }} {{ if .ShowServerDetails }}
-              <span class="text-xs text-muted truncate block"
-                ><span x-text="proxy.serverInfo"></span> · :<span
-                  x-text="proxy.proxyPort"
-                ></span
-              ></span>
+              <a :href="proxy.url" target="_blank"
+                class="text-sm font-medium truncate block transition-colors hover:opacity-80"
+                style="color: var(--text-primary)" x-text="proxy.name"></a>
+              {{ end }}
+              {{ if .ShowServerDetails }}
+              <span class="text-xs truncate block" style="color: var(--text-muted)">
+                <span x-text="proxy.serverInfo"></span> · :<span x-text="proxy.proxyPort"></span>
+              </span>
               {{ end }}
             </div>
 
             <!-- Latency -->
-            <div class="flex flex-col items-center gap-1 flex-shrink-0">
-              <span
-                class="text-xs tabular-nums"
+            <div class="flex flex-col items-end gap-1.5 flex-shrink-0">
+              <span class="text-sm font-medium tabular-nums"
                 :class="proxy.latencyMs === 0 ? 'text-muted' : proxy.latencyMs < 500 ? 'latency-good' : proxy.latencyMs < 1000 ? 'latency-medium' : 'latency-bad'"
-                x-text="proxy.latency"
-              ></span>
-              <div class="flex items-center gap-0.5">
+                :style="proxy.latencyMs === 0 && 'color: var(--text-muted)'"
+                x-text="proxy.latency"></span>
+              <div class="latency-bar"
+                :style="'--bar-color: ' + (proxy.latencyMs === 0 ? 'var(--border)' : proxy.latencyMs < 500 ? 'var(--color-green)' : proxy.latencyMs < 1000 ? 'var(--color-yellow)' : 'var(--color-red)')">
                 <template x-for="i in 5" :key="i">
-                  <div
-                    class="latency-segment"
-                    :class="proxy.latencyMs === 0 ? '' :
-                    (proxy.latencyMs < 500 ? (i <= getSegments(proxy.latencyMs) ? 'segment-good' : '') :
-                     proxy.latencyMs < 1000 ? (i <= getSegments(proxy.latencyMs) ? 'segment-medium' : '') :
-                     (i <= getSegments(proxy.latencyMs) ? 'segment-bad' : ''))"
-                  ></div>
+                  <div class="latency-bar-segment" :class="i <= getSegments(proxy.latencyMs) && 'active'"></div>
                 </template>
               </div>
             </div>
 
             {{ if not .IsPublic }}
-            <!-- Copy -->
-            <button
-              @click="copyUrl(proxy)"
-              class="hidden sm:block p-1.5 rounded text-muted btn-icon transition-all"
-              title="Copy URL"
-            >
-              <svg
-                class="w-3.5 h-3.5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                />
+            <!-- Copy button -->
+            <button @click="copyUrl(proxy)" class="hidden sm:flex btn w-10 h-10 rounded-xl items-center justify-center" title="Copy URL">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
               </svg>
             </button>
             {{ end }}
@@ -938,71 +612,37 @@
         </template>
       </div>
 
-      <div
-        x-show="showProxies && filteredProxies.length === 0"
-        class="text-center py-12 text-muted"
-      >
-        No proxies match your criteria
+      <div x-show="showProxies && filteredProxies.length === 0" class="text-center py-16" style="color: var(--text-muted)">
+        <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <p class="text-lg font-medium">No proxies match your criteria</p>
+        <p class="text-sm mt-1">Try adjusting your search or filter settings</p>
       </div>
 
       {{ if not .IsPublic }}
-      <div
-        x-show="showStatusInfo"
-        class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 text-xs text-muted pt-3 border-t border-default"
-      >
-        <span
-          ><span x-text="filteredProxies.length"></span> of
-          <span x-text="proxies.length"></span> proxies · Config URLs return
-          200/503 for monitoring</span
-        >
-        <span class="truncate max-w-full"
-          >Check: {{.CheckMethod}} · Interval: {{.CheckInterval}}s · Timeout:
-          {{.Timeout}}s · {{ if eq .CheckMethod "ip" }}{{.IPCheckUrl}}{{ else if
-          eq .CheckMethod "status" }}{{.StatusCheckUrl}}{{ else if eq
-          .CheckMethod "download" }}{{.DownloadUrl}}{{ end }}</span
-        >
+      <div x-show="showStatusInfo" class="card rounded-xl p-4 text-sm" style="color: var(--text-muted)">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+          <span><span x-text="filteredProxies.length"></span> of <span x-text="proxies.length"></span> proxies · Config URLs return 200/503 for monitoring</span>
+          <span class="truncate">Check: {{.CheckMethod}} · Interval: {{.CheckInterval}}s · Timeout: {{.Timeout}}s</span>
+        </div>
       </div>
-      {{ end }} {{ end }}
+      {{ end }}
+      {{ end }}
 
-      <footer
-        x-show="showFooter"
-        class="mt-8 pt-4 border-t border-default text-center text-xs text-muted"
-      >
+      <!-- Footer -->
+      <footer x-show="showFooter" class="mt-12 pt-6 text-center text-sm" style="border-top: 1px solid var(--border); color: var(--text-muted)">
         {{ if .IsPublic }}
-        <div>
-          Powered by
-          <a
-            href="https://github.com/kutovoys/xray-checker"
-            target="_blank"
-            class="hover:text-secondary"
-            >Xray Checker</a
-          >
-        </div>
+        <p>Powered by <a href="https://github.com/kutovoys/xray-checker" target="_blank" class="hover:underline" style="color: var(--accent-light)">Proxy Checker</a></p>
         {{ else }}
-        <div>
-          <a
-            href="https://github.com/kutovoys/xray-checker"
-            target="_blank"
-            class="hover:text-secondary"
-            >GitHub</a
-          >
-          <span class="mx-2">·</span>
-          <a
-            href="https://t.me/+Ux5gQhAY8KA2OTdi"
-            target="_blank"
-            class="hover:text-secondary"
-            >Telegram Chat</a
-          >
+        <div class="flex items-center justify-center gap-4 mb-3">
+          <a href="https://github.com/kutovoys/xray-checker" target="_blank" class="hover:underline" style="color: var(--accent-light)">GitHub</a>
+          <span>·</span>
+          <a href="https://t.me/+Ux5gQhAY8KA2OTdi" target="_blank" class="hover:underline" style="color: var(--accent-light)">Telegram</a>
+          <span>·</span>
+          <a href="https://xray-checker.kutovoy.dev" target="_blank" class="hover:underline" style="color: var(--accent-light)">Documentation</a>
         </div>
-        <div class="mt-2">
-          Made with ❤️ by
-          <a
-            href="https://github.com/kutovoys"
-            target="_blank"
-            class="hover:text-secondary"
-            >kutovoys</a
-          >
-        </div>
+        <p>Made with <span style="color: var(--color-red)">♥</span> by <a href="https://github.com/kutovoys" target="_blank" class="hover:underline" style="color: var(--accent-light)">kutovoys</a></p>
         {{ end }}
       </footer>
     </div>
@@ -1022,13 +662,11 @@
           countdown: {{ .CheckInterval }},
           countdownInterval: null,
           search: '',
-          searchOpen: false,
           filter: localStorage.getItem('filter') || 'all',
           sort: localStorage.getItem('sort') || 'default',
           toasts: [],
           initialLoad: true,
 
-          // URL-controlled visibility
           showHeader: !getUrlParam('hideHeader'),
           showStats: !getUrlParam('hideStats'),
           showServersHeader: !getUrlParam('hideServersHeader'),
@@ -1038,7 +676,6 @@
           showFooter: !getUrlParam('hideFooter'),
           hideBackground: getUrlParam('hideBackground'),
 
-          // Badge mode settings
           badgeMode: false,
           badgeProxy: null,
           badgeTheme: 'dark',
@@ -1067,7 +704,7 @@
 
           proxies: [
             {{ range $.Endpoints }}
-            { name: "{{.Name}}", stableId: "{{.StableID}}", {{ if $.ShowServerDetails }}serverInfo: "{{.ServerInfo}}", proxyPort: {{.ProxyPort}}, {{ end }}{{ if not $.IsPublic }}url: "{{.URL}}", {{ end }}index: {{.Index}}, status: {{.Status}}, latency: "{{ formatLatency .Latency }}", latencyMs: {{ .Latency.Milliseconds }} },
+            { name: "{{.Name}}", stableId: "{{.StableID}}", protocol: "{{.Protocol}}", {{ if $.ShowServerDetails }}serverInfo: "{{.ServerInfo}}", proxyPort: {{.ProxyPort}}, {{ end }}{{ if not $.IsPublic }}url: "{{.URL}}", {{ end }}index: {{.Index}}, status: {{.Status}}, latency: "{{ formatLatency .Latency }}", latencyMs: {{ .Latency.Milliseconds }} },
             {{ end }}
           ],
 
@@ -1112,67 +749,34 @@
 
           init() {
             const params = new URLSearchParams(window.location.search);
-
-            // Check for badge mode
             const stableId = params.get('stableId');
             if (stableId) {
               this.badgeProxy = this.proxies.find(p => p.stableId === stableId);
               if (this.badgeProxy) {
                 this.badgeMode = true;
-
-                // Badge theme (dark/light)
                 const theme = params.get('theme');
                 if (theme === 'light' || theme === 'dark') {
                   this.badgeTheme = theme;
                   this.darkMode = theme === 'dark';
                 }
-
-                // Badge variant (default/flat/pill/dot)
                 const variant = params.get('variant');
                 if (['default', 'flat', 'pill', 'dot'].includes(variant)) {
                   this.badgeVariant = variant;
-                  if (variant === 'dot') {
-                    this.badgeShowName = false;
-                    this.badgeShowLatency = false;
-                  }
+                  if (variant === 'dot') { this.badgeShowName = false; this.badgeShowLatency = false; }
                 }
-
-                // Badge size (sm/md/lg)
                 const size = params.get('size');
-                if (['sm', 'md', 'lg'].includes(size)) {
-                  this.badgeSize = size;
-                }
-
-                // Badge rounded (none/sm/md/lg/full)
+                if (['sm', 'md', 'lg'].includes(size)) this.badgeSize = size;
                 const rounded = params.get('rounded');
-                if (['none', 'sm', 'md', 'lg', 'full'].includes(rounded)) {
-                  this.badgeRounded = rounded;
-                }
-
-                // Show/hide name
-                if (params.get('showName') === 'false') {
-                  this.badgeShowName = false;
-                }
-
-                // Show/hide latency
-                if (params.get('showLatency') === 'false') {
-                  this.badgeShowLatency = false;
-                }
-
-                // Transparent background
-                if (params.get('transparent') === 'true') {
-                  this.badgeTransparent = true;
-                }
-
-                // Custom width/height
+                if (['none', 'sm', 'md', 'lg', 'full'].includes(rounded)) this.badgeRounded = rounded;
+                if (params.get('showName') === 'false') this.badgeShowName = false;
+                if (params.get('showLatency') === 'false') this.badgeShowLatency = false;
+                if (params.get('transparent') === 'true') this.badgeTransparent = true;
                 const styles = [];
                 const width = params.get('width');
                 const height = params.get('height');
                 if (width) styles.push('width: ' + width + (isNaN(width) ? '' : 'px'));
                 if (height) styles.push('height: ' + height + (isNaN(height) ? '' : 'px'));
                 if (styles.length) this.badgeStyle = styles.join('; ');
-
-                // Container alignment
                 const containerStyles = [];
                 const align = params.get('align');
                 if (align === 'center') containerStyles.push('justify-content: center');
@@ -1181,7 +785,6 @@
                 if (containerStyles.length) this.badgeContainerStyle = containerStyles.join('; ');
               }
             }
-
             if (this.autoRefresh) this.startCountdown();
             setTimeout(() => this.initialLoad = false, 500);
           },
@@ -1239,7 +842,6 @@
                     proxy.latency = updated.latencyMs > 0 ? updated.latencyMs + 'ms' : 'n/a';
                   }
                 });
-                // Update badge proxy if in badge mode
                 if (this.badgeMode && this.badgeProxy) {
                   const updated = json.data.find(p => p.stableId === this.badgeProxy.stableId);
                   if (updated) {
@@ -1249,9 +851,7 @@
                   }
                 }
               }
-            } catch (e) {
-              console.error('Failed to refresh:', e);
-            }
+            } catch (e) { console.error('Failed to refresh:', e); }
             this.countdown = {{ .CheckInterval }};
           },
 
@@ -1259,13 +859,13 @@
             const url = new URL(proxy.url, location.href).toString();
             try { await navigator.clipboard.writeText(url); }
             catch { const t = Object.assign(document.createElement('textarea'), {value: url, style: 'position:fixed;opacity:0'}); document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
-            this.showToast('Copied!');
+            this.showToast('URL copied to clipboard');
           },
 
           showToast(msg) {
             const t = { id: Date.now(), message: msg, visible: true };
             this.toasts.push(t);
-            setTimeout(() => { t.visible = false; setTimeout(() => this.toasts = this.toasts.filter(x => x.id !== t.id), 200); }, 2000);
+            setTimeout(() => { t.visible = false; setTimeout(() => this.toasts = this.toasts.filter(x => x.id !== t.id), 200); }, 2500);
           }
         };
       }
