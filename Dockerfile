@@ -6,33 +6,26 @@ ARG TARGETOS
 ARG TARGETARCH
 ARG GIT_TAG
 ARG GIT_COMMIT
-ARG USERNAME=kutovoys
-ARG REPOSITORY_NAME=xray-checker
 
 ENV CGO_ENABLED=0
-ENV GO111MODULE=on
 
 # Install UPX for binary compression
 RUN apk add --no-cache upx
 
-WORKDIR /go/src/github.com/${USERNAME}/${REPOSITORY_NAME}
+WORKDIR /app
 
-COPY go.mod go.mod
-COPY go.sum go.sum
+COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=${CGO_ENABLED} GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
-  go build -ldflags="-s -w -X main.version=${GIT_TAG} -X main.commit=${GIT_COMMIT}" -a -installsuffix cgo -o /usr/bin/xray-checker . && \
-  upx --best --lzma /usr/bin/xray-checker
+RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
+  go build -ldflags="-s -w -X main.version=${GIT_TAG} -X main.commit=${GIT_COMMIT}" -o /usr/bin/singbox-checker . && \
+  upx --best --lzma /usr/bin/singbox-checker
 
 FROM alpine:3.21
 
-ARG USERNAME=kutovoys
-ARG REPOSITORY_NAME=xray-checker
-
-LABEL org.opencontainers.image.source=https://github.com/${USERNAME}/${REPOSITORY_NAME}
+LABEL org.opencontainers.image.source=https://github.com/knownasmobin/SingBox-checker
 
 RUN apk add --no-cache ca-certificates curl tzdata && \
     adduser -D -u 1000 appuser && \
@@ -40,8 +33,8 @@ RUN apk add --no-cache ca-certificates curl tzdata && \
     chown -R appuser:appuser /app
 
 WORKDIR /app
-COPY --from=builder /usr/bin/xray-checker /usr/bin/xray-checker
+COPY --from=builder /usr/bin/singbox-checker /usr/bin/singbox-checker
 
 USER appuser
 
-ENTRYPOINT ["/usr/bin/xray-checker"]
+ENTRYPOINT ["/usr/bin/singbox-checker"]
