@@ -1,4 +1,4 @@
-FROM --platform=${BUILDPLATFORM:-linux/amd64} golang:1.23-alpine AS builder
+FROM --platform=${BUILDPLATFORM:-linux/amd64} golang:1.25-alpine AS builder
 
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
@@ -8,6 +8,7 @@ ARG GIT_TAG
 ARG GIT_COMMIT
 
 ENV CGO_ENABLED=0
+ENV GOTOOLCHAIN=auto
 
 # Install UPX for binary compression
 RUN apk add --no-cache upx
