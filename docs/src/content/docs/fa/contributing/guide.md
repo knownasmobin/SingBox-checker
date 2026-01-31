@@ -38,7 +38,6 @@ go build -o xray-checker
 .
 ├── checker/       # منطق بررسی پروکسی
 ├── config/        # مدیریت پیکربندی
-├── geo/           # فایل‌های Geo (geoip.dat, geosite.dat)
 ├── logger/        # لاگ ساختاریافته
 ├── metrics/       # متریک‌های Prometheus
 ├── models/        # مدل‌های داده

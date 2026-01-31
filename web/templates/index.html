@@ -1,875 +1,2212 @@
 {{ define "index.html" }}
 <!DOCTYPE html>
-<html lang="en" x-data="dashboard()" :class="{ 'light': !darkMode }" x-cloak>
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="robots" content="noindex, nofollow" />
-    <meta name="color-scheme" content="dark light" />
-    <title>
-      {{ if and .IsPublic .SubscriptionName }}{{ .SubscriptionName }}{{ else }}Proxy Checker{{ end }}
-    </title>
-    <link rel="stylesheet" href="./static/tailwind.css" />
-    <link rel="icon" type="image/png" href="./static/favicon-96x96.png" sizes="96x96" />
-    <link rel="icon" type="image/svg+xml" href="./static/favicon.svg" />
-    <link rel="shortcut icon" href="./static/favicon.ico" />
-    <link rel="apple-touch-icon" sizes="180x180" href="./static/apple-touch-icon.png" />
-    <meta name="apple-mobile-web-app-title" content="Proxy Checker" />
-    <link rel="manifest" href="./static/site.webmanifest" />
-    <script defer src="./static/alpine.min.js"></script>
-    <script type="module">
-      import { polyfillCountryFlagEmojis } from "./static/country-flag-emoji-polyfill.js";
-      polyfillCountryFlagEmojis();
-    </script>
-    <style>
-      @font-face {
-        font-family: "Inter";
-        font-style: normal;
-        font-weight: 400 700;
-        font-display: swap;
-        src: url("./static/inter-regular.woff2") format("woff2");
-      }
-      [x-cloak] { display: none !important; }
-      * { font-family: "Inter", "Twemoji Country Flags", system-ui, sans-serif; }
+<html lang="en" x-data="app()" x-cloak>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>{{ if and .IsPublic .SubscriptionName }}{{ .SubscriptionName }}{{ else }}Server Status{{ end }}</title>
+  <link rel="stylesheet" href="./static/tailwind.css">
+  <link rel="icon" href="./static/favicon.ico">
+  <script defer src="./static/alpine.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.0.0/css/flag-icons.min.css">
+  <style>
+    [x-cloak] { display: none !important; }
 
-      /* Dark theme - Modern dark with subtle blue tint */
-      :root {
-        --bg-primary: #0a0a0f;
-        --bg-secondary: #12121a;
-        --bg-card: rgba(20, 20, 30, 0.8);
-        --bg-card-hover: rgba(30, 30, 45, 0.9);
-        --bg-glass: rgba(255, 255, 255, 0.03);
-        --bg-input: rgba(255, 255, 255, 0.05);
-        --border: rgba(255, 255, 255, 0.08);
-        --border-hover: rgba(255, 255, 255, 0.15);
-        --border-accent: rgba(99, 102, 241, 0.5);
-        --text-primary: #f0f0f5;
-        --text-secondary: #a0a0b0;
-        --text-muted: #606070;
-        --accent: #6366f1;
-        --accent-light: #818cf8;
-        --color-green: #22c55e;
-        --color-green-glow: rgba(34, 197, 94, 0.4);
-        --color-red: #ef4444;
-        --color-red-glow: rgba(239, 68, 68, 0.4);
-        --color-yellow: #f59e0b;
-        --color-blue: #3b82f6;
-        --gradient-accent: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-        --gradient-green: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-        --gradient-red: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-        --shadow-card: 0 4px 24px -4px rgba(0, 0, 0, 0.5);
-        --shadow-glow: 0 0 40px -10px;
-      }
+    * {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      box-sizing: border-box;
+    }
 
-      /* Light theme - Clean and modern */
-      .light {
-        --bg-primary: #f8fafc;
-        --bg-secondary: #ffffff;
-        --bg-card: rgba(255, 255, 255, 0.9);
-        --bg-card-hover: rgba(255, 255, 255, 1);
-        --bg-glass: rgba(255, 255, 255, 0.7);
-        --bg-input: rgba(0, 0, 0, 0.03);
-        --border: rgba(0, 0, 0, 0.08);
-        --border-hover: rgba(0, 0, 0, 0.15);
-        --border-accent: rgba(99, 102, 241, 0.3);
-        --text-primary: #0f172a;
-        --text-secondary: #475569;
-        --text-muted: #94a3b8;
-        --accent: #6366f1;
-        --accent-light: #818cf8;
-        --color-green: #16a34a;
-        --color-green-glow: rgba(22, 163, 74, 0.2);
-        --color-red: #dc2626;
-        --color-red-glow: rgba(220, 38, 38, 0.2);
-        --color-yellow: #d97706;
-        --color-blue: #2563eb;
-        --gradient-accent: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-        --gradient-green: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-        --gradient-red: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-        --shadow-card: 0 4px 24px -4px rgba(0, 0, 0, 0.1);
-        --shadow-glow: 0 0 40px -10px;
-      }
+    :root {
+      --bg-body: #0d1117;
+      --bg-card: #161b22;
+      --bg-card-hover: #1c2128;
+      --border-card: #30363d;
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent-green: #3fb950;
+      --accent-orange: #d29922;
+      --accent-red: #f85149;
+      --accent-blue: #58a6ff;
+      --latency-color: #e3b341;
+    }
 
-      body {
-        background: var(--bg-primary);
-        color: var(--text-secondary);
-        min-height: 100vh;
-      }
+    body {
+      background: var(--bg-body);
+      color: var(--text-primary);
+      min-height: 100vh;
+      margin: 0;
+      position: relative;
+    }
 
-      /* Background gradient effect */
-      .bg-gradient {
-        position: fixed;
-        inset: 0;
-        background:
-          radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.15), transparent),
-          radial-gradient(ellipse 60% 40% at 100% 100%, rgba(139, 92, 246, 0.1), transparent);
-        pointer-events: none;
-        z-index: 0;
-      }
-      .light .bg-gradient {
-        background:
-          radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.08), transparent),
-          radial-gradient(ellipse 60% 40% at 100% 100%, rgba(139, 92, 246, 0.05), transparent);
-      }
+    /* Subtle grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image:
+        linear-gradient(rgba(48, 54, 61, 0.3) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(48, 54, 61, 0.3) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: -1;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(88, 166, 255, 0.08) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: -1;
+    }
 
-      /* Glass card effect */
-      .card {
-        background: var(--bg-card);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid var(--border);
-        box-shadow: var(--shadow-card);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      .card:hover {
-        border-color: var(--border-hover);
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-card), var(--shadow-glow) var(--accent);
-      }
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-card);
+      background: var(--bg-card);
+    }
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent-blue), #a855f7);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .header-logo::before {
+      content: '';
+      position: absolute;
+      inset: -50%;
+      background: conic-gradient(from 0deg, transparent, rgba(255,255,255,0.3), transparent);
+      animation: spin 4s linear infinite;
+    }
+    .header-logo svg {
+      width: 22px;
+      height: 22px;
+      color: white;
+      position: relative;
+      z-index: 1;
+    }
+    .header-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .header-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .live-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      color: var(--accent-green);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    .header-search {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-body);
+      border: 1px solid var(--border-card);
+      border-radius: 6px;
+      padding: 8px 12px;
+      transition: all 0.25s ease;
+    }
+    .header-search:focus-within {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.15);
+    }
+    .header-search svg {
+      width: 16px;
+      height: 16px;
+      color: var(--text-muted);
+      transition: color 0.25s ease;
+    }
+    .header-search:focus-within svg {
+      color: var(--accent-blue);
+    }
+    .header-search input {
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      font-size: 14px;
+      width: 180px;
+      outline: none;
+    }
+    .header-search input::placeholder {
+      color: var(--text-muted);
+      transition: color 0.25s ease;
+    }
+    .header-search:focus-within input::placeholder {
+      color: var(--text-secondary);
+    }
 
-      .card-flat {
-        background: var(--bg-glass);
-        border: 1px solid var(--border);
-      }
+    /* Controls bar */
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 24px;
+      flex-wrap: wrap;
+    }
+    .filter-group {
+      display: flex;
+      gap: 4px;
+    }
+    .filter-btn {
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      background: transparent;
+      border: 1px solid var(--border-card);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .filter-btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.1) 50%, transparent 60%);
+      background-size: 200% 200%;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .filter-btn:hover {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      transform: translateY(-1px);
+    }
+    .filter-btn:hover::after {
+      opacity: 1;
+      animation: shimmer 1.5s infinite;
+    }
+    .filter-btn:active {
+      transform: translateY(0) scale(0.98);
+    }
+    .filter-btn.active {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+      color: white;
+      box-shadow: 0 4px 12px rgba(88, 166, 255, 0.3);
+    }
+    .filter-count {
+      font-size: 11px;
+      opacity: 0.7;
+      margin-left: 4px;
+    }
+    .sync-btn {
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      margin-left: auto;
+    }
+    .sync-btn:hover {
+      color: var(--text-primary);
+      border-color: var(--text-muted);
+      transform: translateY(-1px);
+    }
+    .sync-btn:active {
+      transform: translateY(0) scale(0.98);
+    }
+    .sync-btn.active {
+      background: var(--accent-green);
+      border-color: var(--accent-green);
+      color: white;
+      box-shadow: 0 4px 12px rgba(63, 185, 80, 0.3);
+    }
+    .sync-btn svg {
+      width: 14px;
+      height: 14px;
+      transition: transform 0.3s ease;
+    }
+    .sync-btn.active svg {
+      animation: spin 2s linear infinite;
+    }
+    .sync-btn svg.spin-fast {
+      animation: spin 0.6s linear infinite;
+    }
+    .sync-btn.refreshing {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+      color: white;
+    }
 
-      /* Stats cards with gradient accents */
-      .stat-card {
-        position: relative;
-        overflow: hidden;
-      }
-      .stat-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: var(--stat-gradient, var(--gradient-accent));
-        opacity: 0.8;
-      }
-      .stat-card.stat-total::before { --stat-gradient: var(--gradient-accent); }
-      .stat-card.stat-online::before { --stat-gradient: var(--gradient-green); }
-      .stat-card.stat-offline::before { --stat-gradient: var(--gradient-red); }
-      .stat-card.stat-latency::before { --stat-gradient: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%); }
+    /* Card Grid */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 16px;
+      padding: 16px 24px 32px;
+      align-items: start;
+    }
 
-      /* Button styles */
-      .btn {
-        background: var(--bg-glass);
-        border: 1px solid var(--border);
-        color: var(--text-secondary);
-        transition: all 0.2s ease;
-      }
-      .btn:hover {
-        background: var(--bg-input);
-        border-color: var(--border-hover);
-        color: var(--text-primary);
-      }
-      .btn-active {
-        background: rgba(99, 102, 241, 0.15);
-        border-color: var(--border-accent);
-        color: var(--accent-light);
-      }
+    /* Server Card */
+    .server-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: slideUp 0.5s ease-out backwards;
+    }
+    .server-card:nth-child(1) { animation-delay: 0.05s; }
+    .server-card:nth-child(2) { animation-delay: 0.1s; }
+    .server-card:nth-child(3) { animation-delay: 0.15s; }
+    .server-card:nth-child(4) { animation-delay: 0.2s; }
+    .server-card:nth-child(5) { animation-delay: 0.25s; }
+    .server-card:nth-child(6) { animation-delay: 0.3s; }
+    .server-card:hover {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 20px rgba(88, 166, 255, 0.15);
+    }
 
-      .btn-primary {
-        background: var(--gradient-accent);
-        border: none;
-        color: white;
-      }
-      .btn-primary:hover {
-        opacity: 0.9;
-        transform: translateY(-1px);
-      }
+    /* Card Header */
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-card);
+      background: var(--bg-card-hover);
+      position: relative;
+      overflow: hidden;
+    }
+    .card-header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent-blue), #a855f7);
+      transition: width 0.4s ease;
+    }
+    .server-card:hover .card-header::after {
+      width: 100%;
+    }
+    .card-name {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .card-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent-blue), #a855f7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .server-card:hover .card-icon {
+      box-shadow: 0 0 12px rgba(88, 166, 255, 0.4);
+    }
+    .card-icon svg {
+      width: 18px;
+      height: 18px;
+      color: white;
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .card-stats {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .stat-item {
+      text-align: right;
+    }
+    .stat-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--latency-color);
+      transition: all 0.3s ease;
+    }
+    .stat-value.na {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+    .stat-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
 
-      /* Input styles */
-      input, select {
-        background: var(--bg-input);
-        border: 1px solid var(--border);
-        color: var(--text-primary);
-        transition: all 0.2s ease;
-      }
-      input:focus, select:focus {
-        outline: none;
-        border-color: var(--border-accent);
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-      }
-      input::placeholder { color: var(--text-muted); }
+    /* Protocol List */
+    .protocol-list {
+      padding: 12px 16px;
+    }
+    .protocol-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      background: var(--bg-body);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .protocol-item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 3px;
+      background: var(--accent-blue);
+      transform: scaleY(0);
+      transition: transform 0.25s ease;
+    }
+    .protocol-item:last-child {
+      margin-bottom: 0;
+    }
+    .protocol-item:hover {
+      background: var(--bg-card-hover);
+      padding-left: 16px;
+    }
+    .protocol-item:hover::before {
+      transform: scaleY(1);
+    }
+    .protocol-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .protocol-badge {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 4px 8px;
+      border-radius: 4px;
+      min-width: 70px;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+    .protocol-item:hover .protocol-badge {
+      transform: scale(1.05);
+    }
+    .protocol-badge.vless { background: rgba(160, 160, 180, 0.1); color: #9ca3af; border: 1px solid rgba(160, 160, 180, 0.2); }
+    .protocol-badge.vmess { background: rgba(150, 165, 180, 0.1); color: #9ca3af; border: 1px solid rgba(150, 165, 180, 0.2); }
+    .protocol-badge.trojan { background: rgba(170, 155, 165, 0.1); color: #9ca3af; border: 1px solid rgba(170, 155, 165, 0.2); }
+    .protocol-badge.shadowsocks { background: rgba(155, 170, 160, 0.1); color: #9ca3af; border: 1px solid rgba(155, 170, 160, 0.2); }
+    .protocol-badge.ss { background: rgba(155, 170, 160, 0.1); color: #9ca3af; border: 1px solid rgba(155, 170, 160, 0.2); }
+    .protocol-badge.wireguard { background: rgba(170, 160, 150, 0.1); color: #9ca3af; border: 1px solid rgba(170, 160, 150, 0.2); }
+    .protocol-badge.default { background: rgba(139, 148, 158, 0.1); color: #9ca3af; border: 1px solid rgba(139, 148, 158, 0.2); }
 
-      /* Status indicators */
-      .status-dot {
-        position: relative;
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-      }
-      .status-online {
-        background: var(--color-green);
-        box-shadow: 0 0 12px var(--color-green-glow);
-      }
-      .status-offline {
-        background: var(--color-red);
-        box-shadow: 0 0 12px var(--color-red-glow);
-      }
-      .status-online::after {
-        content: '';
-        position: absolute;
-        inset: -3px;
-        border-radius: 50%;
-        background: var(--color-green);
-        animation: pulse-ring 2s ease-out infinite;
-      }
-      @keyframes pulse-ring {
-        0% { transform: scale(1); opacity: 0.4; }
-        100% { transform: scale(2); opacity: 0; }
-      }
+    .protocol-flag {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: var(--bg-card);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid var(--border-card);
+      transition: all 0.25s ease;
+    }
+    .protocol-item:hover .protocol-flag {
+      transform: scale(1.15);
+      border-color: var(--accent-blue);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+    .protocol-flag .fi {
+      font-size: 22px;
+      transform: scale(1.4);
+    }
+    .protocol-flag .unknown {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
 
-      /* Latency colors */
-      .latency-good { color: var(--color-green); }
-      .latency-medium { color: var(--color-yellow); }
-      .latency-bad { color: var(--color-red); }
+    .transport-type {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .protocol-status {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .protocol-latency {
+      font-size: 13px;
+      font-family: 'SF Mono', 'Consolas', monospace;
+      min-width: 60px;
+      text-align: right;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    .protocol-latency.fast {
+      color: var(--accent-green);
+      text-shadow: 0 0 8px rgba(63, 185, 80, 0.5);
+    }
+    .protocol-latency.medium {
+      color: var(--accent-orange);
+      text-shadow: 0 0 8px rgba(210, 153, 34, 0.5);
+    }
+    .protocol-latency.slow {
+      color: var(--accent-red);
+      text-shadow: 0 0 8px rgba(248, 81, 73, 0.5);
+    }
+    .protocol-latency.na { color: var(--text-muted); }
 
-      /* Latency bar */
-      .latency-bar {
-        display: flex;
-        gap: 3px;
-        align-items: flex-end;
-      }
-      .latency-bar-segment {
-        width: 4px;
-        border-radius: 2px;
-        background: var(--border);
-        transition: all 0.3s ease;
-      }
-      .latency-bar-segment.active { background: var(--bar-color, var(--color-green)); }
-      .latency-bar-segment:nth-child(1) { height: 6px; }
-      .latency-bar-segment:nth-child(2) { height: 9px; }
-      .latency-bar-segment:nth-child(3) { height: 12px; }
-      .latency-bar-segment:nth-child(4) { height: 15px; }
-      .latency-bar-segment:nth-child(5) { height: 18px; }
+    /* Sparkline chart */
+    .sparkline {
+      width: 50px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+    .sparkline-line {
+      fill: none;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .sparkline-area {
+      opacity: 0.15;
+    }
+    .sparkline.fast .sparkline-line { stroke: var(--accent-green); }
+    .sparkline.fast .sparkline-area { fill: var(--accent-green); }
+    .sparkline.medium .sparkline-line { stroke: var(--accent-orange); }
+    .sparkline.medium .sparkline-area { fill: var(--accent-orange); }
+    .sparkline.slow .sparkline-line { stroke: var(--accent-red); }
+    .sparkline.slow .sparkline-area { fill: var(--accent-red); }
+    .sparkline.offline .sparkline-line { stroke: var(--text-muted); }
+    .sparkline.offline .sparkline-area { fill: var(--text-muted); }
 
-      /* Protocol icons */
-      .protocol-icon {
-        width: 28px;
-        height: 28px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 10px;
-        font-weight: 600;
-        color: white;
-        flex-shrink: 0;
-      }
-      .protocol-vless { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
-      .protocol-vmess { background: linear-gradient(135deg, #3b82f6, #06b6d4); }
-      .protocol-trojan { background: linear-gradient(135deg, #f59e0b, #f97316); }
-      .protocol-shadowsocks { background: linear-gradient(135deg, #22c55e, #10b981); }
-      .protocol-ss { background: linear-gradient(135deg, #22c55e, #10b981); }
-      .protocol-wireguard { background: linear-gradient(135deg, #ef4444, #ec4899); }
-      .protocol-wg { background: linear-gradient(135deg, #ef4444, #ec4899); }
+    /* Status dot */
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .status-dot.online {
+      background: var(--accent-green);
+      box-shadow: 0 0 8px var(--accent-green);
+    }
+    .status-dot.degraded {
+      background: var(--accent-orange);
+      box-shadow: 0 0 8px var(--accent-orange);
+    }
+    .status-dot.slow {
+      background: var(--accent-red);
+      box-shadow: 0 0 8px var(--accent-red);
+    }
+    .status-dot.offline {
+      background: var(--text-muted);
+    }
+    .status-dot.pending {
+      background: var(--text-muted);
+      opacity: 0.5;
+    }
 
-      /* Proxy card animations */
-      .proxy-card {
-        animation: card-appear 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
-      }
-      @keyframes card-appear {
-        from { opacity: 0; transform: translateY(20px) scale(0.95); }
-        to { opacity: 1; transform: translateY(0) scale(1); }
-      }
-      .proxy-card:nth-child(1) { animation-delay: 0ms; }
-      .proxy-card:nth-child(2) { animation-delay: 50ms; }
-      .proxy-card:nth-child(3) { animation-delay: 100ms; }
-      .proxy-card:nth-child(4) { animation-delay: 150ms; }
-      .proxy-card:nth-child(5) { animation-delay: 200ms; }
-      .proxy-card:nth-child(6) { animation-delay: 250ms; }
-      .proxy-card:nth-child(n+7) { animation-delay: 300ms; }
+    /* Animations */
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.1); }
+    }
 
-      /* Filter buttons */
-      .filter-btn {
-        padding: 6px 14px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 500;
-        transition: all 0.2s ease;
-        color: var(--text-muted);
-      }
-      .filter-btn:hover { color: var(--text-secondary); }
-      .filter-btn.active-all {
-        background: var(--bg-input);
-        color: var(--text-primary);
-      }
-      .filter-btn.active-online {
-        background: rgba(34, 197, 94, 0.15);
-        color: var(--color-green);
-      }
-      .filter-btn.active-offline {
-        background: rgba(239, 68, 68, 0.15);
-        color: var(--color-red);
-      }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-      /* Scrollbar */
-      ::-webkit-scrollbar { width: 8px; }
-      ::-webkit-scrollbar-track { background: transparent; }
-      ::-webkit-scrollbar-thumb {
-        background: var(--border);
-        border-radius: 4px;
-      }
-      ::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
 
-      /* Toast notifications */
-      .toast {
-        background: var(--bg-card);
-        backdrop-filter: blur(20px);
-        border: 1px solid var(--border);
-        box-shadow: var(--shadow-card);
-      }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
 
-      /* Badge mode styles */
-      .badge-body {
-        min-height: auto;
-        background: transparent;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    /* Group Status Badge */
+    .group-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    .group-status.all-up {
+      background: rgba(63, 185, 80, 0.15);
+      color: var(--accent-green);
+      border: 1px solid rgba(63, 185, 80, 0.3);
+    }
+    .server-card:hover .group-status.all-up {
+      background: rgba(63, 185, 80, 0.25);
+      box-shadow: 0 0 12px rgba(63, 185, 80, 0.3);
+    }
+    .group-status.partial {
+      background: rgba(210, 153, 34, 0.15);
+      color: var(--accent-orange);
+      border: 1px solid rgba(210, 153, 34, 0.3);
+    }
+    .server-card:hover .group-status.partial {
+      background: rgba(210, 153, 34, 0.25);
+      box-shadow: 0 0 12px rgba(210, 153, 34, 0.3);
+    }
+    .group-status.all-down {
+      background: rgba(139, 148, 158, 0.15);
+      color: var(--text-secondary);
+      border: 1px solid rgba(139, 148, 158, 0.3);
+    }
+
+    /* Footer info */
+    .footer-info {
+      text-align: center;
+      padding: 32px 24px;
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: center;
+      transition: transform 0.35s ease-out;
+    }
+    .footer-stats {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 10px 20px;
+      border: 1px solid var(--border-card);
+      border-radius: 20px;
+      background: rgba(22, 27, 34, 0.6);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .footer-stat {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .footer-stat-value {
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+    .footer-stat-value.footer-online {
+      color: var(--accent-green);
+    }
+    .footer-divider {
+      color: var(--border-card);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      z-index: 100;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      animation: slideUp 0.3s ease-out;
+    }
+
+    /* Data update flash */
+    .data-updated {
+      animation: dataFlash 0.5s ease-out;
+    }
+    @keyframes dataFlash {
+      0% { background: rgba(88, 166, 255, 0.2); }
+      100% { background: transparent; }
+    }
+
+    /* Ripple effect */
+    .ripple {
+      position: relative;
+      overflow: hidden;
+    }
+    .ripple::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: width 0.6s ease, height 0.6s ease, opacity 0.6s ease;
+      opacity: 0;
+    }
+    .ripple:active::before {
+      width: 300px;
+      height: 300px;
+      opacity: 0;
+    }
+
+    /* Floating animation for cards */
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    /* Simple border glow on hover */
+    .gradient-border {
+      position: relative;
+    }
+
+    /* Typing cursor effect for search */
+    .header-search input:focus::placeholder {
+      animation: blink 1s step-end infinite;
+    }
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    /* Empty state */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+
+    /* Summary Cards */
+    .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      padding: 0 24px 16px;
+    }
+    .summary-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.25s ease;
+    }
+    .summary-card:hover {
+      border-color: var(--accent-blue);
+      transform: translateY(-2px);
+    }
+    .summary-card-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .summary-card-icon svg {
+      width: 20px;
+      height: 20px;
+    }
+    .summary-card-icon.green { background: rgba(63, 185, 80, 0.15); color: var(--accent-green); }
+    .summary-card-icon.orange { background: rgba(210, 153, 34, 0.15); color: var(--accent-orange); }
+    .summary-card-icon.blue { background: rgba(88, 166, 255, 0.15); color: var(--accent-blue); }
+    .summary-card-icon.red { background: rgba(248, 81, 73, 0.15); color: var(--accent-red); }
+    .summary-card-content {
+      flex: 1;
+      min-width: 0;
+    }
+    .summary-card-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+    .summary-card-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .summary-card-sub {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Collapse Toggle */
+    .collapse-toggle {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: var(--bg-body);
+      border: 1px solid var(--border-card);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      margin-left: 8px;
+    }
+    .collapse-toggle:hover {
+      background: var(--bg-card);
+      border-color: var(--accent-blue);
+    }
+    .collapse-toggle svg {
+      width: 14px;
+      height: 14px;
+      color: var(--text-muted);
+      transition: transform 0.3s ease;
+    }
+    .collapse-toggle.collapsed svg {
+      transform: rotate(-90deg);
+    }
+    .card-body {
+      display: grid;
+      grid-template-rows: 1fr;
+      transition: grid-template-rows 0.35s ease-out;
+      overflow: hidden;
+    }
+    .card-body > .protocol-list {
+      overflow: hidden;
+      min-height: 0;
+    }
+    .card-body.collapsed-anim {
+      grid-template-rows: 0fr;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn 0.2s ease;
+    }
+    .modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 16px;
+      max-width: 500px;
+      width: 100%;
+      max-height: 80vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      animation: slideUp 0.3s ease;
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px;
+      border-bottom: 1px solid var(--border-card);
+      background: var(--bg-card-hover);
+    }
+    .modal-title {
+      font-size: 18px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--bg-body);
+      border: 1px solid var(--border-card);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .modal-close:hover {
+      background: var(--accent-red);
+      border-color: var(--accent-red);
+      color: white;
+    }
+    .modal-close svg {
+      width: 16px;
+      height: 16px;
+    }
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .modal-section {
+      margin-bottom: 20px;
+    }
+    .modal-section:last-child {
+      margin-bottom: 0;
+    }
+    .modal-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      letter-spacing: 0.5px;
+    }
+    .modal-info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .modal-info-item {
+      background: var(--bg-body);
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .modal-info-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .modal-info-value {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    .modal-sparkline {
+      width: 100%;
+      height: 60px;
+      background: var(--bg-body);
+      border-radius: 8px;
+      padding: 10px;
+    }
+    .modal-sparkline svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Geographic Map View */
+    .view-toggle {
+      display: flex;
+      gap: 4px;
+      background: var(--bg-body);
+      border: 1px solid var(--border-card);
+      border-radius: 6px;
+      padding: 3px;
+    }
+    .view-toggle-btn {
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+      background: transparent;
+    }
+    .view-toggle-btn:hover {
+      color: var(--text-primary);
+    }
+    .view-toggle-btn.active {
+      background: var(--accent-blue);
+      color: white;
+    }
+    /* World Map View */
+    .world-map-container {
+      padding: 16px 24px 32px;
+    }
+    .world-map-wrapper {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      padding: 20px;
+      overflow: hidden;
+    }
+    .world-map {
+      width: 100%;
+      height: auto;
+      max-height: 400px;
+    }
+    .world-map path, .world-map g > path {
+      fill: var(--bg-body);
+      stroke: var(--border-card);
+      stroke-width: 0.3;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .world-map path:hover, .world-map g:hover > path {
+      fill: var(--bg-card-hover);
+      stroke: var(--accent-blue);
+      stroke-width: 0.5;
+    }
+    /* Country status colors - use !important to override base path fill */
+    .world-map path.all-online, .world-map g.all-online > path {
+      fill: rgba(63, 185, 80, 0.6) !important;
+      stroke: rgba(63, 185, 80, 0.8);
+    }
+    .world-map path.all-online:hover, .world-map g.all-online:hover > path {
+      fill: rgba(63, 185, 80, 0.8) !important;
+    }
+    .world-map path.partial, .world-map g.partial > path {
+      fill: rgba(210, 153, 34, 0.6) !important;
+      stroke: rgba(210, 153, 34, 0.8);
+    }
+    .world-map path.partial:hover, .world-map g.partial:hover > path {
+      fill: rgba(210, 153, 34, 0.8) !important;
+    }
+    .world-map path.all-offline, .world-map g.all-offline > path {
+      fill: rgba(139, 148, 158, 0.5) !important;
+      stroke: rgba(139, 148, 158, 0.6);
+    }
+    .world-map path.all-offline:hover, .world-map g.all-offline:hover > path {
+      fill: rgba(139, 148, 158, 0.7) !important;
+    }
+    .world-map .has-servers, .world-map .has-servers > path {
+      fill: rgba(88, 166, 255, 0.3);
+    }
+    .world-map .has-servers:hover, .world-map .has-servers:hover > path {
+      fill: rgba(88, 166, 255, 0.5);
+    }
+    .map-tooltip {
+      position: absolute;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      pointer-events: none;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transform: translate(-50%, -100%);
+      margin-top: -10px;
+      transition: all 0.2s ease;
+    }
+    .map-tooltip.pinned {
+      pointer-events: auto;
+      border-color: var(--accent-blue);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .map-tooltip-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .map-tooltip-title {
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .map-tooltip-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+    .map-tooltip-close:hover {
+      color: var(--text-primary);
+      background: var(--bg-body);
+    }
+    .map-tooltip-stats {
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .map-tooltip-servers {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-card);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    .map-tooltip-server {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      background: var(--bg-body);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .map-tooltip-server:hover {
+      background: var(--bg-card-hover);
+    }
+    .map-tooltip-server .protocol-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+    }
+    .map-tooltip-server-latency {
+      font-size: 11px;
+      margin-left: auto;
+    }
+    .map-tooltip-server-latency.fast { color: var(--accent-green); }
+    .map-tooltip-server-latency.medium { color: var(--accent-yellow); }
+    .map-tooltip-server-latency.slow { color: var(--accent-orange); }
+    .map-tooltip-server-latency.offline { color: var(--text-muted); }
+    .map-legend {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    .map-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .map-legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+    .map-legend-dot.online { background: rgba(63, 185, 80, 0.6); }
+    .map-legend-dot.partial { background: rgba(210, 153, 34, 0.6); }
+    .map-legend-dot.offline { background: rgba(139, 148, 158, 0.4); }
+    .map-legend-dot.none { background: var(--bg-body); border: 1px solid var(--border-card); }
+
+    /* Notification badge */
+    .notification-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .notification-btn:hover {
+      border-color: var(--accent-blue);
+    }
+    .notification-btn.active {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+      color: white;
+    }
+    .notification-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
       }
-      .badge-container { display: inline-flex; align-items: center; justify-content: center; }
-      .badge-card {
-        display: inline-flex;
-        align-items: center;
+      .header-search {
+        width: 100%;
+      }
+      .header-search input {
+        width: 100%;
+      }
+      .card-grid {
+        grid-template-columns: 1fr;
+        padding: 12px 16px 24px;
+      }
+      .controls {
+        padding: 12px 16px;
+      }
+      .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      .card-stats {
+        width: 100%;
+        justify-content: space-between;
+      }
+      .summary-cards {
+        grid-template-columns: repeat(2, 1fr);
+        padding: 0 16px 12px;
         gap: 8px;
-        padding: 8px 14px;
-        background: var(--bg-card);
-        backdrop-filter: blur(20px);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        font-size: 13px;
-        white-space: nowrap;
       }
-      .badge-status { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-      .badge-name { color: var(--text-primary); font-weight: 500; }
-      .badge-latency { font-size: 12px; font-variant-numeric: tabular-nums; }
-      .badge-style-flat { background: transparent; border: none; }
-      .badge-style-pill { border-radius: 9999px; }
-      .badge-rounded-none { border-radius: 0; }
-      .badge-rounded-sm { border-radius: 4px; }
-      .badge-rounded-md { border-radius: 8px; }
-      .badge-rounded-lg { border-radius: 12px; }
-      .badge-rounded-full { border-radius: 9999px; }
-      .badge-size-sm { font-size: 11px; padding: 4px 10px; gap: 6px; }
-      .badge-size-sm .badge-status { width: 6px; height: 6px; }
-      .badge-size-lg { font-size: 15px; padding: 10px 18px; gap: 10px; }
-      .badge-size-lg .badge-status { width: 10px; height: 10px; }
-      .badge-dot-only { padding: 0; background: transparent; border: none; }
-      .badge-dot-only .badge-status { width: 14px; height: 14px; }
-      .badge-transparent { background: transparent; }
-      .no-bg { background: transparent !important; }
-
-      /* Responsive */
-      @media (max-width: 640px) {
-        .hide-mobile { display: none !important; }
+      .summary-card {
+        padding: 12px;
       }
-    </style>
-  </head>
+      .summary-card-value {
+        font-size: 16px;
+      }
+      .summary-card-icon {
+        width: 32px;
+        height: 32px;
+      }
+      .world-map-container {
+        padding: 12px 16px 24px;
+      }
+      .world-map-wrapper {
+        padding: 12px;
+      }
+      .map-legend {
+        gap: 12px;
+      }
+      .modal {
+        max-width: 95%;
+        max-height: 90vh;
+      }
+      .view-toggle {
+        order: -1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-brand">
+      <div class="header-logo">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="header-title">{{ if and .IsPublic .SubscriptionName }}{{ .SubscriptionName }}{{ else }}Server Status{{ end }}</div>
+        <div class="header-subtitle">
+          <span>Real-time monitoring</span>
+          <span class="live-indicator" x-show="autoRefresh">
+            <span class="live-dot"></span>
+            <span>Live</span>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="header-search">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+      <input type="text" x-model="search" placeholder="Search servers...">
+    </div>
+  </header>
 
-  <body class="min-h-screen antialiased" :class="[badgeMode && 'badge-body', hideBackground && 'no-bg']">
-    <!-- Background gradient -->
-    <div x-show="!badgeMode && !hideBackground" class="bg-gradient"></div>
+  <!-- Controls -->
+  <div class="controls">
+    <div class="filter-group">
+      <button @click="filter = 'all'" class="filter-btn ripple" :class="filter === 'all' && 'active'">
+        <span>All</span>
+        <span class="filter-count" x-text="'(' + groups.length + ')'"></span>
+      </button>
+      <button @click="filter = 'online'" class="filter-btn ripple" :class="filter === 'online' && 'active'">
+        <span>Online</span>
+        <span class="filter-count" x-text="'(' + groups.filter(g => g.onlineCount > 0).length + ')'"></span>
+      </button>
+      <button @click="filter = 'offline'" class="filter-btn ripple" :class="filter === 'offline' && 'active'">
+        <span>Offline</span>
+        <span class="filter-count" x-text="'(' + groups.filter(g => g.onlineCount < g.servers.length).length + ')'"></span>
+      </button>
+    </div>
 
-    <!-- Badge Mode -->
-    <template x-if="badgeMode && badgeProxy">
-      <div class="badge-container" :style="badgeContainerStyle">
-        <div class="badge-card" :class="badgeClasses" :style="badgeStyle">
-          <div class="badge-status" :class="badgeProxy.status ? 'status-online' : 'status-offline'"></div>
-          <span x-show="badgeShowName" class="badge-name" x-text="badgeProxy.name"></span>
-          <span x-show="badgeShowLatency" class="badge-latency"
-            :class="badgeProxy.latencyMs === 0 ? 'text-muted' : badgeProxy.latencyMs < 500 ? 'latency-good' : badgeProxy.latencyMs < 1000 ? 'latency-medium' : 'latency-bad'"
-            x-text="badgeProxy.latency"></span>
+    <select x-model="sort" class="filter-btn" style="cursor: pointer;">
+      <option value="default">Sort: Default</option>
+      <option value="name">Sort: Name</option>
+      <option value="latency">Sort: Fastest</option>
+      <option value="status">Sort: Status</option>
+    </select>
+
+    {{ if not .IsPublic }}
+    <a href="./api/v1/docs" target="_blank" class="filter-btn">API</a>
+    <a href="./metrics" target="_blank" class="filter-btn">Metrics</a>
+    {{ end }}
+
+    <div class="view-toggle">
+      <button @click="viewMode = 'grid'" class="view-toggle-btn" :class="viewMode === 'grid' && 'active'">
+        <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zm8 0A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm-8 8A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm8 0A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3z"/>
+        </svg>
+      </button>
+      <button @click="viewMode = 'geo'" class="view-toggle-btn" :class="viewMode === 'geo' && 'active'">
+        <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm7.5-6.923c-.67.204-1.335.82-1.887 1.855A7.97 7.97 0 0 0 5.145 4H7.5V1.077zM4.09 4a9.267 9.267 0 0 1 .64-1.539 6.7 6.7 0 0 1 .597-.933A7.025 7.025 0 0 0 2.255 4H4.09zm-.582 3.5c.03-.877.138-1.718.312-2.5H1.674a6.958 6.958 0 0 0-.656 2.5h2.49zM4.847 5a12.5 12.5 0 0 0-.338 2.5H7.5V5H4.847zM8.5 5v2.5h2.99a12.495 12.495 0 0 0-.337-2.5H8.5zM4.51 8.5a12.5 12.5 0 0 0 .337 2.5H7.5V8.5H4.51zm3.99 0V11h2.653c.187-.765.306-1.608.338-2.5H8.5zM5.145 12c.138.386.295.744.468 1.068.552 1.035 1.218 1.65 1.887 1.855V12H5.145zm.182 2.472a6.696 6.696 0 0 1-.597-.933A9.268 9.268 0 0 1 4.09 12H2.255a7.024 7.024 0 0 0 3.072 2.472zM3.82 11a13.652 13.652 0 0 1-.312-2.5h-2.49c.062.89.291 1.733.656 2.5H3.82zm6.853 3.472A7.024 7.024 0 0 0 13.745 12H11.91a9.27 9.27 0 0 1-.64 1.539 6.688 6.688 0 0 1-.597.933zM8.5 12v2.923c.67-.204 1.335-.82 1.887-1.855.173-.324.33-.682.468-1.068H8.5zm3.68-1h2.146c.365-.767.594-1.61.656-2.5h-2.49a13.65 13.65 0 0 1-.312 2.5zm2.802-3.5a6.959 6.959 0 0 0-.656-2.5H12.18c.174.782.282 1.623.312 2.5h2.49zM11.27 2.461c.247.464.462.98.64 1.539h1.835a7.024 7.024 0 0 0-3.072-2.472c.218.284.418.598.597.933zM10.855 4a7.966 7.966 0 0 0-.468-1.068C9.835 1.897 9.17 1.282 8.5 1.077V4h2.355z"/>
+        </svg>
+      </button>
+    </div>
+
+    <button @click="toggleNotifications()" class="notification-btn" :class="notificationsEnabled && 'active'" title="Browser Notifications">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+      </svg>
+    </button>
+
+    <button @click="toggleRefresh()" class="sync-btn ripple" :class="{'active': autoRefresh, 'refreshing': refreshing}">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" :class="refreshing && 'spin-fast'">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+      </svg>
+      <span x-text="refreshing ? 'Updating...' : autoRefresh ? 'Syncing ' + countdown + 's' : 'Auto Sync'"></span>
+    </button>
+  </div>
+
+  <!-- Summary Cards -->
+  {{ if .Endpoints }}
+  <div class="summary-cards">
+    <div class="summary-card">
+      <div class="summary-card-icon green">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <div class="summary-card-content">
+        <div class="summary-card-value" x-text="proxies.filter(p => p.online).length + '/' + proxies.length"></div>
+        <div class="summary-card-label">Servers Online</div>
+      </div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-card-icon blue">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+      </div>
+      <div class="summary-card-content">
+        <div class="summary-card-value" x-text="bestServer ? bestServer.ms + 'ms' : 'n/a'"></div>
+        <div class="summary-card-label">Fastest Server</div>
+        <div class="summary-card-sub" x-text="bestServer ? bestServer.name : '-'"></div>
+      </div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-card-icon orange">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <div class="summary-card-content">
+        <div class="summary-card-value" x-text="avgLatency + 'ms'"></div>
+        <div class="summary-card-label">Avg Latency</div>
+      </div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-card-icon blue">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <div class="summary-card-content">
+        <div class="summary-card-value" x-text="Object.keys(countryStats).length"></div>
+        <div class="summary-card-label">Countries</div>
+      </div>
+    </div>
+  </div>
+  {{ end }}
+
+  <!-- Card Grid View -->
+  {{ if .Endpoints }}
+  <div class="card-grid" x-show="viewMode === 'grid'">
+    <template x-for="group in filteredGroups" :key="group.name">
+      <div class="server-card gradient-border">
+        <!-- Header -->
+        <div class="card-header">
+          <div class="card-name">
+            <div class="card-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/>
+              </svg>
+            </div>
+            <span class="card-title" x-text="group.name"></span>
+            <button class="collapse-toggle" :class="collapsedGroups[group.name] && 'collapsed'" @click="toggleCollapse(group.name)">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </button>
+          </div>
+          <div class="card-stats">
+            <div class="stat-item">
+              <div class="stat-value" :class="group.bestLatency === 'n/a' && 'na'" x-text="group.bestLatency"></div>
+              <div class="stat-label">Best Latency</div>
+            </div>
+            <span class="group-status"
+                  :class="group.allUp ? 'all-up' : group.allDown ? 'all-down' : 'partial'">
+              <span class="status-dot" :class="group.allUp ? 'online' : group.allDown ? 'offline' : 'degraded'" style="width: 8px; height: 8px;"></span>
+              <span x-text="group.onlineCount + '/' + group.servers.length"></span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Protocol List -->
+        <div class="card-body" :class="{ 'collapsed-anim': collapsedGroups[group.name] }">
+          <div class="protocol-list">
+          <template x-for="server in group.servers" :key="server.id">
+            <div class="protocol-item" @click="selectedServer = server" style="cursor: pointer;">
+              <div class="protocol-info">
+                <div class="protocol-flag">
+                  <template x-if="server.online && server.code && server.code.length === 2">
+                    <span class="fi fis" :class="'fi-' + server.code.toLowerCase()"></span>
+                  </template>
+                  <template x-if="!server.online || !server.code || server.code.length !== 2">
+                    <span class="unknown">?</span>
+                  </template>
+                </div>
+                <span class="protocol-badge"
+                      :class="server.protocol.toLowerCase().replace('shadowsocks', 'ss')">
+                  <span x-text="server.protocol"></span>
+                </span>
+                <span class="transport-type" x-text="server.transport || 'tcp'"></span>
+              </div>
+              <div class="protocol-status">
+                <svg class="sparkline"
+                     :class="server.ms < 150 ? 'fast' : server.ms < 400 ? 'medium' : 'slow'"
+                     viewBox="0 0 50 20" preserveAspectRatio="none"
+                     x-show="server.history.length >= 2">
+                  <path class="sparkline-area" :d="getSparklineArea(server.history)"></path>
+                  <path class="sparkline-line" :d="getSparklinePath(server.history)"></path>
+                </svg>
+                <span class="protocol-latency"
+                      :class="server.latency === 'n/a' ? 'na' : server.ms < 150 ? 'fast' : server.ms < 400 ? 'medium' : 'slow'"
+                      x-text="server.latency"></span>
+                <span class="status-dot"
+                      :class="server.online ? (server.ms < 150 ? 'online' : server.ms < 400 ? 'degraded' : 'slow') : (server.latency === 'n/a' ? 'pending' : 'offline')">
+                </span>
+              </div>
+            </div>
+          </template>
+          </div>
         </div>
       </div>
     </template>
 
-    <!-- Toast notifications -->
-    <div x-show="!badgeMode" class="fixed top-4 right-4 z-50">
-      <template x-for="t in toasts" :key="t.id">
-        <div x-show="t.visible" x-transition.opacity class="toast px-4 py-3 rounded-xl flex items-center gap-3 mb-2">
-          <div class="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center">
-            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-          </div>
-          <span class="text-sm" style="color: var(--text-primary)" x-text="t.message"></span>
+    <div x-show="filteredGroups.length === 0" class="empty-state">
+      <p>No servers found matching your criteria</p>
+    </div>
+  </div>
+
+  <!-- Geographic View - World Map -->
+  <div class="world-map-container" x-show="viewMode === 'geo'" x-effect="if(viewMode === 'geo' && !mapLoaded) loadWorldMap()" style="position: relative;">
+    <div class="world-map-wrapper">
+      <div id="world-map-svg" class="world-map"></div>
+
+      <!-- Map Legend -->
+      <div class="map-legend">
+        <div class="map-legend-item">
+          <div class="map-legend-dot online"></div>
+          <span>All Online</span>
         </div>
-      </template>
+        <div class="map-legend-item">
+          <div class="map-legend-dot partial"></div>
+          <span>Partial</span>
+        </div>
+        <div class="map-legend-item">
+          <div class="map-legend-dot offline"></div>
+          <span>All Offline</span>
+        </div>
+        <div class="map-legend-item">
+          <div class="map-legend-dot none"></div>
+          <span>No Servers</span>
+        </div>
+      </div>
     </div>
 
-    <div x-show="!badgeMode" class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Header -->
-      <header x-show="showHeader" class="flex items-center justify-between mb-8">
-        <div class="flex items-center gap-4">
-          <div class="w-12 h-12 rounded-2xl card flex items-center justify-center overflow-hidden" style="padding: 0;">
-            <img x-show="darkMode" src="./static/logo-dark.svg" alt="Logo" class="w-8 h-8" />
-            <img x-show="!darkMode" src="./static/logo-light.svg" alt="Logo" class="w-8 h-8" />
-          </div>
-          <div>
-            <h1 class="text-xl font-bold" style="color: var(--text-primary)">
-              {{ if and .IsPublic .SubscriptionName }}{{ .SubscriptionName }}{{ else }}Proxy Checker{{ end }}
-            </h1>
-            {{ if .ShowServerDetails }}
-            <p class="text-sm" style="color: var(--text-muted)">
-              {{.Host}}:{{.Port}}{{ if .Instance }} · {{.Instance}}{{ end }}
-            </p>
-            {{ end }}
-          </div>
+    <!-- Tooltip -->
+    <div class="map-tooltip" :class="{ 'pinned': mapTooltip.pinned }" x-show="mapTooltip.show" :style="'left: ' + mapTooltip.x + 'px; top: ' + mapTooltip.y + 'px;'" x-cloak @click.outside="closeMapTooltip()">
+      <div class="map-tooltip-header">
+        <div class="map-tooltip-title">
+          <span class="fi fis" :class="'fi-' + mapTooltip.code" style="font-size: 16px;"></span>
+          <span x-text="getCountryName(mapTooltip.code)"></span>
         </div>
-
-        <div class="flex items-center gap-3">
-          {{ if not .IsPublic }}
-          <span class="hidden sm:flex h-10 px-4 text-xs rounded-xl card items-center" style="color: var(--text-muted)">
-            v{{.Version}}
-          </span>
-          {{ end }}
-
-          <button @click="toggleAutoRefresh()"
-            class="btn h-10 px-4 rounded-xl text-sm font-medium flex items-center gap-2"
-            :class="autoRefresh && 'btn-active'">
-            <svg class="w-4 h-4" :class="autoRefresh && 'animate-spin'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-            </svg>
-            <span class="tabular-nums min-w-[3rem] text-center" x-text="autoRefresh ? countdown + 's' : 'Auto'"></span>
-          </button>
-
-          <button @click="toggleDarkMode()" class="btn h-10 w-10 rounded-xl flex items-center justify-center">
-            <svg x-show="darkMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-            </svg>
-            <svg x-show="!darkMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-            </svg>
-          </button>
-        </div>
-      </header>
-
-      <!-- Stats Grid -->
-      <div x-show="showStats" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div class="card stat-card stat-total rounded-2xl p-5">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: var(--gradient-accent)">
-              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2"/>
-              </svg>
-            </div>
-            <span class="text-sm font-medium" style="color: var(--text-muted)">Total Servers</span>
-          </div>
-          <div class="text-3xl font-bold" style="color: var(--text-primary)" x-text="stats.total">0</div>
-        </div>
-
-        <div class="card stat-card stat-online rounded-2xl p-5">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: var(--gradient-green)">
-              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-              </svg>
-            </div>
-            <span class="text-sm font-medium" style="color: var(--text-muted)">Online</span>
-          </div>
-          <div class="text-3xl font-bold" style="color: var(--color-green)" x-text="stats.online">0</div>
-        </div>
-
-        <div class="card stat-card stat-offline rounded-2xl p-5">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: var(--gradient-red)">
-              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
-            </div>
-            <span class="text-sm font-medium" style="color: var(--text-muted)">Offline</span>
-          </div>
-          <div class="text-3xl font-bold" style="color: var(--color-red)" x-text="stats.offline">0</div>
-        </div>
-
-        <div class="card stat-card stat-latency rounded-2xl p-5">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #3b82f6, #06b6d4)">
-              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-              </svg>
-            </div>
-            <span class="text-sm font-medium" style="color: var(--text-muted)">Avg Latency</span>
-          </div>
-          <div class="text-3xl font-bold" style="color: var(--text-primary)">
-            <span x-text="stats.avgLatency">0</span>
-            <span class="text-lg font-normal" style="color: var(--text-muted)">ms</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Controls Section -->
-      <div x-show="showServersHeader" class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        <h2 class="text-lg font-semibold" style="color: var(--text-primary)">Proxy Servers</h2>
-
-        {{ if not .IsPublic }}
-        <div class="flex flex-wrap items-center gap-2">
-          <a href="./metrics" target="_blank" class="btn px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-            </svg>
-            <span class="hide-mobile">Metrics</span>
-          </a>
-          <a href="./api/v1/docs" target="_blank" class="btn px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
-            </svg>
-            <span class="hide-mobile">API</span>
-          </a>
-          <a href="https://xray-checker.kutovoy.dev" target="_blank" class="btn px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-            </svg>
-            <span class="hide-mobile">Docs</span>
-          </a>
-        </div>
-        {{ end }}
-      </div>
-
-      {{ if .Endpoints }}
-      <!-- Search and Filters -->
-      <div x-show="showControls" class="flex flex-col sm:flex-row gap-4 mb-6">
-        <div class="flex-1 relative">
-          <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style="color: var(--text-muted)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        <button class="map-tooltip-close" x-show="mapTooltip.pinned" @click="closeMapTooltip()">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="14" height="14">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
-          <input type="text" x-model="search" placeholder="Search servers..."
-            class="w-full pl-12 pr-4 py-3 rounded-xl text-sm" />
-        </div>
-
-        <div class="flex gap-3">
-          <div class="flex gap-1 p-1.5 rounded-xl card-flat">
-            <button @click="setFilter('all')" class="filter-btn" :class="filter === 'all' && 'active-all'">All</button>
-            <button @click="setFilter('online')" class="filter-btn" :class="filter === 'online' && 'active-online'">Online</button>
-            <button @click="setFilter('offline')" class="filter-btn" :class="filter === 'offline' && 'active-offline'">Offline</button>
-          </div>
-
-          <select x-model="sort" @change="saveSort()" class="px-4 py-3 rounded-xl text-sm cursor-pointer min-w-[130px]">
-            <option value="default">Default</option>
-            <option value="name">Name</option>
-            <option value="latency-asc">Latency ↑</option>
-            <option value="latency-desc">Latency ↓</option>
-            <option value="status">Status</option>
-          </select>
-        </div>
+        </button>
       </div>
-
-      <!-- Proxy Grid -->
-      <div x-show="showProxies" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
-        <template x-for="(proxy, idx) in filteredProxies" :key="proxy.name">
-          <div class="proxy-card card rounded-2xl p-4 flex items-center gap-4">
-            <!-- Protocol icon -->
-            <div class="protocol-icon" :class="'protocol-' + (proxy.protocol || 'vless')">
-              <span x-text="(proxy.protocol || 'VL').substring(0,2).toUpperCase()"></span>
-            </div>
-
-            <!-- Status dot -->
-            <div class="status-dot" :class="proxy.status ? 'status-online' : 'status-offline'"></div>
-
-            <!-- Info -->
-            <div class="flex-1 min-w-0">
-              {{ if .IsPublic }}
-              <span class="text-sm font-medium truncate block" style="color: var(--text-primary)" x-text="proxy.name"></span>
-              {{ else }}
-              <a :href="proxy.url" target="_blank"
-                class="text-sm font-medium truncate block transition-colors hover:opacity-80"
-                style="color: var(--text-primary)" x-text="proxy.name"></a>
-              {{ end }}
-              {{ if .ShowServerDetails }}
-              <span class="text-xs truncate block" style="color: var(--text-muted)">
-                <span x-text="proxy.serverInfo"></span> · :<span x-text="proxy.proxyPort"></span>
-              </span>
-              {{ end }}
-            </div>
-
-            <!-- Latency -->
-            <div class="flex flex-col items-end gap-1.5 flex-shrink-0">
-              <span class="text-sm font-medium tabular-nums"
-                :class="proxy.latencyMs === 0 ? 'text-muted' : proxy.latencyMs < 500 ? 'latency-good' : proxy.latencyMs < 1000 ? 'latency-medium' : 'latency-bad'"
-                :style="proxy.latencyMs === 0 && 'color: var(--text-muted)'"
-                x-text="proxy.latency"></span>
-              <div class="latency-bar"
-                :style="'--bar-color: ' + (proxy.latencyMs === 0 ? 'var(--border)' : proxy.latencyMs < 500 ? 'var(--color-green)' : proxy.latencyMs < 1000 ? 'var(--color-yellow)' : 'var(--color-red)')">
-                <template x-for="i in 5" :key="i">
-                  <div class="latency-bar-segment" :class="i <= getSegments(proxy.latencyMs) && 'active'"></div>
-                </template>
-              </div>
-            </div>
-
-            {{ if not .IsPublic }}
-            <!-- Copy button -->
-            <button @click="copyUrl(proxy)" class="hidden sm:flex btn w-10 h-10 rounded-xl items-center justify-center" title="Copy URL">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-              </svg>
-            </button>
-            {{ end }}
+      <div class="map-tooltip-stats">
+        <span style="color: var(--accent-green);" x-text="(countryStats[mapTooltip.code]?.online || 0) + ' online'"></span>
+        <span x-text="((countryStats[mapTooltip.code]?.total || 0) - (countryStats[mapTooltip.code]?.online || 0)) + ' offline'"></span>
+      </div>
+      <!-- Server list on click -->
+      <div class="map-tooltip-servers" x-show="mapTooltip.pinned">
+        <template x-for="server in getCountryServers(mapTooltip.code)" :key="server.id">
+          <div class="map-tooltip-server" @click="selectedServer = server; closeMapTooltip();">
+            <span class="protocol-badge" :class="server.protocol.toLowerCase()" x-text="server.protocol"></span>
+            <span class="map-tooltip-server-latency" :class="server.online ? (server.ms < 150 ? 'fast' : server.ms < 400 ? 'medium' : 'slow') : 'offline'" x-text="server.latency"></span>
+            <span class="status-dot" :class="server.online ? 'online' : 'offline'"></span>
           </div>
         </template>
       </div>
-
-      <div x-show="showProxies && filteredProxies.length === 0" class="text-center py-16" style="color: var(--text-muted)">
-        <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-        <p class="text-lg font-medium">No proxies match your criteria</p>
-        <p class="text-sm mt-1">Try adjusting your search or filter settings</p>
-      </div>
-
-      {{ if not .IsPublic }}
-      <div x-show="showStatusInfo" class="card rounded-xl p-4 text-sm" style="color: var(--text-muted)">
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-          <span><span x-text="filteredProxies.length"></span> of <span x-text="proxies.length"></span> proxies · Config URLs return 200/503 for monitoring</span>
-          <span class="truncate">Check: {{.CheckMethod}} · Interval: {{.CheckInterval}}s · Timeout: {{.Timeout}}s</span>
-        </div>
-      </div>
-      {{ end }}
-      {{ end }}
-
-      <!-- Footer -->
-      <footer x-show="showFooter" class="mt-12 pt-6 text-center text-sm" style="border-top: 1px solid var(--border); color: var(--text-muted)">
-        {{ if .IsPublic }}
-        <p>Powered by <a href="https://github.com/kutovoys/xray-checker" target="_blank" class="hover:underline" style="color: var(--accent-light)">Proxy Checker</a></p>
-        {{ else }}
-        <div class="flex items-center justify-center gap-4 mb-3">
-          <a href="https://github.com/kutovoys/xray-checker" target="_blank" class="hover:underline" style="color: var(--accent-light)">GitHub</a>
-          <span>·</span>
-          <a href="https://t.me/+Ux5gQhAY8KA2OTdi" target="_blank" class="hover:underline" style="color: var(--accent-light)">Telegram</a>
-          <span>·</span>
-          <a href="https://xray-checker.kutovoy.dev" target="_blank" class="hover:underline" style="color: var(--accent-light)">Documentation</a>
-        </div>
-        <p>Made with <span style="color: var(--color-red)">♥</span> by <a href="https://github.com/kutovoys" target="_blank" class="hover:underline" style="color: var(--accent-light)">kutovoys</a></p>
-        {{ end }}
-      </footer>
     </div>
+  </div>
+  {{ end }}
 
-    <script>
-      document.body.style.opacity = '1';
+  <!-- Server Details Modal -->
+  <div class="modal-overlay" x-show="selectedServer" @click.self="selectedServer = null" x-cloak>
+    <div class="modal" @click.stop>
+      <div class="modal-header">
+        <div class="modal-title">
+          <template x-if="selectedServer && selectedServer.code">
+            <span class="fi fis" :class="'fi-' + selectedServer.code.toLowerCase()" style="font-size: 20px;"></span>
+          </template>
+          <span x-text="selectedServer ? selectedServer.name : ''"></span>
+        </div>
+        <button class="modal-close" @click="selectedServer = null">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" x-show="selectedServer">
+        <div class="modal-section">
+          <div class="modal-section-title">Connection Details</div>
+          <div class="modal-info-grid">
+            <div class="modal-info-item">
+              <div class="modal-info-label">Protocol</div>
+              <div class="modal-info-value" x-text="selectedServer ? selectedServer.protocol : ''"></div>
+            </div>
+            <div class="modal-info-item">
+              <div class="modal-info-label">Status</div>
+              <div class="modal-info-value" :style="selectedServer && selectedServer.online ? 'color: var(--accent-green)' : 'color: var(--text-muted)'" x-text="selectedServer && selectedServer.online ? 'Online' : 'Offline'"></div>
+            </div>
+            <div class="modal-info-item">
+              <div class="modal-info-label">Latency</div>
+              <div class="modal-info-value" x-text="selectedServer ? selectedServer.latency : ''"></div>
+            </div>
+            <div class="modal-info-item">
+              <div class="modal-info-label">Transport</div>
+              <div class="modal-info-value" x-text="selectedServer ? (selectedServer.transport || 'tcp') : ''"></div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-section" x-show="selectedServer && selectedServer.history && selectedServer.history.length >= 2">
+          <div class="modal-section-title">Latency History</div>
+          <div class="modal-sparkline">
+            <svg viewBox="0 0 200 40" preserveAspectRatio="none">
+              <path class="sparkline-area" :class="selectedServer && selectedServer.ms < 150 ? 'fast' : selectedServer && selectedServer.ms < 400 ? 'medium' : 'slow'"
+                    :d="selectedServer ? getModalSparklineArea(selectedServer.history) : ''"></path>
+              <path class="sparkline-line" :class="selectedServer && selectedServer.ms < 150 ? 'fast' : selectedServer && selectedServer.ms < 400 ? 'medium' : 'slow'"
+                    :d="selectedServer ? getModalSparklinePath(selectedServer.history) : ''"></path>
+            </svg>
+          </div>
+        </div>
+        {{ if not .IsPublic }}
+        <div class="modal-section" x-show="selectedServer && selectedServer.server">
+          <div class="modal-section-title">Server Info</div>
+          <div class="modal-info-item" style="width: 100%;">
+            <div class="modal-info-label">Address</div>
+            <div class="modal-info-value" x-text="selectedServer ? selectedServer.server : ''"></div>
+          </div>
+        </div>
+        {{ end }}
+      </div>
+    </div>
+  </div>
 
-      function getUrlParam(name) {
-        const params = new URLSearchParams(window.location.search);
-        return params.get(name) === 'true';
-      }
+  <!-- Footer -->
+  <footer class="footer-info">
+    <div class="footer-stats">
+      <span class="footer-stat">
+        <span class="footer-stat-value" x-text="proxies.length"></span> servers
+      </span>
+      <span class="footer-divider">·</span>
+      <span class="footer-stat">
+        <span class="footer-stat-value footer-online" x-text="proxies.filter(p => p.online).length"></span> online
+      </span>
+      <span class="footer-divider">·</span>
+      <span class="footer-stat">
+        avg <span class="footer-stat-value" x-text="Math.round(proxies.filter(p => p.online && p.ms > 0).reduce((a, p) => a + p.ms, 0) / (proxies.filter(p => p.online && p.ms > 0).length || 1)) + 'ms'"></span>
+      </span>
+      {{ if not .IsPublic }}
+      <span class="footer-divider">·</span>
+      <span class="footer-stat">{{.CheckInterval}}s refresh</span>
+      {{ end }}
+    </div>
+  </footer>
 
-      function dashboard() {
-        return {
-          darkMode: localStorage.getItem('darkMode') !== 'false',
-          autoRefresh: localStorage.getItem('autoRefresh') === 'true',
-          countdown: {{ .CheckInterval }},
-          countdownInterval: null,
-          search: '',
-          filter: localStorage.getItem('filter') || 'all',
-          sort: localStorage.getItem('sort') || 'default',
-          toasts: [],
-          initialLoad: true,
+  <!-- Toast -->
+  <div x-show="toast" x-transition class="toast" x-text="toast"></div>
 
-          showHeader: !getUrlParam('hideHeader'),
-          showStats: !getUrlParam('hideStats'),
-          showServersHeader: !getUrlParam('hideServersHeader'),
-          showControls: !getUrlParam('hideControls'),
-          showProxies: !getUrlParam('hideProxies'),
-          showStatusInfo: !getUrlParam('hideStatusInfo'),
-          showFooter: !getUrlParam('hideFooter'),
-          hideBackground: getUrlParam('hideBackground'),
+  <script>
+    function app() {
+      return {
+        autoRefresh: false,
+        countdown: {{ .CheckInterval }},
+        timer: null,
+        search: '',
+        filter: 'all',
+        sort: 'default',
+        toast: '',
+        refreshing: false,
+        viewMode: 'grid',
+        selectedServer: null,
+        collapsedGroups: {},
+        notificationsEnabled: false,
+        previousStatus: {},
+        mapLoaded: false,
+        mapTooltip: { show: false, x: 0, y: 0, code: '', pinned: false },
 
-          badgeMode: false,
-          badgeProxy: null,
-          badgeTheme: 'dark',
-          badgeStyle: '',
-          badgeContainerStyle: '',
-          badgeShowName: true,
-          badgeShowLatency: true,
-          badgeVariant: 'default',
-          badgeSize: 'md',
-          badgeRounded: 'md',
-          badgeTransparent: false,
-
-          get badgeClasses() {
-            const classes = [];
-            if (this.badgeVariant === 'flat') classes.push('badge-style-flat');
-            if (this.badgeVariant === 'pill') classes.push('badge-style-pill');
-            if (this.badgeVariant === 'dot') classes.push('badge-dot-only');
-            if (this.badgeSize === 'sm') classes.push('badge-size-sm');
-            if (this.badgeSize === 'lg') classes.push('badge-size-lg');
-            if (this.badgeVariant !== 'pill' && this.badgeVariant !== 'dot') {
-              classes.push('badge-rounded-' + this.badgeRounded);
-            }
-            if (this.badgeTransparent) classes.push('badge-transparent');
-            return classes.join(' ');
+        proxies: [
+          {{ range $.Endpoints }}
+          {
+            id: "{{.StableID}}",
+            name: "{{.Name}}",
+            code: "{{.CountryCode}}",
+            protocol: "{{.Protocol}}",
+            {{ if $.ShowServerDetails }}server: "{{.ServerInfo}}",{{ end }}
+            {{ if not $.IsPublic }}url: "{{.URL}}",{{ end }}
+            idx: {{.Index}},
+            online: {{.Status}},
+            latency: "{{ formatLatency .Latency }}",
+            ms: {{ .Latency.Milliseconds }},
+            history: [{{ if and .Status (gt .Latency.Milliseconds 0) }}{{ .Latency.Milliseconds }}{{ end }}]
           },
+          {{ end }}
+        ],
 
-          proxies: [
-            {{ range $.Endpoints }}
-            { name: "{{.Name}}", stableId: "{{.StableID}}", protocol: "{{.Protocol}}", {{ if $.ShowServerDetails }}serverInfo: "{{.ServerInfo}}", proxyPort: {{.ProxyPort}}, {{ end }}{{ if not $.IsPublic }}url: "{{.URL}}", {{ end }}index: {{.Index}}, status: {{.Status}}, latency: "{{ formatLatency .Latency }}", latencyMs: {{ .Latency.Milliseconds }} },
-            {{ end }}
-          ],
+        // Extract group name from server name
+        // e.g., "nim-baha (checker) [VLESS - tcp]" => "nim-baha"
+        getGroupName(name) {
+          // Try to extract name before common patterns
+          let groupName = name;
 
-          get stats() {
-            const online = this.proxies.filter(p => p.status).length;
-            const withLatency = this.proxies.filter(p => p.status && p.latencyMs > 0);
-            return {
-              total: this.proxies.length,
-              online,
-              offline: this.proxies.length - online,
-              avgLatency: withLatency.length ? Math.round(withLatency.reduce((s, p) => s + p.latencyMs, 0) / withLatency.length) : 0
-            };
-          },
+          // Remove content in brackets and parentheses at the end
+          groupName = groupName.replace(/\s*\([^)]*\)\s*\[[^\]]*\]\s*$/, '');
+          groupName = groupName.replace(/\s*\[[^\]]*\]\s*$/, '');
+          groupName = groupName.replace(/\s*\([^)]*\)\s*$/, '');
 
-          get filteredProxies() {
-            let r = this.proxies;
-            if (this.search) {
-              const q = this.search.toLowerCase();
-              r = r.filter(p => p.name.toLowerCase().includes(q) || (p.serverInfo && p.serverInfo.toLowerCase().includes(q)));
-            }
-            if (this.filter === 'online') r = r.filter(p => p.status);
-            else if (this.filter === 'offline') r = r.filter(p => !p.status);
+          // Clean up
+          groupName = groupName.trim();
 
-            return [...r].sort((a, b) => {
-              if (this.sort === 'latency-asc') {
-                if (a.latencyMs === 0 && b.latencyMs === 0) return 0;
-                if (a.latencyMs === 0) return 1;
-                if (b.latencyMs === 0) return -1;
-                return a.latencyMs - b.latencyMs;
+          return groupName || name;
+        },
+
+        // Extract transport type from name
+        // e.g., "nim-baha (checker) [VLESS - tcp]" => "tcp"
+        getTransport(name) {
+          const match = name.match(/\[\s*\w+\s*-\s*(\w+)\s*\]/i);
+          return match ? match[1].toLowerCase() : null;
+        },
+
+        // Check if server address is valid
+        // Valid: contains a dot (domain like example.com or IP like 1.2.3.4)
+        // Valid: IPv6 format
+        // Invalid: empty, single word without dots (like "salamabab")
+        isValidAddress(str) {
+          if (!str || str.trim() === '') return false;
+          const addr = str.trim();
+
+          // Must have minimum length (at least "a.b" = 3 chars)
+          if (addr.length < 3) return false;
+
+          // Contains a dot = likely domain or IPv4
+          if (addr.includes('.')) return true;
+
+          // localhost is valid
+          if (addr.toLowerCase() === 'localhost') return true;
+
+          // IPv6 check: contains colons and hex chars
+          if (/^[0-9a-fA-F:]+$/.test(addr) && addr.includes(':')) return true;
+
+          // Single word without dots = invalid (like "salamabab")
+          return false;
+        },
+
+        // Check if a proxy has valid data
+        isValidProxy(proxy) {
+          // Filter out proxies with invalid/empty names or protocols
+          if (!proxy.name || proxy.name.trim() === '') return false;
+          if (!proxy.protocol || proxy.protocol.trim() === '') return false;
+
+          // Check server address if available
+          if (proxy.server) {
+            // Server format is "address:port", extract just the address
+            let server = proxy.server.trim();
+
+            // Empty server like ":9081" - invalid
+            if (server.startsWith(':')) return false;
+
+            // Handle IPv6 with port like [::1]:8080
+            if (server.startsWith('[')) {
+              const bracketEnd = server.indexOf(']');
+              if (bracketEnd > 0) {
+                server = server.substring(1, bracketEnd);
               }
-              if (this.sort === 'latency-desc') {
-                if (a.latencyMs === 0 && b.latencyMs === 0) return 0;
-                if (a.latencyMs === 0) return 1;
-                if (b.latencyMs === 0) return -1;
-                return b.latencyMs - a.latencyMs;
-              }
-              if (this.sort === 'status') return b.status - a.status;
-              if (this.sort === 'name') return this.stripLeadingEmoji(a.name).localeCompare(this.stripLeadingEmoji(b.name));
-              return a.index - b.index;
-            });
-          },
-
-          init() {
-            const params = new URLSearchParams(window.location.search);
-            const stableId = params.get('stableId');
-            if (stableId) {
-              this.badgeProxy = this.proxies.find(p => p.stableId === stableId);
-              if (this.badgeProxy) {
-                this.badgeMode = true;
-                const theme = params.get('theme');
-                if (theme === 'light' || theme === 'dark') {
-                  this.badgeTheme = theme;
-                  this.darkMode = theme === 'dark';
+            } else {
+              // For IPv4/domain, split by last colon (port)
+              const lastColon = server.lastIndexOf(':');
+              // Only split if what's after colon looks like a port number
+              if (lastColon > 0) {
+                const afterColon = server.substring(lastColon + 1);
+                if (/^\d+$/.test(afterColon)) {
+                  server = server.substring(0, lastColon);
                 }
-                const variant = params.get('variant');
-                if (['default', 'flat', 'pill', 'dot'].includes(variant)) {
-                  this.badgeVariant = variant;
-                  if (variant === 'dot') { this.badgeShowName = false; this.badgeShowLatency = false; }
-                }
-                const size = params.get('size');
-                if (['sm', 'md', 'lg'].includes(size)) this.badgeSize = size;
-                const rounded = params.get('rounded');
-                if (['none', 'sm', 'md', 'lg', 'full'].includes(rounded)) this.badgeRounded = rounded;
-                if (params.get('showName') === 'false') this.badgeShowName = false;
-                if (params.get('showLatency') === 'false') this.badgeShowLatency = false;
-                if (params.get('transparent') === 'true') this.badgeTransparent = true;
-                const styles = [];
-                const width = params.get('width');
-                const height = params.get('height');
-                if (width) styles.push('width: ' + width + (isNaN(width) ? '' : 'px'));
-                if (height) styles.push('height: ' + height + (isNaN(height) ? '' : 'px'));
-                if (styles.length) this.badgeStyle = styles.join('; ');
-                const containerStyles = [];
-                const align = params.get('align');
-                if (align === 'center') containerStyles.push('justify-content: center');
-                if (align === 'right') containerStyles.push('justify-content: flex-end');
-                if (width || height) containerStyles.push('width: 100%');
-                if (containerStyles.length) this.badgeContainerStyle = containerStyles.join('; ');
               }
             }
-            if (this.autoRefresh) this.startCountdown();
-            setTimeout(() => this.initialLoad = false, 500);
-          },
 
-          toggleDarkMode() {
-            this.darkMode = !this.darkMode;
-            localStorage.setItem('darkMode', this.darkMode);
-          },
+            // Empty after extraction = invalid
+            if (!server || server.trim() === '') return false;
 
-          toggleAutoRefresh() {
-            this.autoRefresh = !this.autoRefresh;
-            localStorage.setItem('autoRefresh', this.autoRefresh);
-            this.autoRefresh ? this.startCountdown() : this.stopCountdown();
-          },
-
-          setFilter(f) { this.filter = f; localStorage.setItem('filter', f); },
-          saveSort() { localStorage.setItem('sort', this.sort); },
-
-          getSegments(ms) {
-            if (ms === 0) return 0;
-            if (ms < 200) return 5;
-            if (ms < 500) return 4;
-            if (ms < 800) return 3;
-            if (ms < 1200) return 2;
-            return 1;
-          },
-
-          stripLeadingEmoji(str) {
-            return str.replace(/^[\p{Emoji}\p{Emoji_Modifier}\p{Emoji_Component}\p{Emoji_Modifier_Base}\p{Emoji_Presentation}\u200d\ufe0f\s]+/u, '').trim() || str;
-          },
-
-          startCountdown() {
-            this.countdown = {{ .CheckInterval }};
-            this.countdownInterval = setInterval(() => {
-              if (--this.countdown <= 0) this.refreshData();
-            }, 1000);
-          },
-
-          stopCountdown() {
-            clearInterval(this.countdownInterval);
-            this.countdownInterval = null;
-            this.countdown = {{ .CheckInterval }};
-          },
-
-          async refreshData() {
-            try {
-              const res = await fetch('./api/v1/public/proxies');
-              const json = await res.json();
-              if (json.success && json.data) {
-                json.data.forEach(updated => {
-                  const proxy = this.proxies.find(p => p.name === updated.name);
-                  if (proxy) {
-                    proxy.status = updated.online;
-                    proxy.latencyMs = updated.latencyMs;
-                    proxy.latency = updated.latencyMs > 0 ? updated.latencyMs + 'ms' : 'n/a';
-                  }
-                });
-                if (this.badgeMode && this.badgeProxy) {
-                  const updated = json.data.find(p => p.stableId === this.badgeProxy.stableId);
-                  if (updated) {
-                    this.badgeProxy.status = updated.online;
-                    this.badgeProxy.latencyMs = updated.latencyMs;
-                    this.badgeProxy.latency = updated.latencyMs > 0 ? updated.latencyMs + 'ms' : 'n/a';
-                  }
-                }
-              }
-            } catch (e) { console.error('Failed to refresh:', e); }
-            this.countdown = {{ .CheckInterval }};
-          },
-
-          async copyUrl(proxy) {
-            const url = new URL(proxy.url, location.href).toString();
-            try { await navigator.clipboard.writeText(url); }
-            catch { const t = Object.assign(document.createElement('textarea'), {value: url, style: 'position:fixed;opacity:0'}); document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
-            this.showToast('URL copied to clipboard');
-          },
-
-          showToast(msg) {
-            const t = { id: Date.now(), message: msg, visible: true };
-            this.toasts.push(t);
-            setTimeout(() => { t.visible = false; setTimeout(() => this.toasts = this.toasts.filter(x => x.id !== t.id), 200); }, 2500);
+            if (!this.isValidAddress(server)) {
+              return false;
+            }
           }
-        };
-      }
-    </script>
-  </body>
+
+          return true;
+        },
+
+        // Generate sparkline SVG path from history array
+        getSparklinePath(history) {
+          if (!history || history.length < 1) return '';
+          const maxPoints = 10;
+          const data = history.slice(-maxPoints);
+          if (data.length < 1) return '';
+
+          const max = Math.max(...data, 1);
+          const min = Math.min(...data.filter(v => v > 0), max);
+          const range = max - min || 1;
+          const width = 50;
+          const height = 20;
+          const padding = 2;
+
+          const points = data.map((v, i) => {
+            const x = data.length === 1 ? width / 2 : (i / (data.length - 1)) * width;
+            const y = v === 0 ? height - padding : padding + ((v - min) / range) * (height - padding * 2);
+            // Invert Y (lower latency = higher on chart)
+            const invertedY = height - y;
+            return `${x},${invertedY}`;
+          });
+
+          return 'M' + points.join(' L');
+        },
+
+        // Generate sparkline area path (filled area under the line)
+        getSparklineArea(history) {
+          if (!history || history.length < 1) return '';
+          const maxPoints = 10;
+          const data = history.slice(-maxPoints);
+          if (data.length < 1) return '';
+
+          const max = Math.max(...data, 1);
+          const min = Math.min(...data.filter(v => v > 0), max);
+          const range = max - min || 1;
+          const width = 50;
+          const height = 20;
+          const padding = 2;
+
+          const points = data.map((v, i) => {
+            const x = data.length === 1 ? width / 2 : (i / (data.length - 1)) * width;
+            const y = v === 0 ? height - padding : padding + ((v - min) / range) * (height - padding * 2);
+            const invertedY = height - y;
+            return `${x},${invertedY}`;
+          });
+
+          const lastX = data.length === 1 ? width / 2 : width;
+          const firstX = data.length === 1 ? width / 2 : 0;
+          return 'M' + points.join(' L') + ` L${lastX},${height} L${firstX},${height} Z`;
+        },
+
+        // Best server by latency
+        get bestServer() {
+          const online = this.proxies.filter(p => p.online && p.ms > 0);
+          if (online.length === 0) return null;
+          return online.reduce((best, p) => p.ms < best.ms ? p : best, online[0]);
+        },
+
+        // Average latency
+        get avgLatency() {
+          const online = this.proxies.filter(p => p.online && p.ms > 0);
+          if (online.length === 0) return 0;
+          return Math.round(online.reduce((sum, p) => sum + p.ms, 0) / online.length);
+        },
+
+        // Country statistics
+        get countryStats() {
+          const stats = {};
+          this.proxies.filter(p => this.isValidProxy(p)).forEach(p => {
+            const code = (p.code || 'unknown').toLowerCase();
+            if (!stats[code]) {
+              stats[code] = { total: 0, online: 0 };
+            }
+            stats[code].total++;
+            if (p.online) stats[code].online++;
+          });
+          return stats;
+        },
+
+        // Country code to name mapping
+        getCountryName(code) {
+          const names = {
+            'ad': 'Andorra', 'ae': 'UAE', 'af': 'Afghanistan', 'ag': 'Antigua and Barbuda',
+            'al': 'Albania', 'am': 'Armenia', 'ao': 'Angola', 'ar': 'Argentina',
+            'at': 'Austria', 'au': 'Australia', 'az': 'Azerbaijan', 'ba': 'Bosnia',
+            'bd': 'Bangladesh', 'be': 'Belgium', 'bf': 'Burkina Faso', 'bg': 'Bulgaria',
+            'bi': 'Burundi', 'bj': 'Benin', 'bn': 'Brunei', 'bo': 'Bolivia',
+            'br': 'Brazil', 'bs': 'Bahamas', 'bt': 'Bhutan', 'bw': 'Botswana',
+            'by': 'Belarus', 'bz': 'Belize', 'ca': 'Canada', 'cd': 'DR Congo',
+            'cf': 'Central African Rep.', 'cg': 'Congo', 'ch': 'Switzerland', 'ci': 'Ivory Coast',
+            'cl': 'Chile', 'cm': 'Cameroon', 'cn': 'China', 'co': 'Colombia',
+            'cr': 'Costa Rica', 'cu': 'Cuba', 'cy': 'Cyprus', 'cz': 'Czechia',
+            'de': 'Germany', 'dj': 'Djibouti', 'dk': 'Denmark', 'do': 'Dominican Rep.',
+            'dz': 'Algeria', 'ec': 'Ecuador', 'ee': 'Estonia', 'eg': 'Egypt',
+            'er': 'Eritrea', 'es': 'Spain', 'et': 'Ethiopia', 'fi': 'Finland',
+            'fj': 'Fiji', 'fr': 'France', 'ga': 'Gabon', 'gb': 'United Kingdom',
+            'ge': 'Georgia', 'gh': 'Ghana', 'gn': 'Guinea', 'gq': 'Equatorial Guinea',
+            'gr': 'Greece', 'gt': 'Guatemala', 'gw': 'Guinea-Bissau', 'gy': 'Guyana',
+            'hk': 'Hong Kong', 'hn': 'Honduras', 'hr': 'Croatia', 'ht': 'Haiti',
+            'hu': 'Hungary', 'id': 'Indonesia', 'ie': 'Ireland', 'il': 'Israel',
+            'in': 'India', 'iq': 'Iraq', 'ir': 'Iran', 'is': 'Iceland',
+            'it': 'Italy', 'jm': 'Jamaica', 'jo': 'Jordan', 'jp': 'Japan',
+            'ke': 'Kenya', 'kg': 'Kyrgyzstan', 'kh': 'Cambodia', 'kp': 'North Korea',
+            'kr': 'South Korea', 'kw': 'Kuwait', 'kz': 'Kazakhstan', 'la': 'Laos',
+            'lb': 'Lebanon', 'lk': 'Sri Lanka', 'lr': 'Liberia', 'ls': 'Lesotho',
+            'lt': 'Lithuania', 'lu': 'Luxembourg', 'lv': 'Latvia', 'ly': 'Libya',
+            'ma': 'Morocco', 'md': 'Moldova', 'me': 'Montenegro', 'mg': 'Madagascar',
+            'mk': 'N. Macedonia', 'ml': 'Mali', 'mm': 'Myanmar', 'mn': 'Mongolia',
+            'mr': 'Mauritania', 'mw': 'Malawi', 'mx': 'Mexico', 'my': 'Malaysia',
+            'mz': 'Mozambique', 'na': 'Namibia', 'ne': 'Niger', 'ng': 'Nigeria',
+            'ni': 'Nicaragua', 'nl': 'Netherlands', 'no': 'Norway', 'np': 'Nepal',
+            'nz': 'New Zealand', 'om': 'Oman', 'pa': 'Panama', 'pe': 'Peru',
+            'pg': 'Papua New Guinea', 'ph': 'Philippines', 'pk': 'Pakistan', 'pl': 'Poland',
+            'pr': 'Puerto Rico', 'ps': 'Palestine', 'pt': 'Portugal', 'py': 'Paraguay',
+            'qa': 'Qatar', 'ro': 'Romania', 'rs': 'Serbia', 'ru': 'Russia',
+            'rw': 'Rwanda', 'sa': 'Saudi Arabia', 'sb': 'Solomon Islands', 'sd': 'Sudan',
+            'se': 'Sweden', 'sg': 'Singapore', 'si': 'Slovenia', 'sk': 'Slovakia',
+            'sl': 'Sierra Leone', 'sn': 'Senegal', 'so': 'Somalia', 'sr': 'Suriname',
+            'ss': 'South Sudan', 'sv': 'El Salvador', 'sy': 'Syria', 'sz': 'Eswatini',
+            'td': 'Chad', 'tg': 'Togo', 'th': 'Thailand', 'tj': 'Tajikistan',
+            'tl': 'East Timor', 'tm': 'Turkmenistan', 'tn': 'Tunisia', 'tr': 'Turkey',
+            'tt': 'Trinidad and Tobago', 'tw': 'Taiwan', 'tz': 'Tanzania', 'ua': 'Ukraine',
+            'ug': 'Uganda', 'us': 'United States', 'uy': 'Uruguay', 'uz': 'Uzbekistan',
+            've': 'Venezuela', 'vn': 'Vietnam', 'vu': 'Vanuatu', 'ye': 'Yemen',
+            'za': 'South Africa', 'zm': 'Zambia', 'zw': 'Zimbabwe',
+            'unknown': 'Unknown'
+          };
+          return names[code?.toLowerCase()] || code?.toUpperCase() || 'Unknown';
+        },
+
+        // Get country class for map coloring
+        getCountryClass(code) {
+          const stats = this.countryStats[code];
+          if (!stats || stats.total === 0) return '';
+          if (stats.online === stats.total) return 'all-online';
+          if (stats.online === 0) return 'all-offline';
+          return 'partial';
+        },
+
+        // Select country from map
+        // Get servers for a country
+        getCountryServers(code) {
+          return this.proxies.filter(p =>
+            this.isValidProxy(p) && (p.code || '').toLowerCase() === code.toLowerCase()
+          );
+        },
+
+        // Select country - show tooltip with servers
+        selectCountry(code) {
+          const stats = this.countryStats[code];
+          if (!stats || stats.total === 0) return;
+
+          // Toggle: if clicking same country, close it
+          if (this.mapTooltip.show && this.mapTooltip.code === code) {
+            this.mapTooltip.show = false;
+            return;
+          }
+
+          // Keep tooltip open on click (don't hide on mouseleave)
+          this.mapTooltip.pinned = true;
+        },
+
+        // Show map tooltip
+        showMapTooltip(event, code) {
+          const stats = this.countryStats[code];
+          if (!stats || stats.total === 0) return;
+
+          // Don't override pinned tooltip
+          if (this.mapTooltip.pinned && this.mapTooltip.show) return;
+
+          const rect = event.target.closest('.world-map-container').getBoundingClientRect();
+          const targetRect = event.target.getBoundingClientRect();
+
+          this.mapTooltip = {
+            show: true,
+            x: targetRect.left + targetRect.width / 2 - rect.left,
+            y: targetRect.top - rect.top,
+            code: code,
+            pinned: false
+          };
+        },
+
+        // Hide map tooltip
+        hideMapTooltip() {
+          // Don't hide if pinned
+          if (this.mapTooltip.pinned) return;
+          this.mapTooltip.show = false;
+        },
+
+        // Close pinned tooltip
+        closeMapTooltip() {
+          this.mapTooltip.show = false;
+          this.mapTooltip.pinned = false;
+        },
+
+        // Load world map SVG
+        async loadWorldMap() {
+          if (this.mapLoaded) return;
+          try {
+            const response = await fetch('./static/world-map.svg');
+            const svgText = await response.text();
+            const container = document.getElementById('world-map-svg');
+            if (container) {
+              container.innerHTML = svgText;
+              const svg = container.querySelector('svg');
+              if (svg) {
+                svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxHeight = '400px';
+                this.setupMapHandlers(svg);
+                this.mapLoaded = true;
+              }
+            }
+          } catch (e) {
+            console.error('Failed to load world map:', e);
+          }
+        },
+
+        // Setup map event handlers
+        setupMapHandlers(svg) {
+          const self = this;
+          const elements = svg.querySelectorAll('path[id], g[id]');
+
+          elements.forEach(el => {
+            const code = el.getAttribute('id');
+            if (!code || code.startsWith('_')) return; // Skip non-country elements
+
+            // Apply initial class based on country stats
+            this.updateCountryClass(el, code);
+
+            // Add click handler
+            el.addEventListener('click', () => self.selectCountry(code));
+
+            // Add hover handlers
+            el.addEventListener('mouseenter', (e) => self.showMapTooltip(e, code));
+            el.addEventListener('mouseleave', () => self.hideMapTooltip());
+          });
+
+          // Watch for data changes to update map colors
+          this.$watch('countryStats', () => {
+            elements.forEach(el => {
+              const code = el.getAttribute('id');
+              if (!code || code.startsWith('_')) return;
+              this.updateCountryClass(el, code);
+            });
+          });
+        },
+
+        // Update country element class based on server status
+        updateCountryClass(el, code) {
+          el.classList.remove('all-online', 'partial', 'all-offline', 'has-servers');
+          const cls = this.getCountryClass(code);
+          if (cls) {
+            el.classList.add(cls);
+          }
+        },
+
+        // Toggle group collapse
+        toggleCollapse(groupName) {
+          this.collapsedGroups[groupName] = !this.collapsedGroups[groupName];
+        },
+
+        // Toggle notifications
+        async toggleNotifications() {
+          if (this.notificationsEnabled) {
+            this.notificationsEnabled = false;
+            this.showToast('Notifications disabled');
+            return;
+          }
+
+          if (!('Notification' in window)) {
+            this.showToast('Notifications not supported');
+            return;
+          }
+
+          const permission = await Notification.requestPermission();
+          if (permission === 'granted') {
+            this.notificationsEnabled = true;
+            // Store current status for comparison
+            this.proxies.forEach(p => {
+              this.previousStatus[p.id] = p.online;
+            });
+            this.showToast('Notifications enabled');
+          } else {
+            this.showToast('Notification permission denied');
+          }
+        },
+
+        // Send notification
+        sendNotification(title, body, isOnline) {
+          if (!this.notificationsEnabled) return;
+          new Notification(title, {
+            body: body,
+            icon: isOnline ? '🟢' : '🔴',
+            tag: 'server-status'
+          });
+        },
+
+        // Show toast message
+        showToast(msg) {
+          this.toast = msg;
+          setTimeout(() => this.toast = '', 3000);
+        },
+
+        // Modal sparkline paths (larger)
+        getModalSparklinePath(history) {
+          if (!history || history.length < 2) return '';
+          const data = history.slice(-10);
+          const max = Math.max(...data, 1);
+          const min = Math.min(...data.filter(v => v > 0), max);
+          const range = max - min || 1;
+          const points = data.map((v, i) => {
+            const x = (i / (data.length - 1)) * 200;
+            const y = 40 - (5 + ((v - min) / range) * 30);
+            return `${x},${y}`;
+          });
+          return 'M' + points.join(' L');
+        },
+
+        getModalSparklineArea(history) {
+          if (!history || history.length < 2) return '';
+          const data = history.slice(-10);
+          const max = Math.max(...data, 1);
+          const min = Math.min(...data.filter(v => v > 0), max);
+          const range = max - min || 1;
+          const points = data.map((v, i) => {
+            const x = (i / (data.length - 1)) * 200;
+            const y = 40 - (5 + ((v - min) / range) * 30);
+            return `${x},${y}`;
+          });
+          return 'M' + points.join(' L') + ' L200,40 L0,40 Z';
+        },
+
+        // Get all groups
+        get groups() {
+          const groupMap = new Map();
+
+          // Filter valid proxies only
+          const validProxies = this.proxies.filter(p => this.isValidProxy(p));
+
+          validProxies.forEach(proxy => {
+            const groupName = this.getGroupName(proxy.name);
+
+            if (!groupMap.has(groupName)) {
+              groupMap.set(groupName, {
+                name: groupName,
+                servers: []
+              });
+            }
+
+            const group = groupMap.get(groupName);
+            group.servers.push({
+              ...proxy,
+              transport: this.getTransport(proxy.name)
+            });
+          });
+
+          // Calculate group stats
+          groupMap.forEach(group => {
+            const onlineServers = group.servers.filter(s => s.online);
+            group.onlineCount = onlineServers.length;
+            group.allUp = group.onlineCount === group.servers.length;
+            group.allDown = group.onlineCount === 0;
+
+            // Best latency among online servers
+            if (onlineServers.length > 0) {
+              const bestMs = Math.min(...onlineServers.map(s => s.ms));
+              group.bestLatency = bestMs + 'ms';
+              group.bestMs = bestMs;
+            } else {
+              group.bestLatency = 'n/a';
+              group.bestMs = 99999;
+            }
+          });
+
+          return Array.from(groupMap.values());
+        },
+
+        get filteredGroups() {
+          let list = this.groups;
+
+          // Search filter
+          if (this.search) {
+            const q = this.search.toLowerCase();
+            list = list.filter(g =>
+              g.name.toLowerCase().includes(q) ||
+              g.code?.toLowerCase().includes(q) ||
+              g.servers.some(s => s.protocol.toLowerCase().includes(q))
+            );
+          }
+
+          // Status filter
+          if (this.filter === 'online') {
+            list = list.filter(g => g.onlineCount > 0);
+          }
+          if (this.filter === 'offline') {
+            list = list.filter(g => g.onlineCount < g.servers.length);
+          }
+
+          // Sort
+          return [...list].sort((a, b) => {
+            if (this.sort === 'name') return a.name.localeCompare(b.name);
+            if (this.sort === 'latency') return a.bestMs - b.bestMs;
+            if (this.sort === 'status') return b.onlineCount - a.onlineCount;
+            return 0;
+          });
+        },
+
+        toggleRefresh() {
+          this.autoRefresh = !this.autoRefresh;
+          if (this.autoRefresh) {
+            this.countdown = {{ .CheckInterval }};
+            this.timer = setInterval(() => {
+              if (--this.countdown <= 0) this.refresh();
+            }, 1000);
+          } else {
+            clearInterval(this.timer);
+            this.countdown = {{ .CheckInterval }};
+          }
+        },
+
+        async refresh() {
+          this.refreshing = true;
+          try {
+            const r = await fetch('./api/v1/public/proxies');
+            const j = await r.json();
+            if (j.success) {
+              let hasChanges = false;
+              let wentOffline = [];
+              let wentOnline = [];
+
+              j.data.forEach(u => {
+                const p = this.proxies.find(x => x.id === u.stableId);
+                if (p) {
+                  if (p.online !== u.online || p.ms !== u.latencyMs) {
+                    hasChanges = true;
+                  }
+
+                  // Check for status changes for notifications
+                  if (this.notificationsEnabled && this.previousStatus[p.id] !== undefined) {
+                    if (this.previousStatus[p.id] && !u.online) {
+                      wentOffline.push(p.name);
+                    } else if (!this.previousStatus[p.id] && u.online) {
+                      wentOnline.push(p.name);
+                    }
+                  }
+                  this.previousStatus[p.id] = u.online;
+
+                  p.online = u.online;
+                  p.ms = u.latencyMs;
+                  p.latency = u.latencyMs > 0 ? u.latencyMs + 'ms' : 'n/a';
+                  if (u.countryCode) p.code = u.countryCode;
+                  // Update history for sparkline
+                  if (u.online && u.latencyMs > 0) {
+                    p.history.push(u.latencyMs);
+                    if (p.history.length > 10) p.history.shift();
+                  }
+                }
+              });
+
+              // Send notifications
+              if (wentOffline.length > 0) {
+                this.sendNotification(
+                  'Server(s) Went Offline',
+                  wentOffline.length === 1 ? wentOffline[0] : `${wentOffline.length} servers went offline`,
+                  false
+                );
+              }
+              if (wentOnline.length > 0) {
+                this.sendNotification(
+                  'Server(s) Back Online',
+                  wentOnline.length === 1 ? wentOnline[0] : `${wentOnline.length} servers back online`,
+                  true
+                );
+              }
+
+              // Flash effect on update
+              if (hasChanges) {
+                document.querySelectorAll('.server-card').forEach(card => {
+                  card.classList.add('data-updated');
+                  setTimeout(() => card.classList.remove('data-updated'), 500);
+                });
+              }
+            }
+          } catch (e) { console.error(e); }
+          this.refreshing = false;
+          this.countdown = {{ .CheckInterval }};
+        }
+      };
+    }
+  </script>
+</body>
 </html>
 {{ end }}

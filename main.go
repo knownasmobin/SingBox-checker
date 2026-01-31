@@ -40,11 +40,6 @@ func main() {
 		logger.Fatal("Failed to initialize custom assets: %v", err)
 	}
 
-	geoManager := xray.NewGeoFileManager("")
-	if err := geoManager.EnsureGeoFiles(); err != nil {
-		logger.Fatal("Failed to ensure geo files: %v", err)
-	}
-
 	var configFile string
 	if config.CLIConfig.Backend == "singbox" {
 		configFile = "singbox_config.json"

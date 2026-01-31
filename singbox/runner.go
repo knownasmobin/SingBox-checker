@@ -8,6 +8,7 @@ import (
 	"xray-checker/logger"
 
 	"github.com/sagernet/sing-box"
+	"github.com/sagernet/sing-box/include"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing/common/json"
 )
@@ -33,14 +34,17 @@ func (r *Runner) Start() error {
 
 	r.ctx, r.cancel = context.WithCancel(context.Background())
 
-	options, err := json.UnmarshalExtendedContext[option.Options](r.ctx, configBytes)
+	// Use include.Context to get a context with all registries
+	ctx := include.Context(r.ctx)
+
+	options, err := json.UnmarshalExtendedContext[option.Options](ctx, configBytes)
 	if err != nil {
 		r.cancel()
 		return fmt.Errorf("error decoding config: %v", err)
 	}
 
 	instance, err := box.New(box.Options{
-		Context: r.ctx,
+		Context: ctx,
 		Options: options,
 	})
 	if err != nil {

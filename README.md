@@ -42,7 +42,6 @@ Proxy Checker is a tool for monitoring proxy server availability with support fo
 - 📥 Endpoints for monitoring system integration (Uptime Kuma, etc.)
 - 🔒 Basic Auth protection for metrics and web interface
 - 🐳 Docker and Docker Compose support
-- 🌍 Automatic geo files management (geoip.dat, geosite.dat)
 - 📝 Flexible configuration loading:
   - URL subscriptions (base64, JSON)
   - Share links (vless://, vmess://, trojan://, ss://)

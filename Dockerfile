@@ -1,4 +1,4 @@
-FROM --platform=${BUILDPLATFORM:-linux/amd64} golang:1.25-alpine AS builder
+FROM --platform=${BUILDPLATFORM:-linux/amd64} golang:1.23-alpine AS builder
 
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
@@ -33,8 +33,7 @@ RUN apk add --no-cache ca-certificates curl tzdata && \
 WORKDIR /app
 COPY --from=builder /usr/bin/singbox-checker /usr/bin/singbox-checker
 
-RUN mkdir -p /app/geo && \
-    chown -R appuser:appuser /app
+RUN chown -R appuser:appuser /app
 
 USER appuser
 

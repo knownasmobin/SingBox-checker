@@ -42,6 +42,10 @@ type ProxyConfig struct {
 	RawXhttpSettings string
 	SubName          string
 
+	// Country information (extracted from name)
+	Country     string
+	CountryCode string
+
 	// WireGuard specific fields
 	WGPrivateKey        string
 	WGPublicKey         string

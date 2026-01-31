@@ -38,7 +38,6 @@ go build -o xray-checker
 .
 ├── checker/       # Логика проверки прокси
 ├── config/        # Обработка конфигурации
-├── geo/           # Geo-файлы (geoip.dat, geosite.dat)
 ├── logger/        # Структурированное логирование
 ├── metrics/       # Метрики Prometheus
 ├── models/        # Модели данных

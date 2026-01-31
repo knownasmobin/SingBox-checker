@@ -29,7 +29,16 @@ docker-compose.yml
 .DS_Store
 test-files/
 configs/
-geo/
 .claude/
 TODO.md
 wireguard-example.conf
+.air.toml
+tmp/
+singbox_config.json
+
+# Saved webpages
+EZPing Status.html
+EZPing Status_files/
+
+# Windows artifacts
+nul

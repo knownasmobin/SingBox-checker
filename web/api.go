@@ -16,23 +16,27 @@ import (
 var openAPISpec []byte
 
 type ProxyInfo struct {
-	Index     int    `json:"index"`
-	StableID  string `json:"stableId"`
-	Name      string `json:"name"`
-	SubName   string `json:"subName"`
-	Server    string `json:"server"`
-	Port      int    `json:"port"`
-	Protocol  string `json:"protocol"`
-	ProxyPort int    `json:"proxyPort"`
-	Online    bool   `json:"online"`
-	LatencyMs int64  `json:"latencyMs"`
+	Index       int    `json:"index"`
+	StableID    string `json:"stableId"`
+	Name        string `json:"name"`
+	SubName     string `json:"subName"`
+	Server      string `json:"server"`
+	Port        int    `json:"port"`
+	Protocol    string `json:"protocol"`
+	ProxyPort   int    `json:"proxyPort"`
+	Online      bool   `json:"online"`
+	LatencyMs   int64  `json:"latencyMs"`
+	CountryCode string `json:"countryCode,omitempty"`
+	CountryFlag string `json:"countryFlag,omitempty"`
 }
 
 type PublicProxyInfo struct {
-	StableID  string `json:"stableId"`
-	Name      string `json:"name"`
-	Online    bool   `json:"online"`
-	LatencyMs int64  `json:"latencyMs"`
+	StableID    string `json:"stableId"`
+	Name        string `json:"name"`
+	Online      bool   `json:"online"`
+	LatencyMs   int64  `json:"latencyMs"`
+	CountryCode string `json:"countryCode,omitempty"`
+	CountryFlag string `json:"countryFlag,omitempty"`
 }
 
 type StatusResponse struct {
@@ -88,17 +92,27 @@ func writeError(w http.ResponseWriter, message string, code int) {
 }
 
 func toProxyInfo(proxy *models.ProxyConfig, online bool, latency time.Duration, startPort int) ProxyInfo {
+	// Extract country info if not already set
+	countryCode := proxy.CountryCode
+	if countryCode == "" {
+		countryInfo := models.ExtractCountryInfo(proxy.Name)
+		countryCode = countryInfo.Code
+	}
+	countryFlag := models.CountryCodeToFlag(countryCode)
+
 	return ProxyInfo{
-		Index:     proxy.Index,
-		StableID:  proxy.StableID,
-		Name:      proxy.Name,
-		SubName:   proxy.SubName,
-		Server:    proxy.Server,
-		Port:      proxy.Port,
-		Protocol:  proxy.Protocol,
-		ProxyPort: startPort + proxy.Index,
-		Online:    online,
-		LatencyMs: latency.Milliseconds(),
+		Index:       proxy.Index,
+		StableID:    proxy.StableID,
+		Name:        proxy.Name,
+		SubName:     proxy.SubName,
+		Server:      proxy.Server,
+		Port:        proxy.Port,
+		Protocol:    proxy.Protocol,
+		ProxyPort:   startPort + proxy.Index,
+		Online:      online,
+		LatencyMs:   latency.Milliseconds(),
+		CountryCode: countryCode,
+		CountryFlag: countryFlag,
 	}
 }
 
@@ -116,11 +130,22 @@ func APIPublicProxiesHandler(proxyChecker *checker.ProxyChecker) http.HandlerFun
 
 		for _, proxy := range proxies {
 			status, latency, _ := proxyChecker.GetProxyStatus(proxy.Name)
+
+			// Extract country info if not already set
+			countryCode := proxy.CountryCode
+			if countryCode == "" {
+				countryInfo := models.ExtractCountryInfo(proxy.Name)
+				countryCode = countryInfo.Code
+			}
+			countryFlag := models.CountryCodeToFlag(countryCode)
+
 			result = append(result, PublicProxyInfo{
-				StableID:  proxy.StableID,
-				Name:      proxy.Name,
-				Online:    status,
-				LatencyMs: latency.Milliseconds(),
+				StableID:    proxy.StableID,
+				Name:        proxy.Name,
+				Online:      status,
+				LatencyMs:   latency.Milliseconds(),
+				CountryCode: countryCode,
+				CountryFlag: countryFlag,
 			})
 		}
 

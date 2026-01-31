@@ -19,15 +19,17 @@ var (
 )
 
 type EndpointInfo struct {
-	Name       string
-	ServerInfo string
-	URL        string
-	ProxyPort  int
-	Index      int
-	Status     bool
-	Latency    time.Duration
-	StableID   string
-	Protocol   string
+	Name        string
+	ServerInfo  string
+	URL         string
+	ProxyPort   int
+	Index       int
+	Status      bool
+	Latency     time.Duration
+	StableID    string
+	Protocol    string
+	CountryCode string
+	CountryFlag string
 }
 
 func IndexHandler(version string, proxyChecker *checker.ProxyChecker) http.HandlerFunc {
@@ -55,12 +57,14 @@ func IndexHandler(version string, proxyChecker *checker.ProxyChecker) http.Handl
 			endpoints = make([]EndpointInfo, len(allEndpoints))
 			for i, ep := range allEndpoints {
 				endpoints[i] = EndpointInfo{
-					Name:     ep.Name,
-					Index:    ep.Index,
-					Status:   ep.Status,
-					Latency:  ep.Latency,
-					StableID: ep.StableID,
-					Protocol: ep.Protocol,
+					Name:        ep.Name,
+					Index:       ep.Index,
+					Status:      ep.Status,
+					Latency:     ep.Latency,
+					StableID:    ep.StableID,
+					Protocol:    ep.Protocol,
+					CountryCode: ep.CountryCode,
+					CountryFlag: ep.CountryFlag,
 				}
 			}
 		}
@@ -151,10 +155,51 @@ func ConfigStatusHandler(proxyChecker *checker.ProxyChecker) http.HandlerFunc {
 	}
 }
 
+// isValidProxyAddress checks if a proxy has a valid server address
+func isValidProxyAddress(server string) bool {
+	if server == "" {
+		return false
+	}
+
+	server = strings.TrimSpace(server)
+	if len(server) < 1 {
+		return false
+	}
+
+	// Contains a dot = likely domain or IPv4
+	if strings.Contains(server, ".") {
+		return true
+	}
+
+	// localhost is valid
+	if strings.EqualFold(server, "localhost") {
+		return true
+	}
+
+	// IPv6: contains colons and only hex chars
+	if strings.Contains(server, ":") {
+		// Basic IPv6 check - all chars are hex or colons
+		for _, c := range server {
+			if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F') || c == ':') {
+				return false
+			}
+		}
+		return true
+	}
+
+	// Single word without dots = invalid (like "salamabab" or just numbers)
+	return false
+}
+
 func RegisterConfigEndpoints(proxies []*models.ProxyConfig, proxyChecker *checker.ProxyChecker, startPort int) {
 	endpoints := make([]EndpointInfo, 0, len(proxies))
 
 	for _, proxy := range proxies {
+		// Skip proxies with invalid server addresses
+		if !isValidProxyAddress(proxy.Server) {
+			continue
+		}
+
 		if proxy.StableID == "" {
 			proxy.StableID = proxy.GenerateStableID()
 		}
@@ -163,16 +208,26 @@ func RegisterConfigEndpoints(proxies []*models.ProxyConfig, proxyChecker *checke
 
 		status, latency, _ := proxyChecker.GetProxyStatus(proxy.Name)
 
+		// Extract country information from proxy name if not already set
+		countryCode := proxy.CountryCode
+		if countryCode == "" {
+			countryInfo := models.ExtractCountryInfo(proxy.Name)
+			countryCode = countryInfo.Code
+		}
+		countryFlag := models.CountryCodeToFlag(countryCode)
+
 		endpoints = append(endpoints, EndpointInfo{
-			Name:       proxy.Name,
-			ServerInfo: fmt.Sprintf("%s:%d", proxy.Server, proxy.Port),
-			URL:        endpoint,
-			ProxyPort:  startPort + proxy.Index,
-			Index:      proxy.Index,
-			Status:     status,
-			Latency:    latency,
-			StableID:   proxy.StableID,
-			Protocol:   proxy.Protocol,
+			Name:        proxy.Name,
+			ServerInfo:  fmt.Sprintf("%s:%d", proxy.Server, proxy.Port),
+			URL:         endpoint,
+			ProxyPort:   startPort + proxy.Index,
+			Index:       proxy.Index,
+			Status:      status,
+			Latency:     latency,
+			StableID:    proxy.StableID,
+			Protocol:    proxy.Protocol,
+			CountryCode: countryCode,
+			CountryFlag: countryFlag,
 		})
 	}
 

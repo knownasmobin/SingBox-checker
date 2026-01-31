@@ -25,6 +25,8 @@ type ProxyChecker struct {
 	httpClient      *http.Client
 	currentMetrics  sync.Map
 	latencyMetrics  sync.Map
+	previousStatus  sync.Map // Track previous status for offline->online detection
+	geoCache        sync.Map // Cache GeoIP info per proxy (stableID -> *GeoIPInfo)
 	ipInitialized   bool
 	ipCheckTimeout  int
 	genMethodURL    string
@@ -150,9 +152,10 @@ func (pc *ProxyChecker) checkProxyInternal(proxy *models.ProxyConfig, expectedGe
 	var checkErr error
 	var logMessage string
 	var latency time.Duration
+	var exitIP string
 
 	if pc.checkMethod == "ip" {
-		checkSuccess, logMessage, latency, checkErr = pc.checkByIP(client)
+		checkSuccess, logMessage, latency, exitIP, checkErr = pc.checkByIP(client)
 	} else if pc.checkMethod == "status" {
 		checkSuccess, logMessage, latency, checkErr = pc.checkByGen(client)
 	} else if pc.checkMethod == "download" {
@@ -174,12 +177,25 @@ func (pc *ProxyChecker) checkProxyInternal(proxy *models.ProxyConfig, expectedGe
 		logger.Error("%s | Failed | %s | Latency: %s", proxy.Name, logMessage, latency)
 		setFailedStatus()
 		setFailedLatency()
+		pc.previousStatus.Store(proxy.StableID, false)
 	} else {
 		logger.Result("%s | Success | %s | Latency: %s", proxy.Name, logMessage, latency)
 		if !isGenerationValid() {
 			logger.Debug("%s | Skipping metric update: generation changed", proxy.Name)
 			return
 		}
+
+		// Check if proxy just came online (was previously offline or never checked)
+		wasOnline := false
+		if prev, ok := pc.previousStatus.Load(proxy.StableID); ok {
+			wasOnline = prev.(bool)
+		}
+
+		// Look up GeoIP when proxy comes online and we have an exit IP
+		if !wasOnline && exitIP != "" {
+			go pc.updateProxyGeoIP(proxy, exitIP)
+		}
+
 		metrics.RecordProxyStatus(
 			proxy.Protocol,
 			fmt.Sprintf("%s:%d", proxy.Server, proxy.Port),
@@ -197,13 +213,15 @@ func (pc *ProxyChecker) checkProxyInternal(proxy *models.ProxyConfig, expectedGe
 
 		pc.latencyMetrics.Store(metricKey, latency)
 		pc.currentMetrics.Store(metricKey, true)
+		pc.previousStatus.Store(proxy.StableID, true)
 	}
 }
 
-func (pc *ProxyChecker) checkByIP(client *http.Client) (bool, string, time.Duration, error) {
+// checkByIP returns: success, logMessage, latency, exitIP, error
+func (pc *ProxyChecker) checkByIP(client *http.Client) (bool, string, time.Duration, string, error) {
 	req, err := http.NewRequest("GET", pc.ipCheck, nil)
 	if err != nil {
-		return false, "", 0, err
+		return false, "", 0, "", err
 	}
 
 	var ttfb time.Duration
@@ -217,18 +235,18 @@ func (pc *ProxyChecker) checkByIP(client *http.Client) (bool, string, time.Durat
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return false, "", 0, err
+		return false, "", 0, "", err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return false, "", ttfb, err
+		return false, "", ttfb, "", err
 	}
 
-	proxyIP := string(body)
+	proxyIP := strings.TrimSpace(string(body))
 	logMessage := fmt.Sprintf("Source IP: %s | Proxy IP: %s", pc.currentIP, proxyIP)
-	return proxyIP != pc.currentIP, logMessage, ttfb, nil
+	return proxyIP != pc.currentIP, logMessage, ttfb, proxyIP, nil
 }
 
 func (pc *ProxyChecker) checkByGen(client *http.Client) (bool, string, time.Duration, error) {
@@ -426,4 +444,47 @@ func (pc *ProxyChecker) GetProxies() []*models.ProxyConfig {
 	result := make([]*models.ProxyConfig, len(pc.proxies))
 	copy(result, pc.proxies)
 	return result
+}
+
+// updateProxyGeoIP looks up the GeoIP info for a proxy's exit IP and stores it
+func (pc *ProxyChecker) updateProxyGeoIP(proxy *models.ProxyConfig, exitIP string) {
+	// Check if we already have cached info for this proxy
+	if cached, ok := pc.geoCache.Load(proxy.StableID); ok {
+		geoInfo := cached.(*GeoIPInfo)
+		// If the IP hasn't changed and we checked recently (within 1 hour), skip
+		if geoInfo.IP == exitIP && time.Since(geoInfo.LastChecked) < time.Hour {
+			return
+		}
+	}
+
+	// Look up GeoIP
+	geoInfo, err := LookupGeoIP(exitIP)
+	if err != nil {
+		logger.Debug("%s | GeoIP lookup failed: %v", proxy.Name, err)
+		return
+	}
+
+	// Store in cache
+	pc.geoCache.Store(proxy.StableID, geoInfo)
+
+	// Update proxy config
+	pc.mu.Lock()
+	for _, p := range pc.proxies {
+		if p.StableID == proxy.StableID {
+			p.CountryCode = geoInfo.CountryCode
+			p.Country = geoInfo.Country
+			break
+		}
+	}
+	pc.mu.Unlock()
+
+	logger.Debug("%s | GeoIP: %s (%s) from IP %s", proxy.Name, geoInfo.Country, geoInfo.CountryCode, exitIP)
+}
+
+// GetProxyGeoInfo returns the cached GeoIP info for a proxy
+func (pc *ProxyChecker) GetProxyGeoInfo(stableID string) *GeoIPInfo {
+	if cached, ok := pc.geoCache.Load(stableID); ok {
+		return cached.(*GeoIPInfo)
+	}
+	return nil
 }
