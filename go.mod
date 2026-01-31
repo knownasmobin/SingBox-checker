@@ -1,6 +1,6 @@
 module xray-checker
 
-go 1.25.5
+go 1.25
 
 require (
 	github.com/alecthomas/kong v1.11.0
@@ -9,7 +9,7 @@ require (
 	github.com/prometheus/common v0.64.0
 	github.com/sagernet/sing v0.7.16
 	github.com/sagernet/sing-box v1.12.18
-	github.com/xtls/libxray v0.0.0-20251227071437-55f9ac38eb66
+	github.com/xtls/libxray v1.0.2
 	github.com/xtls/xray-core v1.251208.0
 )
 
