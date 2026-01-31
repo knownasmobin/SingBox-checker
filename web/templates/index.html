@@ -1404,10 +1404,10 @@
             <div class="protocol-item" @click="selectedServer = server" style="cursor: pointer;">
               <div class="protocol-info">
                 <div class="protocol-flag">
-                  <template x-if="server.online && server.code && server.code.length === 2">
+                  <template x-if="server.code && server.code.length === 2">
                     <span class="fi fis" :class="'fi-' + server.code.toLowerCase()"></span>
                   </template>
-                  <template x-if="!server.online || !server.code || server.code.length !== 2">
+                  <template x-if="!server.code || server.code.length !== 2">
                     <span class="unknown">?</span>
                   </template>
                 </div>
