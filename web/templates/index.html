@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="./static/tailwind.css">
   <link rel="icon" href="./static/favicon.ico">
   <script defer src="./static/alpine.min.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.0.0/css/flag-icons.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css">
   <style>
     [x-cloak] { display: none !important; }
 
@@ -1847,7 +1847,9 @@
 
         // Get country class for map coloring
         getCountryClass(code) {
-          const stats = this.countryStats[code];
+          // Ensure lowercase comparison with countryStats keys
+          const normalizedCode = (code || '').toLowerCase();
+          const stats = this.countryStats[normalizedCode];
           if (!stats || stats.total === 0) return '';
           if (stats.online === stats.total) return 'all-online';
           if (stats.online === 0) return 'all-offline';
@@ -1864,7 +1866,8 @@
 
         // Select country - show tooltip with servers
         selectCountry(code) {
-          const stats = this.countryStats[code];
+          const normalizedCode = (code || '').toLowerCase();
+          const stats = this.countryStats[normalizedCode];
           if (!stats || stats.total === 0) return;
 
           // Toggle: if clicking same country, close it
@@ -1879,7 +1882,8 @@
 
         // Show map tooltip
         showMapTooltip(event, code) {
-          const stats = this.countryStats[code];
+          const normalizedCode = (code || '').toLowerCase();
+          const stats = this.countryStats[normalizedCode];
           if (!stats || stats.total === 0) return;
 
           // Don't override pinned tooltip
@@ -1892,7 +1896,7 @@
             show: true,
             x: targetRect.left + targetRect.width / 2 - rect.left,
             y: targetRect.top - rect.top,
-            code: code,
+            code: normalizedCode,
             pinned: false
           };
         },
