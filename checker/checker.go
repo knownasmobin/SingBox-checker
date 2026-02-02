@@ -191,8 +191,17 @@ func (pc *ProxyChecker) checkProxyInternal(proxy *models.ProxyConfig, expectedGe
 			wasOnline = prev.(bool)
 		}
 
-		// Look up GeoIP when proxy comes online and we have an exit IP
-		if !wasOnline && exitIP != "" {
+		// Look up GeoIP when:
+		// 1. Proxy just came online (transition from offline), OR
+		// 2. Proxy is online but has no cached GeoIP info yet
+		needsGeoIP := !wasOnline
+		if exitIP != "" && !needsGeoIP {
+			// Check if we have cached GeoIP info
+			if _, hasCached := pc.geoCache.Load(proxy.StableID); !hasCached {
+				needsGeoIP = true
+			}
+		}
+		if needsGeoIP && exitIP != "" {
 			go pc.updateProxyGeoIP(proxy, exitIP)
 		}
 
