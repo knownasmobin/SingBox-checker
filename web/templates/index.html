@@ -1421,7 +1421,7 @@
                 <svg class="sparkline"
                      :class="server.ms < 150 ? 'fast' : server.ms < 400 ? 'medium' : 'slow'"
                      viewBox="0 0 50 20" preserveAspectRatio="none"
-                     x-show="server.history.length >= 2">
+                     x-show="server.history.length > 0">
                   <path class="sparkline-area" :d="getSparklineArea(server.history)"></path>
                   <path class="sparkline-line" :d="getSparklinePath(server.history)"></path>
                 </svg>
@@ -1539,7 +1539,7 @@
             </div>
           </div>
         </div>
-        <div class="modal-section" x-show="selectedServer && selectedServer.history && selectedServer.history.length >= 2">
+        <div class="modal-section" x-show="selectedServer && selectedServer.history && selectedServer.history.length > 0">
           <div class="modal-section-title">Latency History</div>
           <div class="modal-sparkline">
             <svg viewBox="0 0 200 40" preserveAspectRatio="none">
@@ -1719,8 +1719,9 @@
         getSparklinePath(history) {
           if (!history || history.length < 1) return '';
           const maxPoints = 10;
-          const data = history.slice(-maxPoints);
+          let data = history.slice(-maxPoints);
           if (data.length < 1) return '';
+          if (data.length === 1) data = [data[0], data[0]];
 
           const max = Math.max(...data, 1);
           const min = Math.min(...data.filter(v => v > 0), max);
@@ -1730,9 +1731,8 @@
           const padding = 2;
 
           const points = data.map((v, i) => {
-            const x = data.length === 1 ? width / 2 : (i / (data.length - 1)) * width;
+            const x = (i / (data.length - 1)) * width;
             const y = v === 0 ? height - padding : padding + ((v - min) / range) * (height - padding * 2);
-            // Invert Y (lower latency = higher on chart)
             const invertedY = height - y;
             return `${x},${invertedY}`;
           });
@@ -1744,8 +1744,9 @@
         getSparklineArea(history) {
           if (!history || history.length < 1) return '';
           const maxPoints = 10;
-          const data = history.slice(-maxPoints);
+          let data = history.slice(-maxPoints);
           if (data.length < 1) return '';
+          if (data.length === 1) data = [data[0], data[0]];
 
           const max = Math.max(...data, 1);
           const min = Math.min(...data.filter(v => v > 0), max);
@@ -1755,15 +1756,13 @@
           const padding = 2;
 
           const points = data.map((v, i) => {
-            const x = data.length === 1 ? width / 2 : (i / (data.length - 1)) * width;
+            const x = (i / (data.length - 1)) * width;
             const y = v === 0 ? height - padding : padding + ((v - min) / range) * (height - padding * 2);
             const invertedY = height - y;
             return `${x},${invertedY}`;
           });
 
-          const lastX = data.length === 1 ? width / 2 : width;
-          const firstX = data.length === 1 ? width / 2 : 0;
-          return 'M' + points.join(' L') + ` L${lastX},${height} L${firstX},${height} Z`;
+          return 'M' + points.join(' L') + ` L${width},${height} L0,${height} Z`;
         },
 
         // Best server by latency
@@ -2026,8 +2025,9 @@
 
         // Modal sparkline paths (larger)
         getModalSparklinePath(history) {
-          if (!history || history.length < 2) return '';
-          const data = history.slice(-10);
+          if (!history || history.length < 1) return '';
+          let data = history.slice(-10);
+          if (data.length === 1) data = [data[0], data[0]];
           const max = Math.max(...data, 1);
           const min = Math.min(...data.filter(v => v > 0), max);
           const range = max - min || 1;
@@ -2040,8 +2040,9 @@
         },
 
         getModalSparklineArea(history) {
-          if (!history || history.length < 2) return '';
-          const data = history.slice(-10);
+          if (!history || history.length < 1) return '';
+          let data = history.slice(-10);
+          if (data.length === 1) data = [data[0], data[0]];
           const max = Math.max(...data, 1);
           const min = Math.min(...data.filter(v => v > 0), max);
           const range = max - min || 1;

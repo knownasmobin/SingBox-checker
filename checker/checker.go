@@ -17,17 +17,28 @@ import (
 	"xray-checker/models"
 )
 
+// downloadBufPool reuses 8KB buffers for download checks to reduce GC pressure.
+var downloadBufPool = sync.Pool{
+	New: func() interface{} {
+		return make([]byte, 8192)
+	},
+}
+
 type ProxyChecker struct {
 	proxies         []*models.ProxyConfig
+	nameIndex       map[string]string              // name → stableID (protected by mu)
+	idIndex         map[string]*models.ProxyConfig // stableID → proxy (protected by mu)
 	startPort       int
 	ipCheck         string
 	currentIP       string
 	httpClient      *http.Client
-	currentMetrics  sync.Map
-	latencyMetrics  sync.Map
-	previousStatus  sync.Map // Track previous status for offline->online detection
-	geoCache        sync.Map // Cache GeoIP info per proxy (stableID -> *GeoIPInfo)
-	latencyHistory  sync.Map // Ring buffer of recent latency values (stableID -> []int64)
+	geoClient       *http.Client // reusable client for direct GeoIP lookups
+	currentMetrics  sync.Map     // stableID -> bool
+	latencyMetrics  sync.Map     // stableID -> time.Duration
+	previousStatus  sync.Map     // stableID -> bool
+	geoCache        sync.Map     // stableID -> *GeoIPInfo
+	latencyHistory  sync.Map     // stableID -> []int64
+	proxyTransports sync.Map     // proxy.Index -> *http.Transport
 	ipInitialized   bool
 	ipCheckTimeout  int
 	genMethodURL    string
@@ -40,19 +51,61 @@ type ProxyChecker struct {
 }
 
 func NewProxyChecker(proxies []*models.ProxyConfig, startPort int, ipCheckURL string, ipCheckTimeout int, genMethodURL string, downloadURL string, downloadTimeout int, downloadMinSize int64, checkMethod string) *ProxyChecker {
-	return &ProxyChecker{
+	ensureStableIDs(proxies)
+	pc := &ProxyChecker{
 		proxies:   proxies,
 		startPort: startPort,
 		ipCheck:   ipCheckURL,
 		httpClient: &http.Client{
 			Timeout: time.Second * time.Duration(ipCheckTimeout),
 		},
+		geoClient:       &http.Client{Timeout: 5 * time.Second},
 		ipCheckTimeout:  ipCheckTimeout,
 		genMethodURL:    genMethodURL,
 		downloadURL:     downloadURL,
 		downloadTimeout: downloadTimeout,
 		downloadMinSize: downloadMinSize,
 		checkMethod:     checkMethod,
+	}
+	pc.rebuildIndexLocked()
+	return pc
+}
+
+// rebuildIndexLocked rebuilds the name→stableID and stableID→proxy index maps.
+// Must be called under write lock (or during init before concurrent access).
+func (pc *ProxyChecker) rebuildIndexLocked() {
+	pc.nameIndex = make(map[string]string, len(pc.proxies))
+	pc.idIndex = make(map[string]*models.ProxyConfig, len(pc.proxies))
+	for _, p := range pc.proxies {
+		pc.nameIndex[p.Name] = p.StableID
+		pc.idIndex[p.StableID] = p
+	}
+}
+
+// getOrCreateTransport returns a cached or newly created Transport for the proxy.
+func (pc *ProxyChecker) getOrCreateTransport(proxy *models.ProxyConfig) *http.Transport {
+	if val, ok := pc.proxyTransports.Load(proxy.Index); ok {
+		return val.(*http.Transport)
+	}
+	proxyURL, err := url.Parse(fmt.Sprintf("socks5://127.0.0.1:%d", pc.startPort+proxy.Index))
+	if err != nil {
+		logger.Error("Error parsing proxy URL for %s: %v", proxy.Name, err)
+		return nil
+	}
+	transport := &http.Transport{
+		Proxy:             http.ProxyURL(proxyURL),
+		DisableKeepAlives: true,
+	}
+	actual, _ := pc.proxyTransports.LoadOrStore(proxy.Index, transport)
+	return actual.(*http.Transport)
+}
+
+// ensureStableIDs generates StableIDs for all proxies that don't have one.
+func ensureStableIDs(proxies []*models.ProxyConfig) {
+	for _, p := range proxies {
+		if p.StableID == "" {
+			p.StableID = p.GenerateStableID()
+		}
 	}
 }
 
@@ -82,18 +135,8 @@ func (pc *ProxyChecker) CheckProxy(proxy *models.ProxyConfig) {
 }
 
 func (pc *ProxyChecker) checkProxyInternal(proxy *models.ProxyConfig, expectedGeneration uint64, checkGeneration bool) {
-	if proxy.StableID == "" {
-		proxy.StableID = proxy.GenerateStableID()
-	}
-
-	metricKey := fmt.Sprintf("%s|%s:%d|%s|%s|%s",
-		proxy.Protocol,
-		proxy.Server,
-		proxy.Port,
-		proxy.Name,
-		proxy.SubName,
-		proxy.StableID,
-	)
+	stableID := proxy.StableID
+	serverAddr := fmt.Sprintf("%s:%d", proxy.Server, proxy.Port)
 
 	isGenerationValid := func() bool {
 		if !checkGeneration {
@@ -107,46 +150,28 @@ func (pc *ProxyChecker) checkProxyInternal(proxy *models.ProxyConfig, expectedGe
 			logger.Debug("%s | Skipping metric update: generation changed", proxy.Name)
 			return
 		}
-		metrics.RecordProxyStatus(
-			proxy.Protocol,
-			fmt.Sprintf("%s:%d", proxy.Server, proxy.Port),
-			proxy.Name,
-			proxy.SubName,
-			0,
-		)
-		pc.currentMetrics.Store(metricKey, false)
+		metrics.RecordProxyStatus(proxy.Protocol, serverAddr, proxy.Name, proxy.SubName, 0)
+		pc.currentMetrics.Store(stableID, false)
 	}
 
 	setFailedLatency := func() {
 		if !isGenerationValid() {
 			return
 		}
-		metrics.RecordProxyLatency(
-			proxy.Protocol,
-			fmt.Sprintf("%s:%d", proxy.Server, proxy.Port),
-			proxy.Name,
-			proxy.SubName,
-			time.Duration(0),
-		)
-		pc.latencyMetrics.Store(metricKey, time.Duration(0))
+		metrics.RecordProxyLatency(proxy.Protocol, serverAddr, proxy.Name, proxy.SubName, time.Duration(0))
+		pc.latencyMetrics.Store(stableID, time.Duration(0))
 	}
 
-	proxyURL := fmt.Sprintf("socks5://127.0.0.1:%d", pc.startPort+proxy.Index)
-	proxyURLParsed, err := url.Parse(proxyURL)
-	if err != nil {
-		logger.Error("Error parsing proxy URL %s: %v", proxyURL, err)
+	transport := pc.getOrCreateTransport(proxy)
+	if transport == nil {
 		setFailedStatus()
 		setFailedLatency()
-
 		return
 	}
 
 	client := &http.Client{
-		Transport: &http.Transport{
-			Proxy:             http.ProxyURL(proxyURLParsed),
-			DisableKeepAlives: true,
-		},
-		Timeout: time.Second * time.Duration(pc.ipCheckTimeout),
+		Transport: transport,
+		Timeout:   time.Second * time.Duration(pc.ipCheckTimeout),
 	}
 
 	var checkSuccess bool
@@ -178,7 +203,7 @@ func (pc *ProxyChecker) checkProxyInternal(proxy *models.ProxyConfig, expectedGe
 		logger.Error("%s | Failed | %s | Latency: %s", proxy.Name, logMessage, latency)
 		setFailedStatus()
 		setFailedLatency()
-		pc.previousStatus.Store(proxy.StableID, false)
+		pc.previousStatus.Store(stableID, false)
 	} else {
 		logger.Result("%s | Success | %s | Latency: %s", proxy.Name, logMessage, latency)
 		if !isGenerationValid() {
@@ -188,61 +213,47 @@ func (pc *ProxyChecker) checkProxyInternal(proxy *models.ProxyConfig, expectedGe
 
 		// Check if proxy just came online (was previously offline or never checked)
 		wasOnline := false
-		if prev, ok := pc.previousStatus.Load(proxy.StableID); ok {
+		if prev, ok := pc.previousStatus.Load(stableID); ok {
 			wasOnline = prev.(bool)
 		}
 
 		// Look up GeoIP when:
 		// 1. Proxy just came online (transition from offline), OR
 		// 2. Proxy is online but has no cached GeoIP info yet
-		// For non-IP check methods, fall back to the proxy's server address
-		geoTarget := exitIP
-		if geoTarget == "" {
-			geoTarget = proxy.Server
-		}
 		needsGeoIP := !wasOnline
-		if geoTarget != "" && !needsGeoIP {
-			// Check if we have cached GeoIP info
-			if _, hasCached := pc.geoCache.Load(proxy.StableID); !hasCached {
+		if !needsGeoIP {
+			if _, hasCached := pc.geoCache.Load(stableID); !hasCached {
 				needsGeoIP = true
 			}
 		}
-		if needsGeoIP && geoTarget != "" {
-			go pc.updateProxyGeoIP(proxy, geoTarget)
+		if needsGeoIP {
+			if exitIP != "" {
+				go pc.updateProxyGeoIP(proxy, exitIP)
+			} else if pc.ipCheck != "" {
+				go pc.discoverAndUpdateGeoIP(proxy, client)
+			}
 		}
 
-		metrics.RecordProxyStatus(
-			proxy.Protocol,
-			fmt.Sprintf("%s:%d", proxy.Server, proxy.Port),
-			proxy.Name,
-			proxy.SubName,
-			1,
-		)
-		metrics.RecordProxyLatency(
-			proxy.Protocol,
-			fmt.Sprintf("%s:%d", proxy.Server, proxy.Port),
-			proxy.Name,
-			proxy.SubName,
-			latency,
-		)
+		metrics.RecordProxyStatus(proxy.Protocol, serverAddr, proxy.Name, proxy.SubName, 1)
+		metrics.RecordProxyLatency(proxy.Protocol, serverAddr, proxy.Name, proxy.SubName, latency)
 
-		pc.latencyMetrics.Store(metricKey, latency)
-		pc.currentMetrics.Store(metricKey, true)
-		pc.previousStatus.Store(proxy.StableID, true)
+		pc.latencyMetrics.Store(stableID, latency)
+		pc.currentMetrics.Store(stableID, true)
+		pc.previousStatus.Store(stableID, true)
 
 		// Append to latency history ring buffer (max 10 entries)
 		if ms := latency.Milliseconds(); ms > 0 {
-			var old []int64
-			if val, ok := pc.latencyHistory.Load(proxy.StableID); ok {
-				old = val.([]int64)
+			var history []int64
+			if val, ok := pc.latencyHistory.Load(stableID); ok {
+				history = val.([]int64)
 			}
-			newHistory := make([]int64, 0, 10)
-			newHistory = append(newHistory, old...)
-			newHistory = append(newHistory, ms)
-			if len(newHistory) > 10 {
-				newHistory = newHistory[len(newHistory)-10:]
+			if len(history) >= 10 {
+				copy(history, history[1:])
+				history[9] = ms
+			} else {
+				history = append(history, ms)
 			}
-			pc.latencyHistory.Store(proxy.StableID, newHistory)
+			pc.latencyHistory.Store(stableID, history)
 		}
 	}
 }
@@ -339,7 +350,8 @@ func (pc *ProxyChecker) checkByDownload(client *http.Client) (bool, string, time
 	}
 
 	totalBytes := int64(0)
-	buffer := make([]byte, 8192)
+	buffer := downloadBufPool.Get().([]byte)
+	defer downloadBufPool.Put(buffer)
 
 	for {
 		n, err := resp.Body.Read(buffer)
@@ -365,18 +377,19 @@ func (pc *ProxyChecker) checkByDownload(client *http.Client) (bool, string, time
 	return success, logMessage, ttfb, nil
 }
 
-func (pc *ProxyChecker) ClearMetrics() {
+// clearMetricsLocked clears Prometheus metrics and sync.Maps.
+// Must be called under write lock.
+func (pc *ProxyChecker) clearMetricsLocked() {
+	for _, proxy := range pc.proxies {
+		serverAddr := fmt.Sprintf("%s:%d", proxy.Server, proxy.Port)
+		metrics.DeleteProxyStatus(proxy.Protocol, serverAddr, proxy.Name, proxy.SubName)
+		metrics.DeleteProxyLatency(proxy.Protocol, serverAddr, proxy.Name, proxy.SubName)
+	}
+
 	pc.currentMetrics.Range(func(key, _ interface{}) bool {
-		metricKey := key.(string)
-		parts := strings.Split(metricKey, "|")
-		if len(parts) >= 4 {
-			metrics.DeleteProxyStatus(parts[0], parts[1], parts[2], parts[3])
-			metrics.DeleteProxyLatency(parts[0], parts[1], parts[2], parts[3])
-		}
 		pc.currentMetrics.Delete(key)
 		return true
 	})
-
 	pc.latencyMetrics.Range(func(key, _ interface{}) bool {
 		pc.latencyMetrics.Delete(key)
 		return true
@@ -384,11 +397,18 @@ func (pc *ProxyChecker) ClearMetrics() {
 }
 
 func (pc *ProxyChecker) UpdateProxies(newProxies []*models.ProxyConfig) {
+	ensureStableIDs(newProxies)
 	pc.mu.Lock()
 	defer pc.mu.Unlock()
 	atomic.AddUint64(&pc.generation, 1)
-	pc.ClearMetrics()
+	pc.clearMetricsLocked()
 	pc.proxies = newProxies
+	pc.rebuildIndexLocked()
+	// Clear cached transports (proxy ports may have changed)
+	pc.proxyTransports.Range(func(key, _ interface{}) bool {
+		pc.proxyTransports.Delete(key)
+		return true
+	})
 }
 
 func (pc *ProxyChecker) CheckAllProxies() {
@@ -414,38 +434,22 @@ func (pc *ProxyChecker) CheckAllProxies() {
 	wg.Wait()
 }
 
+// GetProxyStatus looks up status and latency by proxy name.
 func (pc *ProxyChecker) GetProxyStatus(name string) (bool, time.Duration, error) {
 	pc.mu.RLock()
-	var metricKey string
-	for _, proxy := range pc.proxies {
-		if proxy.Name == name {
-			if proxy.StableID == "" {
-				proxy.StableID = proxy.GenerateStableID()
-			}
-
-			metricKey = fmt.Sprintf("%s|%s:%d|%s|%s|%s",
-				proxy.Protocol,
-				proxy.Server,
-				proxy.Port,
-				proxy.Name,
-				proxy.SubName,
-				proxy.StableID,
-			)
-			break
-		}
-	}
+	stableID := pc.nameIndex[name]
 	pc.mu.RUnlock()
 
-	if metricKey == "" {
+	if stableID == "" {
 		return false, 0, fmt.Errorf("proxy not found")
 	}
 
-	status, ok := pc.currentMetrics.Load(metricKey)
+	status, ok := pc.currentMetrics.Load(stableID)
 	if !ok {
 		return false, 0, fmt.Errorf("metric not found")
 	}
 
-	latency, _ := pc.latencyMetrics.Load(metricKey)
+	latency, _ := pc.latencyMetrics.Load(stableID)
 	if latency == nil {
 		latency = time.Duration(0)
 	}
@@ -455,17 +459,12 @@ func (pc *ProxyChecker) GetProxyStatus(name string) (bool, time.Duration, error)
 
 func (pc *ProxyChecker) GetProxyByStableID(stableID string) (*models.ProxyConfig, bool) {
 	pc.mu.RLock()
-	defer pc.mu.RUnlock()
-	for _, proxy := range pc.proxies {
-		if proxy.StableID == "" {
-			proxy.StableID = proxy.GenerateStableID()
-		}
-
-		if proxy.StableID == stableID {
-			return proxy, true
-		}
+	proxy := pc.idIndex[stableID]
+	pc.mu.RUnlock()
+	if proxy == nil {
+		return nil, false
 	}
-	return nil, false
+	return proxy, true
 }
 
 func (pc *ProxyChecker) GetProxies() []*models.ProxyConfig {
@@ -476,51 +475,75 @@ func (pc *ProxyChecker) GetProxies() []*models.ProxyConfig {
 	return result
 }
 
-// updateProxyGeoIP looks up the GeoIP info for a proxy's exit IP and stores it
+// storeGeoInfo stores GeoIP info in cache and updates the proxy config.
+func (pc *ProxyChecker) storeGeoInfo(proxy *models.ProxyConfig, geoInfo *GeoIPInfo) {
+	pc.geoCache.Store(proxy.StableID, geoInfo)
+
+	pc.mu.Lock()
+	if p := pc.idIndex[proxy.StableID]; p != nil {
+		p.CountryCode = geoInfo.CountryCode
+		p.Country = geoInfo.Country
+	}
+	pc.mu.Unlock()
+}
+
+// ensureProxyGeoCode ensures the proxy object has the country code from cached geo info.
+// Returns true if cache was fresh and no new lookup is needed.
+func (pc *ProxyChecker) ensureProxyGeoCode(proxy *models.ProxyConfig) bool {
+	cached, ok := pc.geoCache.Load(proxy.StableID)
+	if !ok {
+		return false
+	}
+	geoInfo := cached.(*GeoIPInfo)
+	if time.Since(geoInfo.LastChecked) >= time.Hour {
+		return false
+	}
+
+	pc.mu.Lock()
+	if p := pc.idIndex[proxy.StableID]; p != nil && p.CountryCode == "" {
+		p.CountryCode = geoInfo.CountryCode
+		p.Country = geoInfo.Country
+	}
+	pc.mu.Unlock()
+	return true
+}
+
+// updateProxyGeoIP looks up GeoIP info for a known exit IP (used by "ip" check method).
 func (pc *ProxyChecker) updateProxyGeoIP(proxy *models.ProxyConfig, exitIP string) {
-	// Check if we already have cached info for this proxy
+	// Check if cached info is still fresh for this IP
 	if cached, ok := pc.geoCache.Load(proxy.StableID); ok {
 		geoInfo := cached.(*GeoIPInfo)
-		// If the IP hasn't changed and we checked recently (within 1 hour), skip lookup
-		// but still ensure the proxy object has the country code (may be a new object after subscription update)
 		if geoInfo.IP == exitIP && time.Since(geoInfo.LastChecked) < time.Hour {
-			pc.mu.Lock()
-			for _, p := range pc.proxies {
-				if p.StableID == proxy.StableID {
-					if p.CountryCode == "" {
-						p.CountryCode = geoInfo.CountryCode
-						p.Country = geoInfo.Country
-					}
-					break
-				}
-			}
-			pc.mu.Unlock()
+			pc.ensureProxyGeoCode(proxy)
 			return
 		}
 	}
 
-	// Look up GeoIP
-	geoInfo, err := LookupGeoIP(exitIP)
+	geoInfo, err := LookupGeoIP(exitIP, pc.geoClient)
 	if err != nil {
 		logger.Debug("%s | GeoIP lookup failed: %v", proxy.Name, err)
 		return
 	}
 
-	// Store in cache
-	pc.geoCache.Store(proxy.StableID, geoInfo)
-
-	// Update proxy config
-	pc.mu.Lock()
-	for _, p := range pc.proxies {
-		if p.StableID == proxy.StableID {
-			p.CountryCode = geoInfo.CountryCode
-			p.Country = geoInfo.Country
-			break
-		}
-	}
-	pc.mu.Unlock()
-
+	pc.storeGeoInfo(proxy, geoInfo)
 	logger.Debug("%s | GeoIP: %s (%s) from IP %s", proxy.Name, geoInfo.Country, geoInfo.CountryCode, exitIP)
+}
+
+// discoverAndUpdateGeoIP calls ip-api.com through the proxy connection to discover
+// exit IP and country in a single request. Used for non-IP check methods.
+func (pc *ProxyChecker) discoverAndUpdateGeoIP(proxy *models.ProxyConfig, proxyClient *http.Client) {
+	if pc.ensureProxyGeoCode(proxy) {
+		return
+	}
+
+	geoInfo, err := LookupGeoIPViaClient(proxyClient)
+	if err != nil {
+		logger.Debug("%s | GeoIP via proxy failed: %v", proxy.Name, err)
+		return
+	}
+
+	pc.storeGeoInfo(proxy, geoInfo)
+	logger.Debug("%s | GeoIP: %s (%s) from exit IP %s", proxy.Name, geoInfo.Country, geoInfo.CountryCode, geoInfo.IP)
 }
 
 // GetProxyGeoInfo returns the cached GeoIP info for a proxy

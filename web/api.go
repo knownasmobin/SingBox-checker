@@ -15,6 +15,21 @@ import (
 //go:embed openapi.yaml
 var openAPISpec []byte
 
+// resolveCountryInfo resolves the country code and flag for a proxy.
+// Resolution order: proxy field -> GeoIP cache -> name parsing.
+func resolveCountryInfo(proxy *models.ProxyConfig, proxyChecker *checker.ProxyChecker) (string, string) {
+	code := proxy.CountryCode
+	if code == "" {
+		if geoInfo := proxyChecker.GetProxyGeoInfo(proxy.StableID); geoInfo != nil {
+			code = geoInfo.CountryCode
+		}
+	}
+	if code == "" {
+		code = models.ExtractCountryInfo(proxy.Name).Code
+	}
+	return code, models.CountryCodeToFlag(code)
+}
+
 type ProxyInfo struct {
 	Index       int    `json:"index"`
 	StableID    string `json:"stableId"`
@@ -94,18 +109,7 @@ func writeError(w http.ResponseWriter, message string, code int) {
 }
 
 func toProxyInfo(proxy *models.ProxyConfig, online bool, latency time.Duration, startPort int, proxyChecker *checker.ProxyChecker) ProxyInfo {
-	// Extract country info: proxy field -> GeoIP cache -> name parsing
-	countryCode := proxy.CountryCode
-	if countryCode == "" {
-		if geoInfo := proxyChecker.GetProxyGeoInfo(proxy.StableID); geoInfo != nil {
-			countryCode = geoInfo.CountryCode
-		}
-	}
-	if countryCode == "" {
-		countryInfo := models.ExtractCountryInfo(proxy.Name)
-		countryCode = countryInfo.Code
-	}
-	countryFlag := models.CountryCodeToFlag(countryCode)
+	countryCode, countryFlag := resolveCountryInfo(proxy, proxyChecker)
 
 	return ProxyInfo{
 		Index:          proxy.Index,
@@ -138,19 +142,7 @@ func APIPublicProxiesHandler(proxyChecker *checker.ProxyChecker) http.HandlerFun
 
 		for _, proxy := range proxies {
 			status, latency, _ := proxyChecker.GetProxyStatus(proxy.Name)
-
-			// Extract country info: proxy field -> GeoIP cache -> name parsing
-			countryCode := proxy.CountryCode
-			if countryCode == "" {
-				if geoInfo := proxyChecker.GetProxyGeoInfo(proxy.StableID); geoInfo != nil {
-					countryCode = geoInfo.CountryCode
-				}
-			}
-			if countryCode == "" {
-				countryInfo := models.ExtractCountryInfo(proxy.Name)
-				countryCode = countryInfo.Code
-			}
-			countryFlag := models.CountryCodeToFlag(countryCode)
+			countryCode, countryFlag := resolveCountryInfo(proxy, proxyChecker)
 
 			result = append(result, PublicProxyInfo{
 				StableID:       proxy.StableID,

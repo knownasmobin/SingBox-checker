@@ -201,26 +201,10 @@ func RegisterConfigEndpoints(proxies []*models.ProxyConfig, proxyChecker *checke
 			continue
 		}
 
-		if proxy.StableID == "" {
-			proxy.StableID = proxy.GenerateStableID()
-		}
-
 		endpoint := fmt.Sprintf("./config/%s", proxy.StableID)
 
 		status, latency, _ := proxyChecker.GetProxyStatus(proxy.Name)
-
-		// Extract country information: proxy field -> GeoIP cache -> name parsing
-		countryCode := proxy.CountryCode
-		if countryCode == "" {
-			if geoInfo := proxyChecker.GetProxyGeoInfo(proxy.StableID); geoInfo != nil {
-				countryCode = geoInfo.CountryCode
-			}
-		}
-		if countryCode == "" {
-			countryInfo := models.ExtractCountryInfo(proxy.Name)
-			countryCode = countryInfo.Code
-		}
-		countryFlag := models.CountryCodeToFlag(countryCode)
+		countryCode, countryFlag := resolveCountryInfo(proxy, proxyChecker)
 
 		endpoints = append(endpoints, EndpointInfo{
 			Name:           proxy.Name,
