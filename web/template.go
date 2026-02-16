@@ -24,6 +24,16 @@ func init() {
 			}
 			return fmt.Sprintf("%dms", d.Milliseconds())
 		},
+		"formatHistory": func(history []int64) template.JS {
+			if len(history) == 0 {
+				return ""
+			}
+			parts := make([]string, len(history))
+			for i, v := range history {
+				parts[i] = fmt.Sprintf("%d", v)
+			}
+			return template.JS(strings.Join(parts, ","))
+		},
 	}
 
 	indexTmpl, err = template.New("index.html").Funcs(funcMap).ParseFS(content, "templates/*.html")

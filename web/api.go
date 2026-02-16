@@ -25,18 +25,20 @@ type ProxyInfo struct {
 	Protocol    string `json:"protocol"`
 	ProxyPort   int    `json:"proxyPort"`
 	Online      bool   `json:"online"`
-	LatencyMs   int64  `json:"latencyMs"`
-	CountryCode string `json:"countryCode,omitempty"`
-	CountryFlag string `json:"countryFlag,omitempty"`
+	LatencyMs      int64   `json:"latencyMs"`
+	LatencyHistory []int64 `json:"latencyHistory,omitempty"`
+	CountryCode    string  `json:"countryCode,omitempty"`
+	CountryFlag    string  `json:"countryFlag,omitempty"`
 }
 
 type PublicProxyInfo struct {
-	StableID    string `json:"stableId"`
-	Name        string `json:"name"`
-	Online      bool   `json:"online"`
-	LatencyMs   int64  `json:"latencyMs"`
-	CountryCode string `json:"countryCode,omitempty"`
-	CountryFlag string `json:"countryFlag,omitempty"`
+	StableID       string  `json:"stableId"`
+	Name           string  `json:"name"`
+	Online         bool    `json:"online"`
+	LatencyMs      int64   `json:"latencyMs"`
+	LatencyHistory []int64 `json:"latencyHistory,omitempty"`
+	CountryCode    string  `json:"countryCode,omitempty"`
+	CountryFlag    string  `json:"countryFlag,omitempty"`
 }
 
 type StatusResponse struct {
@@ -91,9 +93,14 @@ func writeError(w http.ResponseWriter, message string, code int) {
 	})
 }
 
-func toProxyInfo(proxy *models.ProxyConfig, online bool, latency time.Duration, startPort int) ProxyInfo {
-	// Extract country info if not already set
+func toProxyInfo(proxy *models.ProxyConfig, online bool, latency time.Duration, startPort int, proxyChecker *checker.ProxyChecker) ProxyInfo {
+	// Extract country info: proxy field -> GeoIP cache -> name parsing
 	countryCode := proxy.CountryCode
+	if countryCode == "" {
+		if geoInfo := proxyChecker.GetProxyGeoInfo(proxy.StableID); geoInfo != nil {
+			countryCode = geoInfo.CountryCode
+		}
+	}
 	if countryCode == "" {
 		countryInfo := models.ExtractCountryInfo(proxy.Name)
 		countryCode = countryInfo.Code
@@ -101,18 +108,19 @@ func toProxyInfo(proxy *models.ProxyConfig, online bool, latency time.Duration, 
 	countryFlag := models.CountryCodeToFlag(countryCode)
 
 	return ProxyInfo{
-		Index:       proxy.Index,
-		StableID:    proxy.StableID,
-		Name:        proxy.Name,
-		SubName:     proxy.SubName,
-		Server:      proxy.Server,
-		Port:        proxy.Port,
-		Protocol:    proxy.Protocol,
-		ProxyPort:   startPort + proxy.Index,
-		Online:      online,
-		LatencyMs:   latency.Milliseconds(),
-		CountryCode: countryCode,
-		CountryFlag: countryFlag,
+		Index:          proxy.Index,
+		StableID:       proxy.StableID,
+		Name:           proxy.Name,
+		SubName:        proxy.SubName,
+		Server:         proxy.Server,
+		Port:           proxy.Port,
+		Protocol:       proxy.Protocol,
+		ProxyPort:      startPort + proxy.Index,
+		Online:         online,
+		LatencyMs:      latency.Milliseconds(),
+		LatencyHistory: proxyChecker.GetLatencyHistory(proxy.StableID),
+		CountryCode:    countryCode,
+		CountryFlag:    countryFlag,
 	}
 }
 
@@ -131,8 +139,13 @@ func APIPublicProxiesHandler(proxyChecker *checker.ProxyChecker) http.HandlerFun
 		for _, proxy := range proxies {
 			status, latency, _ := proxyChecker.GetProxyStatus(proxy.Name)
 
-			// Extract country info if not already set
+			// Extract country info: proxy field -> GeoIP cache -> name parsing
 			countryCode := proxy.CountryCode
+			if countryCode == "" {
+				if geoInfo := proxyChecker.GetProxyGeoInfo(proxy.StableID); geoInfo != nil {
+					countryCode = geoInfo.CountryCode
+				}
+			}
 			if countryCode == "" {
 				countryInfo := models.ExtractCountryInfo(proxy.Name)
 				countryCode = countryInfo.Code
@@ -140,12 +153,13 @@ func APIPublicProxiesHandler(proxyChecker *checker.ProxyChecker) http.HandlerFun
 			countryFlag := models.CountryCodeToFlag(countryCode)
 
 			result = append(result, PublicProxyInfo{
-				StableID:    proxy.StableID,
-				Name:        proxy.Name,
-				Online:      status,
-				LatencyMs:   latency.Milliseconds(),
-				CountryCode: countryCode,
-				CountryFlag: countryFlag,
+				StableID:       proxy.StableID,
+				Name:           proxy.Name,
+				Online:         status,
+				LatencyMs:      latency.Milliseconds(),
+				LatencyHistory: proxyChecker.GetLatencyHistory(proxy.StableID),
+				CountryCode:    countryCode,
+				CountryFlag:    countryFlag,
 			})
 		}
 
@@ -167,7 +181,7 @@ func APIProxiesHandler(proxyChecker *checker.ProxyChecker, startPort int) http.H
 
 		for _, proxy := range proxies {
 			status, latency, _ := proxyChecker.GetProxyStatus(proxy.Name)
-			result = append(result, toProxyInfo(proxy, status, latency, startPort))
+			result = append(result, toProxyInfo(proxy, status, latency, startPort, proxyChecker))
 		}
 
 		writeJSON(w, result)
@@ -205,7 +219,7 @@ func APIProxyHandler(proxyChecker *checker.ProxyChecker, startPort int) http.Han
 		}
 
 		status, latency, _ := proxyChecker.GetProxyStatus(proxy.Name)
-		writeJSON(w, toProxyInfo(proxy, status, latency, startPort))
+		writeJSON(w, toProxyInfo(proxy, status, latency, startPort, proxyChecker))
 	}
 }
 

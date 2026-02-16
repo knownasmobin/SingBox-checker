@@ -27,6 +27,7 @@ type ProxyChecker struct {
 	latencyMetrics  sync.Map
 	previousStatus  sync.Map // Track previous status for offline->online detection
 	geoCache        sync.Map // Cache GeoIP info per proxy (stableID -> *GeoIPInfo)
+	latencyHistory  sync.Map // Ring buffer of recent latency values (stableID -> []int64)
 	ipInitialized   bool
 	ipCheckTimeout  int
 	genMethodURL    string
@@ -223,6 +224,21 @@ func (pc *ProxyChecker) checkProxyInternal(proxy *models.ProxyConfig, expectedGe
 		pc.latencyMetrics.Store(metricKey, latency)
 		pc.currentMetrics.Store(metricKey, true)
 		pc.previousStatus.Store(proxy.StableID, true)
+
+		// Append to latency history ring buffer (max 10 entries)
+		if ms := latency.Milliseconds(); ms > 0 {
+			var old []int64
+			if val, ok := pc.latencyHistory.Load(proxy.StableID); ok {
+				old = val.([]int64)
+			}
+			newHistory := make([]int64, 0, 10)
+			newHistory = append(newHistory, old...)
+			newHistory = append(newHistory, ms)
+			if len(newHistory) > 10 {
+				newHistory = newHistory[len(newHistory)-10:]
+			}
+			pc.latencyHistory.Store(proxy.StableID, newHistory)
+		}
 	}
 }
 
@@ -460,8 +476,20 @@ func (pc *ProxyChecker) updateProxyGeoIP(proxy *models.ProxyConfig, exitIP strin
 	// Check if we already have cached info for this proxy
 	if cached, ok := pc.geoCache.Load(proxy.StableID); ok {
 		geoInfo := cached.(*GeoIPInfo)
-		// If the IP hasn't changed and we checked recently (within 1 hour), skip
+		// If the IP hasn't changed and we checked recently (within 1 hour), skip lookup
+		// but still ensure the proxy object has the country code (may be a new object after subscription update)
 		if geoInfo.IP == exitIP && time.Since(geoInfo.LastChecked) < time.Hour {
+			pc.mu.Lock()
+			for _, p := range pc.proxies {
+				if p.StableID == proxy.StableID {
+					if p.CountryCode == "" {
+						p.CountryCode = geoInfo.CountryCode
+						p.Country = geoInfo.Country
+					}
+					break
+				}
+			}
+			pc.mu.Unlock()
 			return
 		}
 	}
@@ -494,6 +522,17 @@ func (pc *ProxyChecker) updateProxyGeoIP(proxy *models.ProxyConfig, exitIP strin
 func (pc *ProxyChecker) GetProxyGeoInfo(stableID string) *GeoIPInfo {
 	if cached, ok := pc.geoCache.Load(stableID); ok {
 		return cached.(*GeoIPInfo)
+	}
+	return nil
+}
+
+// GetLatencyHistory returns the recent latency history for a proxy
+func (pc *ProxyChecker) GetLatencyHistory(stableID string) []int64 {
+	if val, ok := pc.latencyHistory.Load(stableID); ok {
+		history := val.([]int64)
+		result := make([]int64, len(history))
+		copy(result, history)
+		return result
 	}
 	return nil
 }

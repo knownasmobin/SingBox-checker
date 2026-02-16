@@ -19,17 +19,18 @@ var (
 )
 
 type EndpointInfo struct {
-	Name        string
-	ServerInfo  string
-	URL         string
-	ProxyPort   int
-	Index       int
-	Status      bool
-	Latency     time.Duration
-	StableID    string
-	Protocol    string
-	CountryCode string
-	CountryFlag string
+	Name           string
+	ServerInfo     string
+	URL            string
+	ProxyPort      int
+	Index          int
+	Status         bool
+	Latency        time.Duration
+	LatencyHistory []int64
+	StableID       string
+	Protocol       string
+	CountryCode    string
+	CountryFlag    string
 }
 
 func IndexHandler(version string, proxyChecker *checker.ProxyChecker) http.HandlerFunc {
@@ -208,8 +209,13 @@ func RegisterConfigEndpoints(proxies []*models.ProxyConfig, proxyChecker *checke
 
 		status, latency, _ := proxyChecker.GetProxyStatus(proxy.Name)
 
-		// Extract country information from proxy name if not already set
+		// Extract country information: proxy field -> GeoIP cache -> name parsing
 		countryCode := proxy.CountryCode
+		if countryCode == "" {
+			if geoInfo := proxyChecker.GetProxyGeoInfo(proxy.StableID); geoInfo != nil {
+				countryCode = geoInfo.CountryCode
+			}
+		}
 		if countryCode == "" {
 			countryInfo := models.ExtractCountryInfo(proxy.Name)
 			countryCode = countryInfo.Code
@@ -217,17 +223,18 @@ func RegisterConfigEndpoints(proxies []*models.ProxyConfig, proxyChecker *checke
 		countryFlag := models.CountryCodeToFlag(countryCode)
 
 		endpoints = append(endpoints, EndpointInfo{
-			Name:        proxy.Name,
-			ServerInfo:  fmt.Sprintf("%s:%d", proxy.Server, proxy.Port),
-			URL:         endpoint,
-			ProxyPort:   startPort + proxy.Index,
-			Index:       proxy.Index,
-			Status:      status,
-			Latency:     latency,
-			StableID:    proxy.StableID,
-			Protocol:    proxy.Protocol,
-			CountryCode: countryCode,
-			CountryFlag: countryFlag,
+			Name:           proxy.Name,
+			ServerInfo:     fmt.Sprintf("%s:%d", proxy.Server, proxy.Port),
+			URL:            endpoint,
+			ProxyPort:      startPort + proxy.Index,
+			Index:          proxy.Index,
+			Status:         status,
+			Latency:        latency,
+			LatencyHistory: proxyChecker.GetLatencyHistory(proxy.StableID),
+			StableID:       proxy.StableID,
+			Protocol:       proxy.Protocol,
+			CountryCode:    countryCode,
+			CountryFlag:    countryFlag,
 		})
 	}
 

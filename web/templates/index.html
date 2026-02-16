@@ -1619,7 +1619,7 @@
             online: {{.Status}},
             latency: "{{ formatLatency .Latency }}",
             ms: {{ .Latency.Milliseconds }},
-            history: [{{ if and .Status (gt .Latency.Milliseconds 0) }}{{ .Latency.Milliseconds }}{{ end }}]
+            history: [{{ if .LatencyHistory }}{{ formatHistory .LatencyHistory }}{{ else if and .Status (gt .Latency.Milliseconds 0) }}{{ .Latency.Milliseconds }}{{ end }}]
           },
           {{ end }}
         ],
@@ -2172,8 +2172,10 @@
                   p.ms = u.latencyMs;
                   p.latency = u.latencyMs > 0 ? u.latencyMs + 'ms' : 'n/a';
                   if (u.countryCode) p.code = u.countryCode;
-                  // Update history for sparkline
-                  if (u.online && u.latencyMs > 0) {
+                  // Update history from server-provided data
+                  if (u.latencyHistory && u.latencyHistory.length > 0) {
+                    p.history = u.latencyHistory;
+                  } else if (u.online && u.latencyMs > 0) {
                     p.history.push(u.latencyMs);
                     if (p.history.length > 10) p.history.shift();
                   }

@@ -102,6 +102,16 @@ func (a *AssetLoader) load() error {
 				}
 				return fmt.Sprintf("%dms", d.Milliseconds())
 			},
+			"formatHistory": func(history []int64) template.JS {
+				if len(history) == 0 {
+					return ""
+				}
+				parts := make([]string, len(history))
+				for i, v := range history {
+					parts[i] = fmt.Sprintf("%d", v)
+				}
+				return template.JS(strings.Join(parts, ","))
+			},
 		}
 
 		tmpl, err := template.New("index.html").Funcs(funcMap).Parse(string(data))
