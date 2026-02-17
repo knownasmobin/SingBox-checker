@@ -509,6 +509,7 @@
       width: 50px;
       height: 20px;
       flex-shrink: 0;
+      overflow: hidden;
     }
     .sparkline-line {
       fill: none;
@@ -517,6 +518,7 @@
       stroke-linejoin: round;
     }
     .sparkline-area {
+      stroke: none;
       opacity: 0.15;
     }
     .sparkline.fast .sparkline-line { stroke: var(--accent-green); }
@@ -1542,10 +1544,12 @@
         <div class="modal-section" x-show="selectedServer && selectedServer.history && selectedServer.history.length > 0">
           <div class="modal-section-title">Latency History</div>
           <div class="modal-sparkline">
-            <svg viewBox="0 0 200 40" preserveAspectRatio="none">
-              <path class="sparkline-area" :class="selectedServer && selectedServer.ms < 150 ? 'fast' : selectedServer && selectedServer.ms < 400 ? 'medium' : 'slow'"
+            <svg class="sparkline"
+                 :class="selectedServer && selectedServer.ms < 150 ? 'fast' : selectedServer && selectedServer.ms < 400 ? 'medium' : 'slow'"
+                 viewBox="0 0 200 40" preserveAspectRatio="none">
+              <path class="sparkline-area"
                     :d="selectedServer ? getModalSparklineArea(selectedServer.history) : ''"></path>
-              <path class="sparkline-line" :class="selectedServer && selectedServer.ms < 150 ? 'fast' : selectedServer && selectedServer.ms < 400 ? 'medium' : 'slow'"
+              <path class="sparkline-line"
                     :d="selectedServer ? getModalSparklinePath(selectedServer.history) : ''"></path>
             </svg>
           </div>
@@ -2173,12 +2177,15 @@
                   p.ms = u.latencyMs;
                   p.latency = u.latencyMs > 0 ? u.latencyMs + 'ms' : 'n/a';
                   if (u.countryCode) p.code = u.countryCode;
-                  // Update history from server-provided data
-                  if (u.latencyHistory && u.latencyHistory.length > 0) {
+                  // Update history: use server data when it has more entries,
+                  // otherwise keep accumulating client-side between check cycles
+                  if (u.latencyHistory && u.latencyHistory.length > p.history.length) {
                     p.history = u.latencyHistory;
                   } else if (u.online && u.latencyMs > 0) {
-                    p.history.push(u.latencyMs);
-                    if (p.history.length > 10) p.history.shift();
+                    if (p.history.length === 0 || p.history[p.history.length - 1] !== u.latencyMs) {
+                      p.history.push(u.latencyMs);
+                      if (p.history.length > 10) p.history.shift();
+                    }
                   }
                 }
               });
