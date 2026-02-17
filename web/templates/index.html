@@ -940,10 +940,33 @@
       background: var(--bg-body);
       border-radius: 8px;
       padding: 10px;
+      position: relative;
+      cursor: crosshair;
     }
     .modal-sparkline svg {
       width: 100%;
       height: 100%;
+    }
+    .sparkline-hover-dot {
+      fill: var(--text-primary);
+      stroke: var(--bg-card);
+      stroke-width: 2;
+      pointer-events: none;
+    }
+    .sparkline-tooltip {
+      position: absolute;
+      top: -6px;
+      transform: translateX(-50%);
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 11px;
+      font-family: 'SF Mono', 'Consolas', monospace;
+      color: var(--text-primary);
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 10;
     }
 
     /* Geographic Map View */
@@ -1543,7 +1566,9 @@
         </div>
         <div class="modal-section" x-show="selectedServer && selectedServer.history && selectedServer.history.length > 0">
           <div class="modal-section-title">Latency History</div>
-          <div class="modal-sparkline">
+          <div class="modal-sparkline"
+               @mousemove="sparklineHover = getSparklineHoverPoint($event, selectedServer?.history)"
+               @mouseleave="sparklineHover = null">
             <svg class="sparkline"
                  :class="selectedServer && selectedServer.ms < 150 ? 'fast' : selectedServer && selectedServer.ms < 400 ? 'medium' : 'slow'"
                  viewBox="0 0 200 40" preserveAspectRatio="none">
@@ -1551,7 +1576,13 @@
                     :d="selectedServer ? getModalSparklineArea(selectedServer.history) : ''"></path>
               <path class="sparkline-line"
                     :d="selectedServer ? getModalSparklinePath(selectedServer.history) : ''"></path>
+              <circle x-show="sparklineHover" class="sparkline-hover-dot"
+                      :cx="sparklineHover?.x || 0" :cy="sparklineHover?.y || 0" r="3"></circle>
             </svg>
+            <div class="sparkline-tooltip" x-show="sparklineHover" x-cloak
+                 :style="sparklineHover ? `left:${sparklineHover.pctX}%` : ''">
+              <span x-text="sparklineHover ? sparklineHover.value + 'ms' : ''"></span>
+            </div>
           </div>
         </div>
         {{ if not .IsPublic }}
@@ -1609,6 +1640,7 @@
         previousStatus: {},
         mapLoaded: false,
         mapTooltip: { show: false, x: 0, y: 0, code: '', pinned: false },
+        sparklineHover: null,
 
         proxies: [
           {{ range $.Endpoints }}
@@ -2056,6 +2088,24 @@
             return `${x},${y}`;
           });
           return 'M' + points.join(' L') + ' L200,40 L0,40 Z';
+        },
+
+        getSparklineHoverPoint(event, history) {
+          if (!history || history.length < 1) return null;
+          const data = history.slice(-10);
+          if (data.length < 1) return null;
+          const svg = event.currentTarget.querySelector('svg');
+          if (!svg) return null;
+          const rect = svg.getBoundingClientRect();
+          const mouseX = event.clientX - rect.left;
+          const pctX = mouseX / rect.width;
+          const idx = Math.max(0, Math.min(data.length - 1, Math.round(pctX * (data.length - 1))));
+          const max = Math.max(...data, 1);
+          const min = Math.min(...data.filter(v => v > 0), max);
+          const range = max - min || 1;
+          const x = data.length === 1 ? 100 : (idx / (data.length - 1)) * 200;
+          const y = 40 - (5 + ((data[idx] - min) / range) * 30);
+          return { x, y, value: data[idx], pctX: (idx / Math.max(data.length - 1, 1)) * 100 };
         },
 
         // Get all groups

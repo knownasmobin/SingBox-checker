@@ -241,19 +241,23 @@ func (pc *ProxyChecker) checkProxyInternal(proxy *models.ProxyConfig, expectedGe
 		pc.currentMetrics.Store(stableID, true)
 		pc.previousStatus.Store(stableID, true)
 
-		// Append to latency history ring buffer (max 10 entries)
+		// Append to latency history (max 10 entries, copy-on-write for concurrent readers)
 		if ms := latency.Milliseconds(); ms > 0 {
-			var history []int64
+			var old []int64
 			if val, ok := pc.latencyHistory.Load(stableID); ok {
-				history = val.([]int64)
+				old = val.([]int64)
 			}
-			if len(history) >= 10 {
-				copy(history, history[1:])
-				history[9] = ms
+			var updated []int64
+			if len(old) >= 10 {
+				updated = make([]int64, 10)
+				copy(updated, old[1:])
+				updated[9] = ms
 			} else {
-				history = append(history, ms)
+				updated = make([]int64, len(old)+1)
+				copy(updated, old)
+				updated[len(old)] = ms
 			}
-			pc.latencyHistory.Store(stableID, history)
+			pc.latencyHistory.Store(stableID, updated)
 		}
 	}
 }
